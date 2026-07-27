@@ -2,13 +2,13 @@
 task_id: CAN-20260726-e2e-login-relog-stability-post-retention
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-022-BASELINE-004
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-post-retention-20260726
 base_branch: main
 created: 2026-07-26T23:03:00+02:00
-updated: 2026-07-26T23:10:00+02:00
-last_verified_commit: "9e066e6aadb836db24ed5588c8d2f24c639180cb"
+updated: 2026-07-27T10:04:00+02:00
+last_verified_commit: "d576d7116b8fe74d9fe777bf697130c2179f767c"
 risk: medium
 related_issue: ""
 related_pr: "975"
@@ -56,7 +56,7 @@ Produce one fresh factual QRI-022 stability classification from exactly ten sequ
 
 - Pin the runtime server to exact current-main commit `7a09367589dfc08e482edadbe77e556ecf0cfaa7` through the temporary same-repository `.github/e2e-controlled-server.env` file.
 - Use exactly suite/scenario `login/relog` through the canonical Universal Agent E2E workflow.
-- Freeze the counted population on the exact PR head produced by this checkpoint commit.
+- Freeze the counted population on exact PR head `d576d7116b8fe74d9fe777bf697130c2179f767c`.
 - Attempt 1 is the initial physical job triggered by that frozen measurement head.
 - Attempts 2 through 10 are sequential reruns of that same physical job and workflow run, preserving distinct `GITHUB_RUN_ATTEMPT` identities.
 - Stop after attempt 10 regardless of outcome. Do not start attempt 11.
@@ -72,23 +72,35 @@ Produce one fresh factual QRI-022 stability classification from exactly ten sequ
 - [x] Fresh isolated branch and task claim only the new evidence outputs and one temporary controlled-server pin.
 - [x] Draft PR #975 targets `blakinio/canary:main` from the same repository.
 - [x] Controlled server is pinned to `7a09367589dfc08e482edadbe77e556ecf0cfaa7` for the counted population.
-- [ ] Exactly ten sequential physical attempts complete with no replacement retries and no attempt 11.
-- [ ] Every counted attempt has retained authoritative schema-v3 result and schema-v1 cleanup evidence, or the missing evidence is preserved as a factual blocker without synthesis.
-- [ ] All comparable attempts normalize into one exact scenario/server/client/datapack/tier cell.
-- [ ] QRI-022 JSON and Markdown are generated with explicit `minimum_runs=10` from only the fresh population.
-- [ ] The baseline dossier records run, attempt, job, artifact, digest, status and cleanup outcome for all ten attempts.
-- [ ] Temporary controlled-server pin is removed before readiness.
+- [x] Exactly ten sequential physical attempts complete with no replacement retries and no attempt 11.
+- [x] Every counted attempt has retained authoritative schema-v3 result and schema-v1 cleanup evidence, or the missing evidence is preserved as a factual blocker without synthesis.
+- [x] All comparable attempts normalize into one exact scenario/server/client/datapack/tier cell.
+- [x] QRI-022 JSON and Markdown are generated with explicit `minimum_runs=10` from only the fresh population.
+- [x] The baseline dossier records run, attempt, job, artifact, digest, status and cleanup outcome for all ten attempts.
+- [x] Temporary controlled-server pin is removed before readiness.
 - [ ] Exact-final-head ownership, CI, review and merge gates pass.
+
+# Result
+
+The fresh population is **unstable**, not stable:
+
+- workflow run `30220474091` contains exactly ten counted sequential attempts and no attempt 11;
+- attempts 1–7, 9 and 10 are complete clean passes;
+- attempt 8 is a retained schema-v3 `client_build_startup` / infrastructure failure at controlled OTClient artifact download;
+- attempt 8 has no valid schema-v1 cleanup certification, and the missing cleanup evidence remains explicit;
+- all ten results share server `7a09367589dfc08e482edadbe77e556ecf0cfaa7`, client `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, datapack `data-otservbr-global`, tier `pr-required`, and cell `befa7d114a6a18cfa7c8`;
+- QRI-022 with explicit `minimum_runs=10` reports `unstable` / `mixed-outcomes`, with nine clean passes and one failure;
+- no retry, missing cleanup evidence or infrastructure failure is hidden or promoted.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-26T21:10:00Z
-head: 9e066e6aadb836db24ed5588c8d2f24c639180cb
+updated_at: 2026-07-27T08:04:00Z
+head: d576d7116b8fe74d9fe777bf697130c2179f767c
 branch: test/e2e-login-relog-stability-post-retention-20260726
 pr: 975
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - universal-e2e
@@ -97,43 +109,51 @@ owned_paths:
   - tests/e2e/baselines/login-relog-stability-post-retention-20260726.md
   - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_POST_RETENTION_20260726.md
   - docs/e2e/baselines/e2e-login-relog-stability-post-retention-20260726.json
-  - .github/e2e-controlled-server.env
 proven:
-  - current main is 7a09367589dfc08e482edadbe77e556ecf0cfaa7 after disjoint RTEC parties evidence PR 958
-  - PR 975 is an open mergeable same-repository draft targeting main
-  - temporary controlled-server pin selects blakinio/canary at 7a09367589dfc08e482edadbe77e556ecf0cfaa7
-  - PR 965 is merged as 698c8698a98571ca61715779f8bb67af6f659fc7 with no comments reviews or unresolved review threads
-  - controlled-server physical validation in run 30212632481 passed login/relog while skipping the redundant exact-head Canary download
-  - no open PR was found for QRI-022 controlled-server or login/relog stability work before PR 975 was created
-  - prior PR 961 preserved its blocked population without replacement retries
-  - the canonical QRI-022 builder requires explicit comparable retained evidence and defaults to minimum_runs 10
-  - pre-population run 30220358871 was concurrency-cancelled after only intermediate task state and is not part of the frozen ten-attempt population
-  - pre-population run 30220408569 belongs to another intermediate task-only head and is excluded before the measurement head is frozen
- derived:
-  - the disjoint main advance does not alter the repaired Universal E2E workflow and 7a09367589dfc08e482edadbe77e556ecf0cfaa7 is the exact current-main server revision for this population
-  - the Universal Agent E2E run triggered by this checkpoint commit is attempt 1 regardless of pass or failure
-unknown:
-  - exact frozen measurement head commit and its Universal Agent E2E run and physical job identities
-  - outcome and retained evidence completeness of attempts 1 through 10
-conflicts: []
+  - frozen measurement head d576d7116b8fe74d9fe777bf697130c2179f767c triggered Universal Agent E2E run 30220474091
+  - run 30220474091 completed exactly ten sequential physical attempts and no attempt 11 was started
+  - attempts 1 through 7 9 and 10 retained schema-v3 success results and certified schema-v1 cleanup
+  - attempt 8 retained schema-v3 failure result client_build_startup category infrastructure and no valid cleanup certification
+  - every result shares server 7a09367589dfc08e482edadbe77e556ecf0cfaa7 client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f datapack data-otservbr-global and tier pr-required
+  - all ten results normalize into certification cell befa7d114a6a18cfa7c8
+  - QRI-022 generated from exactly ten extracted artifact roots with minimum_runs 10 reports unstable mixed-outcomes
+  - population counts are nine clean passes one failed attempt zero blocked attempts and one cleanup-unknown attempt
+  - temporary controlled-server pin is removed from the final readiness candidate
+  - historical PR 961 baseline remains unchanged
+  - pre-population runs 30220358871 and 30220408569 are excluded
+  - every counted artifact ID and digest is preserved in the baseline dossier
+derived:
+  - the post-PR-965 controlled-server path avoids the former redundant exact-head Canary download
+  - controlled OTClient artifact availability remains a factual infrastructure stability risk
+unknown: []
+conflicts:
+  - the population meets the explicit minimum but one retained infrastructure failure prevents a stability pass
 first_failure:
-  marker: none
-  evidence: the counted frozen-head population has not started
+  marker: controlled-otclient-artifact-download
+  evidence: attempt 8 job 89851152772 failed before gameplay with client_build_startup at client-configuration/phase:client-configuration
 rejected_hypotheses:
-  - count concurrency-cancelled intermediate task-state runs because the measurement contract begins only after the PR head is frozen
-  - reuse or extend the PR 961 population because the requested classification requires a fresh post-repair population
-  - modify the Universal Agent E2E workflow because PR 965 already repaired the controlled-server path
-  - replace any failed counted attempt because the measurement contract forbids replacement retries
+  - replace attempt 8 with another green rerun because the measurement contract forbids replacement retries
+  - omit attempt 8 from QRI-022 because it has an authoritative schema-v3 fail-closed result
+  - synthesize schema-v1 cleanup certification for attempt 8
+  - classify nine clean passes as stable because mixed complete evidence is unstable
 changed_paths:
+  - tests/e2e/baselines/login-relog-stability-post-retention-20260726.md
+  - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_POST_RETENTION_20260726.md
+  - docs/e2e/baselines/e2e-login-relog-stability-post-retention-20260726.json
   - docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-post-retention.md
-  - .github/e2e-controlled-server.env
 validation:
-  - command: live repository PR CI and ownership preflight
+  - command: exact ten-attempt collection
     result: PASS
-    evidence: current main 7a09367589dfc08e482edadbe77e556ecf0cfaa7; PR 975 same-repository draft; PR 965 merged cleanly
-  - command: frozen-head ten-attempt Universal Agent E2E population
-    result: NOT_RUN
-    evidence: attempt 1 will be the physical job triggered by this checkpoint commit
+    evidence: nine clean passes and one retained fail-closed infrastructure failure in run 30220474091 with no attempt 11
+  - command: QRI-022 build with minimum_runs=10
+    result: PASS
+    evidence: cell befa7d114a6a18cfa7c8 is unstable reason mixed-outcomes run_count 10
+  - command: deterministic report consistency validation
+    result: PASS
+    evidence: cell digest counts ratios duration distribution failure distribution and evidence-root totals match the repository contract
+  - command: final exact-head GitHub gates
+    result: PENDING
+    evidence: final evidence commit and ci:final-gate validation have not completed
 blockers: []
-next_action: Treat the Universal Agent E2E run triggered by this checkpoint commit as attempt 1; inspect its physical job and, after completion, rerun that exact job once for attempt 2.
+next_action: Apply ci:final-gate, publish the final evidence commit with the temporary pin removed, then complete exact-head CI review and squash merge PR 975.
 ```
