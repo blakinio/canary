@@ -152,7 +152,7 @@ validation:
     result: PASS
     evidence: cell digest counts ratios duration distribution failure distribution and evidence-root totals match the repository contract
   - command: final exact-head GitHub gates
-    result: PENDING
+    result: NOT_RUN
     evidence: final evidence commit and ci:final-gate validation have not completed
 blockers: []
 next_action: Apply ci:final-gate, publish the final evidence commit with the temporary pin removed, then complete exact-head CI review and squash merge PR 975.
