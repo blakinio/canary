@@ -1,11 +1,11 @@
 ---
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 name: Oteryn Architecture and Migration
-status: active
+status: completed
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-27T08:00:00+02:00
-last_verified_commit: "66bdb1a9be9c229720a2e667c760bd56f24d40dd"
+updated: 2026-07-27T19:53:00+02:00
+last_verified_commit: "774bd588906d0ba8b527695a4afe9b4b04ca820f"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -23,6 +23,8 @@ cross_repo_contracts:
 # Mission
 
 Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bounded canonical module/package at a time. The canonical registry is the only migration inventory. Target architecture is defined by `docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md`.
+
+The canonical inventory covered by this programme is complete through OAM-054. New work must come from fresh registry evidence rather than an invented OAM-055.
 
 # Rules
 
@@ -54,52 +56,61 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-051 | `wheel-of-destiny → ADAPT` | OAM-051B target `546eac0a00ec620e7293d0548e30662024464084`; Otheryn lifecycle `db10096f0ebb484f05883dbde4dd895744fbe8c6`; Canary preflight `9e865b68b9197b28450002412ca1720683cf1f64`; Canary lifecycle `a3a0c647fd6fdac44fcfb449f570ee75bd95f6df` |
 | OAM-052 | `deployment-operations → DO_NOT_MIGRATE` | target `2afcaef4a3d023a7ec987e4380e80905534fdd2b`; Otheryn lifecycle `2c085eee1b1c430d09a87f567aac1a8e701721a4`; governance `b5a45d32b015965fd79aece734857edf4bdc0bac`; Canary lifecycle `adb187edbe948ad2f1801586d5196dd4b0ff8e86` |
 | OAM-053 | `network-transport → ADAPT` | Canary preflight `6a9e6cf106b3e0193fb6a9d923a37cee38888f66`; target `c25fff72dd8b89f6ef1565af2d84ab9eef33dce9`; Otheryn lifecycle `9703da845384423ad85883216bf8853642c21bcd`; governance `91d96d8aa72b3851c4db89a71de9ea9722bcc63b`; Canary lifecycle `66bdb1a9be9c229720a2e667c760bd56f24d40dd` |
+| OAM-054 | `login-protocol → ADAPT` | Canary preflight `d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61`; delivery checkpoint `577d04c1d3a723af3ee8933600eff15938deac9f`; Otheryn feature `e077c51fe948652a4849e15f6c518059f4370717`; Otheryn lifecycle `41bc0562c263781df85c2f6855295fefa201db0a`; governance `2029cd7000545cb0ab60920b797af8519dd4dd0a`; Canary lifecycle `774bd588906d0ba8b527695a4afe9b4b04ca820f` |
 
 Detailed package narratives, exact task-start baselines, gate runs, rejected hypotheses and nonclaims remain authoritative in archived task records and package revalidation reports.
 
-# OAM-053 durable completion
+# OAM-054 durable completion
 
 Final disposition:
 
 ```text
-network-transport ADAPT
+login-protocol ADAPT
 ```
 
-OAM-053 preserved Otheryn's existing connection, multiprotocol and session-handoff architecture while adapting explicit current transport profiles, complete profile authority for framing/checksum/compression/encrypted layout, typed fail-closed inbound outcomes, checksum-free block-count symmetry and accepted-sequence commit only after complete checksum/XTEA acceptance.
+OAM-054 preserved Otheryn's current/11.00/8.60 account-login request layouts, RSA/XTEA handoff, secure opaque login-session token issuance and protocol-session hints. It adapted only the response wire into a target-owned deterministic serializer corresponding to the maintained-client parser.
 
-Canary preflight PR #979 merged as `6a9e6cf106b3e0193fb6a9d923a37cee38888f66`. Otheryn feature head `7376eff79e166595a91f4581d8eef6e6c228e754` passed CI `30225971903`, Required `30225971757` and autofix `30225971771`; PR #163 merged as `c25fff72dd8b89f6ef1565af2d84ab9eef33dce9`. Otheryn lifecycle head `34036aa6db8e6f8942a970a214f09493d1fbcd51` passed Required `30226763484` and PR #164 merged as `9703da845384423ad85883216bf8853642c21bcd`. Canary governance head `bacd3b880487c8c35d0e1230b956520cd201ad7c` passed Ownership `30226993622` and CI `30226993717` and merged as `91d96d8aa72b3851c4db89a71de9ea9722bcc63b`. Canary lifecycle head `2fef1da44c757911a00366fcb9c3c16e716e4192` passed Ownership `30241248116` and CI `30241248233` and merged as `66bdb1a9be9c229720a2e667c760bd56f24d40dd`.
+The modern response now has explicit account status, subscription status and premium-expiry order. Legacy premium-days semantics remain intact. One capped `u8` character snapshot feeds token authorization, serialized response records and session hints.
 
-The target feature changed exactly eleven intended paths and passed full Linux CTest plus Linux, macOS, Windows and Docker gates. Governance and lifecycle were documentation-only with clean path sets, `behind_by=0`, no comments, reviews or review threads, and expected-head merges.
+Canary preflight PR #983 merged as `d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61`. Canary delivery checkpoint PR #984 merged as `577d04c1d3a723af3ee8933600eff15938deac9f`. Exact Otheryn feature head `f6db2136248b39ccd7aa57178a1c63c788b9bcec` passed CI `30250360096`, Required `30250359982` and autofix `30250359933`; PR #165 merged as `e077c51fe948652a4849e15f6c518059f4370717`. Otheryn lifecycle PR #173 merged as `41bc0562c263781df85c2f6855295fefa201db0a`.
 
-OAM-053 does not claim complete wire compatibility for every client, account authorization, login or character-list correctness, gameplay packet correctness, session-race safety, economy or transaction safety, Redis/multichannel correctness, hostile-server client resilience, sustained capacity, denial-of-service resistance or production deployment safety.
+Canary governance head `c6e9f90e5d59684a5a28b698b0d8a03f8e6a0462` passed Ownership `30288119453` and full final-gate CI `30288119744`, then PR #986 merged as `2029cd7000545cb0ab60920b797af8519dd4dd0a`. Canary lifecycle head `58c007af840abf5033293fc727df1d9e2885c206` passed Ownership `30289675430`, CI `30289675543` and ready-gate CI `30289755141`, then PR #987 merged as `774bd588906d0ba8b527695a4afe9b4b04ca820f`.
+
+The feature changed exactly six intended target paths. Governance changed exactly two documentation paths. Lifecycle changed exactly the active/archive task pair and durable report. All final merge heads had clean review threads and expected-head protection.
+
+OAM-054 does not claim password security, arbitrary-account authorization, every historical protocol version, game-world authentication, reconnect/session race safety, client UI correctness, sustained capacity, denial-of-service resistance or production deployment safety. Whether separate physical login/relog evidence is required beyond deterministic unit, full CI and runtime-smoke proof remains UNKNOWN.
 
 # Current state
 
 ```text
-Canary reconciliation base: 66bdb1a9be9c229720a2e667c760bd56f24d40dd
-Otheryn target head after OAM-053: 9703da845384423ad85883216bf8853642c21bcd
-OAM-001..OAM-053: feature/proof, governance and lifecycle complete
-OAM-053 tasks: archived in Canary and Otheryn
-OAM-054: NOT STARTED pending a fresh dependency-valid preflight
+Canary reconciliation base: 774bd588906d0ba8b527695a4afe9b4b04ca820f
+Otheryn canonical OAM-054 lifecycle: 41bc0562c263781df85c2f6855295fefa201db0a
+OAM-001..OAM-054: feature/proof, governance and lifecycle complete
+OAM-054 tasks: archived in Canary and Otheryn
+Canonical unresolved OAM package: none identified
 ```
 
-No OAM implementation task is active in this reconciliation record.
+No OAM implementation or lifecycle task is active in this reconciliation record.
 
 # Queue
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-053 | completed | preserve durable evidence and nonclaims |
-| OAM-054 | dependency-valid, not active | perform fresh live-state, open-PR, ownership and four-repository preflight for canonical `login-protocol`; select a bounded target-proof disposition |
-| OAM-055+ | no unresolved canonical package currently identified | do not fabricate work; refresh the canonical registry after OAM-054 completion |
+| OAM-001..OAM-054 | completed | preserve durable evidence, exact revision pins and nonclaims |
+| OAM-055+ | no unresolved canonical package identified | do not fabricate work; reopen programme discovery only when the canonical registry gains new evidence |
 
 # Retained boundaries
 
 - Canonical registry records remain the sole logical migration inventory; paths and PR history are discovery evidence only.
-- `login-protocol` is now dependency-valid because `network-transport` is durably complete; it remains unselected until a fresh OAM-054 ownership and target-gap preflight merges.
+- `login-protocol` is complete only for the bounded OAM-054 request/response, secure-token handoff and maintained-client correspondence proof.
 - `physical-client-e2e` remains active under the Canary Universal E2E programme and is consumed through exact target-SHA validation, not migration.
+- The unresolved physical login/relog evidence question remains UNKNOWN and does not silently become a programme-completion claim.
 - SEC-005 remains bounded evidence for its registered disposable authenticated-session assertions; it is not complete transport or login equivalence proof.
 - OAM-051 completed only its selected Wheel safety and Bonus Promotion boundary; broader Wheel parity remains separately governed.
 - Upstream Intelligence remains active under its own Canary programme; OAM-049 only excludes duplicating it in Otheryn.
 - Canary `deployment-operations` remains laboratory/content-validation tooling; future Otheryn production deployment is separately PRS-owned.
-- Completed package nonclaims remain in force; compaction does not upgrade static, unit, runtime or physical-client evidence.
+- Completed package nonclaims remain in force; programme completion does not upgrade static, unit, runtime or physical-client evidence.
+
+# Reconciliation delivery
+
+Programme reconciliation PR: #988.
