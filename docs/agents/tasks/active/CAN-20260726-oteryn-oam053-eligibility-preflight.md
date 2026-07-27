@@ -8,10 +8,10 @@ branch: dudantas/oam-053-network-transport-governance
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-27
-last_verified_commit: "7fcb69f491aac33c00bc07d02f5e11eb9809c32e"
+last_verified_commit: "9eb3cd9d860eae21de65d456de27c7d4418a2493"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "980"
 depends_on:
   - OAM-052 durable program reconciliation merged as 4dac672b7d7cd67e467411c3c27c85b47f736833
   - Otheryn OAM-053 target lifecycle merged as 9703da845384423ad85883216bf8853642c21bcd
@@ -49,10 +49,10 @@ Otheryn retained its existing connection, multiprotocol and session-handoff arch
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T02:20:00+02:00
-head: 7fcb69f491aac33c00bc07d02f5e11eb9809c32e
+updated_at: 2026-07-27T02:25:00+02:00
+head: 9eb3cd9d860eae21de65d456de27c7d4418a2493
 branch: dudantas/oam-053-network-transport-governance
-pr: pending
+pr: 980
 status: validating
 context_routes:
   - agent-governance
@@ -75,7 +75,7 @@ proven:
   - PR 163 had no comments reviews or review threads was behind target main by zero and squash-merged with expected-head protection as c25fff72dd8b89f6ef1565af2d84ab9eef33dce9.
   - Target lifecycle PR 164 changed exactly the active/archive task pair and report, passed Required 30226763484 and merged as 9703da845384423ad85883216bf8853642c21bcd.
   - Delivered target profiles own checksum compression framing and encrypted layout; rejected frames commit no accepted sequence before complete checksum/XTEA acceptance.
-  - No client runtime schema datapack workflow deployment endpoint credential host or production action was added.
+  - PR 980 changes exactly this checkpoint and the durable OAM-053 report.
 derived:
   - ADAPT is proven; pure REUSE and wholesale migration are both rejected.
   - OAM-054 login-protocol becomes dependency-valid only after OAM-053 Canary lifecycle and reconciliation complete.
@@ -104,5 +104,5 @@ validation:
     result: PASS
     evidence: Target changed only bounded transport authority validation and regressions while preserving excluded systems.
 blockers: []
-next_action: Open and merge the two-file Canary governance PR, then archive this task, update the durable report and reconcile the programme before OAM-054.
+next_action: Keep this exact governance head unchanged, pass Ownership and CI, merge PR 980, then archive this task and reconcile the programme before OAM-054.
 ```
