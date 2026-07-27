@@ -2,25 +2,26 @@
 task_id: CAN-20260726-oteryn-oam053-eligibility-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-053
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-053-network-transport-preflight
+branch: dudantas/oam-053-network-transport-governance
 base_branch: main
 created: 2026-07-26
 updated: 2026-07-27
-last_verified_commit: "f14b2e26536b191504ae5b0428ef5f8814ffdbcd"
+last_verified_commit: "9eb3cd9d860eae21de65d456de27c7d4418a2493"
 risk: high
 related_issue: ""
-related_pr: "979"
+related_pr: "980"
 depends_on:
   - OAM-052 durable program reconciliation merged as 4dac672b7d7cd67e467411c3c27c85b47f736833
-  - SEC-005 lifecycle merged as ba08e346540f017773b9268832d304c7f5664ac2
+  - Otheryn OAM-053 target lifecycle merged as 9703da845384423ad85883216bf8853642c21bcd
 blocks:
-  - OAM-053 target proof and lifecycle
+  - OAM-053 Canary lifecycle and durable reconciliation
   - OAM-054 login-protocol start
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260726-oteryn-oam053-eligibility-preflight.md
+    - docs/agents/OTERYN_OAM_053_NETWORK_TRANSPORT_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
@@ -28,113 +29,80 @@ owned_paths:
     - docs/agents/real-tibia/registry/modules/network-transport.yaml
     - docs/agents/real-tibia/registry/modules/login-protocol.yaml
     - docs/agents/programs/SECURITY_VALIDATION_PROGRAM.md
-    - docs/security/SECURITY_VALIDATION_SEC005.md
     - docs/security/SECURITY_VALIDATION_SEC005_HANDOVER.md
-    - src/server/network/connection/**
-    - src/server/network/protocol/**
-    - src/server/network/message/outputmessage.hpp
-    - tests/unit/server/network/protocol/**
     - blakinio/Otheryn
     - blakinio/otclient
 modules_touched:
   - oteryn-architecture-migration
-cross_repo_tasks: []
+  - network-transport
+cross_repo_tasks:
+  - OTH-20260727-oam053-network-transport-adapt
 ---
 
-# OAM-053 network transport preflight
+# OAM-053 Network Transport governance
 
-## Result
+Final disposition: `network-transport → ADAPT`.
 
-```text
-OAM-053 → network-transport
-preflight → REVALIDATE
-leading target hypothesis → ADAPT
-```
-
-The prior ownership blocker is resolved. PR #514 was closed unmerged as superseded after SEC-005 recovery PR #974 merged and lifecycle PR #977 made the evidence durable.
-
-The target proof must not replace Otheryn's entire connection or protocol layer. It must preserve current Otheryn profile/session-handoff work and adapt only evidence-backed transport authority, framing and rejection/recovery invariants from the pinned donors.
-
-## Selected target-proof boundary
-
-Included:
-
-- complete `TransportProfile` authority for framing, checksum, sequence and compression;
-- distinct current login, sequenced-game and checksum-free-game transport profiles;
-- exact checksum-free modern block-count encode/decode symmetry;
-- complete first modern game-frame sizing;
-- typed inbound rejection outcomes;
-- sequence state mutation only after complete checksum/decrypt acceptance;
-- bounded guards for truncated checksum/header, invalid block size, missing inner length/padding and oversized padding;
-- deterministic target tests plus applicable exact-head runtime validation.
-
-Excluded:
-
-- wholesale `Connection` or `ProtocolGame` replacement;
-- account authentication, character-list or login response semantics;
-- game opcode layouts and gameplay dispatch;
-- legacy-client parity beyond existing target profiles;
-- session lifecycle races, economy, Redis/multichannel, hostile-server client testing, sustained load or production claims;
-- arbitrary packet, credential, target or command surfaces.
+Otheryn retained its existing connection, multiprotocol and session-handoff architecture. The target adapted only profile authority, framing, typed fail-closed inbound results and post-validation sequence/XTEA state invariants.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T00:25:00+02:00
-head: f14b2e26536b191504ae5b0428ef5f8814ffdbcd
-branch: dudantas/oam-053-network-transport-preflight
-pr: 979
-status: implementing
+updated_at: 2026-07-27T02:25:00+02:00
+head: 9eb3cd9d860eae21de65d456de27c7d4418a2493
+branch: dudantas/oam-053-network-transport-governance
+pr: 980
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
   - cpp-runtime
   - security
+  - testing
 owned_paths:
   - docs/agents/tasks/active/CAN-20260726-oteryn-oam053-eligibility-preflight.md
+  - docs/agents/OTERYN_OAM_053_NETWORK_TRANSPORT_REVALIDATION.md
 proven:
-  - OAM-001 through OAM-052 are durably complete and network-transport is the only dependency-free unresolved canonical record.
-  - Canary main is ba08e346540f017773b9268832d304c7f5664ac2; Otheryn is 64ad965eee40f62ff996980fd8a0d329245c519f; upstream Canary is 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79; maintained OTClient is 5568cb6f5e2fd6162c78cde304deea5d32461e05.
-  - PR 514 is closed unmerged as superseded; PR 974 merged SEC-005 as 1408aaa886240034a90fc33873e9b9e0fa47cab6 and lifecycle PR 977 merged as ba08e346540f017773b9268832d304c7f5664ac2.
-  - SEC-005 exact-head Security Validation 30220958474 passed with five case probes five fresh controls and no fatal findings.
-  - The canonical network-transport record has no dependencies and login-protocol depends on it.
-  - No open Otheryn PR owns connection protocol transport codec or XTEA paths; open PR 162 is bounded module-composition work and excludes protocol wire changes.
-  - Otheryn transport_codec.cpp blob 23804d0b267773246547882fc612756983170e69 matches upstream and differs from legacy blob 787a3370b734dc84b66442c5d62fb0977f6544a2.
-  - Otheryn connection.cpp blob 2633410ab4408f4eb6aa8503460fd4a48d43434a matches upstream and differs from legacy blob f9953a07e46b73c1507f457557fd272a82911c8d.
-  - Otheryn currently increments the accepted client sequence before complete frame validation and returns only bool; legacy records typed outcomes and commits sequence state only after decrypt acceptance.
-  - Legacy PR 71 merged as bbff04524bbb99ab54c9571c24382399b904cbd8 and made transport profiles authoritative with focused regressions.
-  - Legacy PR 155 merged as 4535836d4df0fc669033ed73f525754a1a2d1b40 and fixed checksum-free block-count symmetry.
-  - Legacy PR 375 merged as 5c750e13fb95f46225807b8907a95ce3091283c8 and fixed the captured modern first game frame size without relaxing sequence validation.
+  - OAM-052 durable reconciliation merged as 4dac672b7d7cd67e467411c3c27c85b47f736833.
+  - SEC-005 recovery PR 974 merged as 1408aaa886240034a90fc33873e9b9e0fa47cab6 and lifecycle PR 977 merged as ba08e346540f017773b9268832d304c7f5664ac2; stale PR 514 closed as superseded.
+  - OAM-053 preflight PR 979 selected network-transport and merged as 6a9e6cf106b3e0193fb6a9d923a37cee38888f66.
+  - Canonical network-transport has no dependencies and login-protocol depends on it.
+  - Otheryn task-start main was 64ad965eee40f62ff996980fd8a0d329245c519f; upstream Canary was 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79; maintained OTClient was 5568cb6f5e2fd6162c78cde304deea5d32461e05.
+  - Target PR 163 changed exactly eleven intended paths and preserved Connection ProtocolGame login gameplay schema datapack and production boundaries.
+  - Exact target feature head 7376eff79e166595a91f4581d8eef6e6c228e754 passed CI 30225971903 Required 30225971757 and autofix 30225971771.
+  - Linux debug passed Canary smoke schema import and full CTest including new OAM-053 and existing multiprotocol/session-handoff regressions; Linux release macOS Windows and Docker passed applicable build/runtime gates.
+  - PR 163 had no comments reviews or review threads was behind target main by zero and squash-merged with expected-head protection as c25fff72dd8b89f6ef1565af2d84ab9eef33dce9.
+  - Target lifecycle PR 164 changed exactly the active/archive task pair and report, passed Required 30226763484 and merged as 9703da845384423ad85883216bf8853642c21bcd.
+  - Delivered target profiles own checksum compression framing and encrypted layout; rejected frames commit no accepted sequence before complete checksum/XTEA acceptance.
+  - PR 980 changes exactly this checkpoint and the durable OAM-053 report.
 derived:
-  - Pure REUSE is rejected because current Otheryn lacks the proven rejection/recovery and framing fixes.
-  - Wholesale legacy migration is rejected because target protocol profiles and session handoff have later OAM and MGE evolution.
-  - The bounded target disposition is expected to be ADAPT by semantic integration of transport-only invariants and tests.
-unknown:
-  - Exact target file set after reconciling current GameProfile and session-handoff changes.
-  - Whether full physical maintained-client validation is required beyond target unit/CI and reusable SEC-005 adapter evidence.
+  - ADAPT is proven; pure REUSE and wholesale migration are both rejected.
+  - OAM-054 login-protocol becomes dependency-valid only after OAM-053 Canary lifecycle and reconciliation complete.
+unknown: []
 conflicts: []
 first_failure:
-  marker: stale-security-ownership
+  marker: donor-only-test-cleanup-hook
   result: FIXED
-  evidence: SEC-005 recovered on current main, fully validated, merged, archived and PR 514 closed as superseded.
+  evidence: Target-native close(true) cleanup replaced the unavailable donor helper and the subsequent full CTest passed.
 rejected_hypotheses:
-  - keep OAM-053 blocked after ownership release
-  - select login-protocol before its transport dependency
-  - classify current target transport as REUSE without testing legacy-proven invariants
-  - replace all connection/session lifecycle code from legacy
+  - leave target upstream transport unchanged as REUSE
+  - replace Connection or ProtocolGame wholesale
+  - consume sequence state before full checksum/XTEA acceptance
+  - expand OAM-053 into login or gameplay packet semantics
 changed_paths:
   - docs/agents/tasks/active/CAN-20260726-oteryn-oam053-eligibility-preflight.md
+  - docs/agents/OTERYN_OAM_053_NETWORK_TRANSPORT_REVALIDATION.md
 validation:
-  - command: dependency and ownership audit
+  - command: target exact-final gates
     result: PASS
-    evidence: network-transport is dependency-valid and no active PR owns its target paths.
-  - command: four-repository baseline and donor audit
+    evidence: CI 30225971903 Required 30225971757 and autofix 30225971771 passed on exact feature head.
+  - command: target feature and lifecycle audits
     result: PASS
-    evidence: exact heads and donor merges pinned; target/upstream equality and legacy divergence confirmed.
-  - command: target-gap review
+    evidence: Exact path sets clean discussions behind_by zero and expected-head merges c25fff72 and 9703da84.
+  - command: disposition boundary review
     result: PASS
-    evidence: sequence mutation timing and unchecked/truncated transport boundaries require bounded adaptation.
+    evidence: Target changed only bounded transport authority validation and regressions while preserving excluded systems.
 blockers: []
-next_action: Merge this one-file preflight, then create a separately authorized Otheryn target task and implementation PR for the bounded ADAPT proof.
+next_action: Keep this exact governance head unchanged, pass Ownership and CI, merge PR 980, then archive this task and reconcile the programme before OAM-054.
 ```
