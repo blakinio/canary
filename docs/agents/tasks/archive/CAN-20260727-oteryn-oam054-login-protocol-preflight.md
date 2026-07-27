@@ -7,13 +7,13 @@ agent: "GPT-5.6 Thinking"
 branch: docs/oam-054-login-protocol-lifecycle
 base_branch: main
 created: 2026-07-27
-updated: 2026-07-27T19:29:00+02:00
+updated: 2026-07-27T19:32:00+02:00
 completed: 2026-07-27T19:29:00+02:00
 last_verified_commit: "2029cd7000545cb0ab60920b797af8519dd4dd0a"
 risk: high
 related_issue: ""
 related_pr: "986"
-lifecycle_pr: "pending"
+lifecycle_pr: "987"
 depends_on:
   - OAM-053 durable programme reconciliation merged as 9d395a5563531dfc3d83f4a24361237137715000
   - Canary OAM-054 delivery checkpoint merged as 577d04c1d3a723af3ee8933600eff15938deac9f
@@ -51,10 +51,10 @@ The active Canary task is complete. Otheryn retained current/11.00/8.60 request 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T19:29:00+02:00
-head: 2029cd7000545cb0ab60920b797af8519dd4dd0a
+updated_at: 2026-07-27T19:32:00+02:00
+head: 60f52bd12f584308ced79b5c48dec7586c909f98
 branch: docs/oam-054-login-protocol-lifecycle
-pr: pending
+pr: 987
 status: completed
 context_routes:
   - agent-governance
@@ -73,6 +73,7 @@ proven:
   - Otheryn lifecycle PR 173 merged as 41bc0562c263781df85c2f6855295fefa201db0a.
   - Canary governance head c6e9f90e5d59684a5a28b698b0d8a03f8e6a0462 passed Ownership 30288119453 and full final-gate CI 30288119744.
   - Canary governance PR 986 changed exactly two documentation paths and squash-merged with expected-head protection as 2029cd7000545cb0ab60920b797af8519dd4dd0a.
+  - Canary lifecycle PR 987 changes exactly the active/archive task pair and durable OAM-054 report.
   - Modern status, subscription and premium-expiry serialization corresponds to the maintained client; legacy premium-days semantics remain intact.
   - One capped u8 character snapshot feeds token authorization, serialized response records and session hints.
   - Credential policy, account repository ownership, game-world authentication, gameplay, maintained-client runtime, schema, datapack, endpoint and production behavior remained unchanged.
@@ -101,9 +102,9 @@ validation:
     evidence: Ownership 30288119453 and full CI 30288119744 passed on head c6e9f90e5d59684a5a28b698b0d8a03f8e6a0462 before merge 2029cd70.
   - command: lifecycle path audit
     result: PASS
-    evidence: This lifecycle branch moves the task from active to archive and updates only the durable OAM-054 report.
+    evidence: PR 987 moves the task from active to archive and updates only the durable OAM-054 report.
 blockers: []
-next_action: Merge the three-path Canary lifecycle PR with exact-head protection, then reconcile the programme as OAM-001 through OAM-054 complete with no OAM-055.
+next_action: Verify exact-final Ownership and CI on PR 987, squash-merge it with expected-head protection, then reconcile the programme as OAM-001 through OAM-054 complete with no OAM-055.
 ```
 
 ## Preserved nonclaims
