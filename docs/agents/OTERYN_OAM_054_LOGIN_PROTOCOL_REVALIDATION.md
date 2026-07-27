@@ -1,6 +1,6 @@
 # OAM-054 Login Protocol revalidation
 
-Status: **target feature and lifecycle complete; Canary governance pending**
+Status: **governance complete; Canary lifecycle pending**
 
 Program: `CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION`
 
@@ -18,12 +18,15 @@ Otheryn retained its account authentication integration, explicit current/11.00/
 
 ```text
 Canary preflight merge:     d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61
+Canary delivery merge:      577d04c1d3a723af3ee8933600eff15938deac9f
 Otheryn task-start main:    9703da845384423ad85883216bf8853642c21bcd
 Otheryn synchronized main:  4ad8c0f2ed1c6bd60da9b747b8ff180ced60b593
 Otheryn feature head:       f6db2136248b39ccd7aa57178a1c63c788b9bcec
 Otheryn feature merge:      e077c51fe948652a4849e15f6c518059f4370717
 Otheryn lifecycle head:     08221f7e9ef31158b3cc3d201ad0a06896df15f7
 Otheryn lifecycle merge:    41bc0562c263781df85c2f6855295fefa201db0a
+Canary governance head:     c6e9f90e5d59684a5a28b698b0d8a03f8e6a0462
+Canary governance merge:    2029cd7000545cb0ab60920b797af8519dd4dd0a
 upstream evidence baseline: 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79
 maintained OTClient:        99ad5de5a19179f21e2e21e961c1ef121a30d08e
 ```
@@ -82,7 +85,7 @@ Existing OAM-044 profile and OAM-045 session-handoff regressions remained in the
 
 ## Exact-final validation
 
-Exact atomically synchronized head `f6db2136248b39ccd7aa57178a1c63c788b9bcec` passed:
+Exact atomically synchronized Otheryn head `f6db2136248b39ccd7aa57178a1c63c788b9bcec` passed:
 
 - Otheryn CI `30250360096`;
 - Otheryn `Required` `30250359982`;
@@ -96,19 +99,26 @@ Exact atomically synchronized head `f6db2136248b39ccd7aa57178a1c63c788b9bcec` pa
 
 The final feature branch was based on current main `4ad8c0f2ed1c6bd60da9b747b8ff180ced60b593`, had `behind_by=0`, exactly six paths and no comments, reviews or review threads. PR #165 squash-merged with expected-head protection as `e077c51fe948652a4849e15f6c518059f4370717`.
 
-Lifecycle PR #173 changed only the active/archive task pair and target report. Exact lifecycle head `08221f7e9ef31158b3cc3d201ad0a06896df15f7` passed Required `30252401732`, had `behind_by=0`, no discussions and merged as `41bc0562c263781df85c2f6855295fefa201db0a`.
+Otheryn lifecycle PR #173 changed only the active/archive task pair and target report. Exact lifecycle head `08221f7e9ef31158b3cc3d201ad0a06896df15f7` passed Required `30252401732`, had `behind_by=0`, no discussions and merged as `41bc0562c263781df85c2f6855295fefa201db0a`.
+
+Canary governance PR #986 was restacked onto main `577d04c1d3a723af3ee8933600eff15938deac9f`, changed exactly the active checkpoint and this report, and had no review threads. Exact head `c6e9f90e5d59684a5a28b698b0d8a03f8e6a0462` passed Ownership `30288119453` and full final-gate CI `30288119744`, including Linux debug tests, Linux release, Docker build and quickstart smoke. It squash-merged with expected-head protection as `2029cd7000545cb0ab60920b797af8519dd4dd0a`.
+
+## Canary lifecycle
+
+The active task is moved to `docs/agents/tasks/archive/CAN-20260727-oteryn-oam054-login-protocol-preflight.md`. This lifecycle branch changes exactly the active/archive task pair and this report. Final programme reconciliation remains a separate single-file change.
 
 ## First failures and integration repairs
 
 - The preflight identified a maintained-client account-tail correspondence gap. The target serializer now emits explicit status/subscription/expiry fields with deterministic parser-order tests.
 - Otheryn `main` advanced through unrelated resilience work during exact-head gates. The feature was repeatedly synchronized without conflict; the final atomically constructed merge commit preserved exactly six approved blobs and was fully retested.
 - A workflow-token sync produced `action_required` placeholders. A trusted checkpoint and later atomic merge commit initiated authoritative exact-head gates; no security or CI gate was bypassed.
+- Canary governance initially diverged from main after the earlier delivery checkpoint merged. A backup branch preserved the old head, then PR #986 was rebuilt from current main with exactly two intended paths and fully retested.
 
 ## Boundary classification
 
 | Boundary | Result |
 |---|---|
-| ownership/lifecycle | Target feature and lifecycle complete; no active overlapping login-protocol owner. |
+| ownership/lifecycle | Target feature, target lifecycle and Canary governance complete; Canary task archival pending this PR. |
 | account request parsing | Existing Otheryn current/11.00/8.60 layouts preserved. |
 | RSA/XTEA | Existing target handoff preserved; no new algorithm or key source. |
 | session key | Existing opaque fail-closed token issuance preserved; response framing tested. |
