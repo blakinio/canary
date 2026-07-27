@@ -2,13 +2,13 @@
 task_id: CAN-20260727-oteryn-oam054-login-protocol-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-054
-status: blocked
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: docs/oam-054-compact-handover-20260727
 base_branch: main
 created: 2026-07-27
-updated: 2026-07-27T09:06:13+02:00
-last_verified_commit: "2c7b250143cf92169a88825250ce233d906f503c"
+updated: 2026-07-27T09:45:46+02:00
+last_verified_commit: "990f188d75b4b7396b4b34aac7a4ffad4d0968da"
 risk: high
 related_issue: ""
 related_pr: "984"
@@ -35,7 +35,8 @@ owned_paths:
 modules_touched:
   - oteryn-architecture-migration
   - login-protocol
-cross_repo_tasks: []
+cross_repo_tasks:
+  - OTH-20260727-oam054-login-protocol-adapt
 ---
 
 # OAM-054 Login Protocol preflight
@@ -45,10 +46,10 @@ cross_repo_tasks: []
 ```text
 OAM-054 → login-protocol
 preflight → REVALIDATE
-leading target hypothesis → ADAPT
+target disposition → ADAPT
 ```
 
-`login-protocol` is dependency-valid because `account-authentication` and `network-transport` are durably complete. The target proof must preserve Otheryn's secure login-session token, multiprotocol layouts and protocol-session handoff while adapting only proven account-login wire and maintained-client parsing gaps.
+`login-protocol` is dependency-valid because `account-authentication` and `network-transport` are durably complete. The target proof preserves Otheryn's secure login-session token, multiprotocol layouts and protocol-session handoff while adapting only the proven account-login response wire gap.
 
 ## Selected target-proof boundary
 
@@ -73,11 +74,11 @@ Excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T09:06:13+02:00
-head: 2c7b250143cf92169a88825250ce233d906f503c
+updated_at: 2026-07-27T09:45:46+02:00
+head: 990f188d75b4b7396b4b34aac7a4ffad4d0968da
 branch: docs/oam-054-compact-handover-20260727
 pr: 984
-status: blocked
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -87,47 +88,48 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md
 proven:
-  - PR 983 merged the OAM-054 login-protocol preflight as d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61 from exact head 7b0ba76e81ff958f9714bc12c8295357ec759faa and changed only this task record.
-  - Exact preflight head passed Agent Task Ownership run 30242303120 and CI run 30242303240.
-  - OAM-054 selected login-protocol as REVALIDATE with a leading bounded ADAPT hypothesis and preserved the declared target-proof boundary.
-  - Current Canary main is d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61 and current Otheryn main is 9703da845384423ad85883216bf8853642c21bcd.
-  - Maintained OTClient advanced from code baseline 99ad5de5a19179f21e2e21e961c1ef121a30d08e to 0ce30abc4e582eb05dce1471153d85b1152d4d5e only through task lifecycle documentation paths.
-  - No open PR matching login protocol, ProtocolLogin, session key or account tail was found in Canary, Otheryn or maintained OTClient.
-  - Otheryn already has secure-token failure handling, multiprotocol account layouts and protocol-session handoff that must not be replaced wholesale.
-  - The maintained-client account-tail correspondence gap remains unresolved and no Otheryn target implementation task or PR exists.
+  - PR 983 merged the OAM-054 preflight as d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61 from exact head 7b0ba76e81ff958f9714bc12c8295357ec759faa; ownership run 30242303120 and CI run 30242303240 passed.
+  - OAM-054 selected login-protocol as REVALIDATE with a bounded ADAPT target boundary.
+  - Otheryn PR 165 is open and mergeable from branch dudantas/oam-054-login-protocol-adapt at live head 1187132c18d15fe745dd3c490630e98481e06ad7 against base 9703da845384423ad85883216bf8853642c21bcd.
+  - Otheryn PR 165 changes exactly six intended paths: its task record, durable adaptation document, login_protocol_wire.hpp, protocollogin.cpp, focused test registration and oam_054_login_protocol_test.cpp.
+  - The target-owned serializer writes opcode 0x28 plus deterministic modern and legacy opcode 0x64 responses while ProtocolLogin retains request parsing, profile selection, RSA/XTEA, authentication integration, secure-token issuance, session hints, send and disconnect lifecycle.
+  - Modern account-tail serialization is explicit AccountStatus Ok, SubscriptionStatus Free or Premium and premium-expiry u32 in maintained-client field order; legacy serialization retains premium-days u16.
+  - One capped snapshot of at most 255 character names feeds token authorization, serialized payload and session hints.
+  - Six deterministic tests decode the session key, modern premium/free responses, legacy response and modern/legacy count caps to exact message end.
+  - Otheryn implementation head c6fe5d8a2f48e6c8425c3db39ff2372a7cde3c3f passed CI 30245438536, Required 30245438107 and autofix 30245438145, including the full platform matrix and runtime smoke.
+  - No maintained OTClient implementation change is present or required by the current server-side serializer proof.
+  - Current Otheryn final-head autofix run 30247040780 passed; Required run 30247040789 and CI run 30247040929 were pending at the last live verification.
 derived:
-  - The preflight is durably complete, but target implementation cannot begin from this Canary-only authorization.
-  - The next implementation should remain a bounded ADAPT proof rather than wholesale ProtocolLogin migration.
+  - The exact Otheryn target file set is resolved and the validated disposition remains bounded ADAPT rather than wholesale ProtocolLogin migration.
+  - The maintained-client correspondence gap is closed by the server-side serializer and deterministic decoding tests without an OTClient write.
 unknown:
-  - Exact Otheryn target file set and whether the maintained client needs any implementation write after server-side serializer correction.
-  - Whether physical login/relog evidence is required beyond deterministic target unit and CI proof.
+  - Exact-final Otheryn CI and Required result and PR 165 merge result.
+  - Whether physical login/relog evidence is required beyond deterministic target unit, full CI and runtime-smoke proof.
 conflicts: []
 first_failure:
-  marker: otheryn-write-authorization-absent
-  evidence: Root AGENTS.md permits writes only to blakinio/canary; the current request authorizes only the Canary checkpoint and compact handover.
+  marker: otheryn-exact-final-gate-pending
+  evidence: Otheryn head 1187132c18d15fe745dd3c490630e98481e06ad7 has autofix PASS while Required 30247040789 and CI 30247040929 remain incomplete.
 rejected_hypotheses:
   - classify ProtocolLogin as REUSE from profile and token code alone
   - copy Canary multichannel or complete ProtocolLogin wholesale
-  - start Otheryn implementation without separate explicit repository authorization
+  - require a maintained-client write before proving server-side field correspondence
+  - authorize more character names than the u8 response can publish
 changed_paths:
   - docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md
 validation:
-  - command: Agent Task Ownership run 30242303120
+  - command: Canary Agent Task Ownership run 30245274897
     result: PASS
-    evidence: Exact preflight head 7b0ba76e81ff958f9714bc12c8295357ec759faa passed ownership validation.
-  - command: CI run 30242303240
+    evidence: Compact-handover head 990f188d75b4b7396b4b34aac7a4ffad4d0968da passed ownership validation before this synchronization update.
+  - command: Canary CI run 30245275339
     result: PASS
-    evidence: Exact preflight head 7b0ba76e81ff958f9714bc12c8295357ec759faa passed repository CI.
-  - command: Agent Task Ownership run 30245104314
-    result: FAIL
-    evidence: Initial compact-handover head failed only because related_pr and checkpoint pr still referenced merged preflight PR 983 instead of current PR 984.
-  - command: live repository and overlap audit
+    evidence: Required aggregator passed on compact-handover head 990f188d75b4b7396b4b34aac7a4ffad4d0968da.
+  - command: Otheryn implementation-head CI 30245438536, Required 30245438107 and autofix 30245438145
     result: PASS
-    evidence: Canary/Otheryn/OTClient heads were refreshed and no matching open login-protocol implementation PR was found.
-  - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md --require-checkpoint
+    evidence: Exact implementation head c6fe5d8a2f48e6c8425c3db39ff2372a7cde3c3f passed the complete applicable matrix without a follow-up implementation change.
+  - command: live Otheryn PR 165 scope and overlap audit
     result: PASS
-    evidence: Compact checkpoint validated before handover publication.
+    evidence: Six intended paths, no review threads and no maintained-client implementation PR overlap were found.
 blockers:
-  - Explicit authorization to write in blakinio/Otheryn is not present in the current request.
-next_action: Obtain explicit authorization for blakinio/Otheryn, then create one bounded OAM-054 target task, branch and draft PR for the ADAPT proof without modifying Canary or OTClient runtime paths.
+  - Otheryn remains read-only under this request; exact-final PR 165 CI and Required are still pending.
+next_action: After Otheryn PR 165 exact-final CI, Required and autofix complete, verify its current head and merge state; if merged, finalize this Canary checkpoint and PR 984, otherwise record the first failing gate without mutating Otheryn.
 ```
