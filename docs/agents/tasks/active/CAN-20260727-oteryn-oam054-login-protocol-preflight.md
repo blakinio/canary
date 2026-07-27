@@ -2,82 +2,55 @@
 task_id: CAN-20260727-oteryn-oam054-login-protocol-preflight
 program_id: CAN-PROGRAM-OTERYN-ARCHITECTURE-AND-MIGRATION
 coordination_id: OAM-054
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
-branch: dudantas/oam-054-login-protocol-preflight
+branch: dudantas/oam-054-login-protocol-governance
 base_branch: main
 created: 2026-07-27
 updated: 2026-07-27
-last_verified_commit: "78e987e249a2f782b4d26f106e7a92706a331673"
+last_verified_commit: "7caf29ad3aff090c97c8c850d1b857cfe3e66403"
 risk: high
 related_issue: ""
-related_pr: "983"
+related_pr: "pending"
 depends_on:
   - OAM-053 durable programme reconciliation merged as 9d395a5563531dfc3d83f4a24361237137715000
+  - Otheryn OAM-054 target lifecycle merged as 41bc0562c263781df85c2f6855295fefa201db0a
 blocks:
-  - OAM-054 target proof and lifecycle
+  - OAM-054 Canary lifecycle and final programme reconciliation
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md
+    - docs/agents/OTERYN_OAM_054_LOGIN_PROTOCOL_REVALIDATION.md
   shared: []
   read_only:
     - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
     - docs/agents/real-tibia/registry/modules/login-protocol.yaml
     - docs/agents/real-tibia/TSD_010_PROTOCOL_CLIENT_REPORT.md
     - docs/security/SECURITY_VALIDATION_SEC004.md
-    - src/server/network/protocol/protocollogin.*
-    - src/server/network/protocol/protocol_profile.*
-    - src/server/network/protocol/protocol_session_hint.*
-    - security/login_session_manager.*
-    - tests/unit/server/network/protocol/**
     - blakinio/Otheryn
     - blakinio/otclient
 modules_touched:
   - oteryn-architecture-migration
   - login-protocol
-cross_repo_tasks: []
+cross_repo_tasks:
+  - OTH-20260727-oam054-login-protocol-adapt
 ---
 
-# OAM-054 Login Protocol preflight
+# OAM-054 Login Protocol governance
 
-## Result
+Final disposition: `login-protocol → ADAPT`.
 
-```text
-OAM-054 → login-protocol
-preflight → REVALIDATE
-leading target hypothesis → ADAPT
-```
-
-`login-protocol` is dependency-valid because `account-authentication` and `network-transport` are durably complete. The target proof must preserve Otheryn's secure login-session token, multiprotocol layouts and protocol-session handoff while adapting only proven account-login wire and maintained-client parsing gaps.
-
-## Selected target-proof boundary
-
-Included:
-
-- current, 11.00 and 8.60 account-login request layout selection;
-- bounded pre-RSA metadata validation and RSA/XTEA handoff;
-- session-key opcode and fail-closed secure-token issuance;
-- current world/character list and legacy character-list serialization;
-- maintained-client parser correspondence, including the modern account-status/subscription/expiry tail;
-- disconnect-after-response and deterministic target serialization/parser regressions.
-
-Excluded:
-
-- password hashing, credential policy or account repository ownership;
-- game-world authentication, player attach/detach and gameplay opcode routing;
-- multichannel expansion beyond existing target architecture;
-- client UI/launcher flows, public endpoints, production credentials or deployment;
-- proof of complete account/session security or universal server-client compatibility.
+Otheryn retained current/11.00/8.60 request layouts, RSA/XTEA, secure opaque session tokens and protocol-session handoff. The target adapted only account-login response serialization into a target-owned maintained-client-correspondent wire contract.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T08:25:00+02:00
-head: 78e987e249a2f782b4d26f106e7a92706a331673
-branch: dudantas/oam-054-login-protocol-preflight
-pr: 983
-status: implementing
+updated_at: 2026-07-27T12:40:00+02:00
+head: 7caf29ad3aff090c97c8c850d1b857cfe3e66403
+branch: dudantas/oam-054-login-protocol-governance
+pr: pending
+status: validating
 context_routes:
   - agent-governance
   - cross-repo
@@ -86,48 +59,46 @@ context_routes:
   - testing
 owned_paths:
   - docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md
+  - docs/agents/OTERYN_OAM_054_LOGIN_PROTOCOL_REVALIDATION.md
 proven:
-  - OAM-001 through OAM-053 are durably complete and login-protocol is the only remaining identified canonical package.
-  - Canary is 9d395a5563531dfc3d83f4a24361237137715000; Otheryn is 9703da845384423ad85883216bf8853642c21bcd; upstream Canary is 7644bcbcbbad4a09e52a5707ed531e4dd21d8a79; maintained OTClient is 99ad5de5a19179f21e2e21e961c1ef121a30d08e.
-  - Canonical login-protocol includes account-login request/response, version/profile selection, RSA/XTEA handoff, session-key field, character/world serialization, maintained-client parsing and disconnect after response.
-  - No open Otheryn PR owns ProtocolLogin or login wire paths; Canary PR 975 is measurement-only E2E, OTClient PR 23 is UI-only and PR 48 forbids login/world connection.
-  - Otheryn ProtocolLogin blob 97f6549c928baa9409aea67ee521f10cc63083fa differs from Canary 8efc7b986dbaf127860a6183a756f65d1f742c32 and upstream 3c7d751b020b89a104a6669d5c07e52b4b7eef82.
-  - Otheryn already resolves explicit current/11.00/8.60 account layouts, selects the response transport, issues fail-closed secure tokens and registers profile/session/character handoff hints.
-  - Maintained-client parser blob a1ab34e72ee19cccec116cc4fa470dd3289b24fa sends version/signature/preview/RSA/XTEA/account/password fields and parses opcodes 0x28 and 0x64.
-  - The maintained client names the modern account tail as status, subscription substatus and u32 premium expiry, while target serialization currently writes premium remaining days, a premium boolean and premium last day.
-  - Existing OAM-044 tests prove profile metadata and login-layout selection; OAM-045 tests prove hint matching, but no target test serializes ProtocolLogin output and decodes it with the maintained-client contract.
-  - Canary PR 80 merged as d2e02a3d533bfdfdedc3a81a8f4e4801bc828f22 and removed unconditional rejection of every current-protocol login.
-  - Canary PR 82 merged as 9cafe7e945391a6f170f5b96bf68713d91d758be and wired LoginSessionManager into the opaque 0x28 session-key handoff.
-  - SEC-004 proves only bounded pre-auth login parser resilience; it does not prove successful account authentication, character-list serialization or client parsing.
-  - PR 983 changes exactly this OAM-054 checkpoint and creates no target or client implementation change.
+  - OAM-001 through OAM-053 are durably complete and login-protocol was the final unresolved canonical record.
+  - Canary OAM-054 preflight PR 983 merged as d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61.
+  - Otheryn feature PR 165 changed exactly six intended paths and preserved credential policy account repository game-world authentication gameplay client schema datapack and production boundaries.
+  - Exact atomically synchronized target head f6db2136248b39ccd7aa57178a1c63c788b9bcec was based on target main 4ad8c0f2ed1c6bd60da9b747b8ff180ced60b593 with behind_by zero.
+  - Exact target head passed CI 30250360096 Required 30250359982 and autofix 30250359933 without a follow-up commit.
+  - Full Linux CTest passed six OAM-054 tests plus OAM-044 and OAM-045 regressions; Linux release Docker macOS and Windows passed applicable build/runtime gates.
+  - PR 165 had no comments reviews or review threads and squash-merged with expected-head protection as e077c51fe948652a4849e15f6c518059f4370717.
+  - Target lifecycle PR 173 changed exactly three documentation paths, passed Required 30252401732 and merged as 41bc0562c263781df85c2f6855295fefa201db0a.
+  - Delivered response serializer matches maintained-client modern status subscription expiry order and preserves legacy premium-days semantics.
+  - A single capped u8 snapshot feeds token authorization serialized records and session hints.
+  - No maintained-client runtime credential policy account repository game-world gameplay schema datapack endpoint or production write was added.
 derived:
-  - Pure REUSE is rejected because direct server-client wire evidence is absent and the modern account tail is semantically mismatched.
-  - Wholesale Canary migration is rejected because target secure-token failure handling and profile/session-handoff architecture are newer and stronger.
-  - Expected target disposition is bounded ADAPT through testable serialization helpers, exact field semantics and deterministic cross-surface regressions.
-unknown:
-  - Exact target file set and whether the maintained client needs any write after server-side serializer correction.
-  - Whether physical login/relog evidence is required beyond exact target unit/CI and the existing Universal E2E programme.
+  - ADAPT is proven; pure REUSE and wholesale Canary migration are rejected.
+  - After Canary lifecycle and programme reconciliation the canonical OAM inventory is exhausted.
+unknown: []
 conflicts: []
 first_failure:
   marker: maintained-client-account-tail-correspondence
-  result: BLOCKED
-  evidence: Target emits premiumRemainingDays/bool/lastDay where the maintained parser consumes status/subStatus/expiry; no direct target regression resolves the contract.
+  result: FIXED
+  evidence: Target emits explicit AccountStatus Ok SubscriptionStatus and premium expiry in maintained-client order with deterministic decoding tests.
 rejected_hypotheses:
-  - classify ProtocolLogin as REUSE from existing profile and token code alone
-  - copy Canary multichannel or complete ProtocolLogin wholesale
-  - move credential verification or game-world authentication into OAM-054
+  - classify ProtocolLogin as REUSE without direct wire tests
+  - copy Canary ProtocolLogin wholesale
+  - change the maintained client before proving server-side correspondence
+  - expand OAM-054 into credential or game-world ownership
 changed_paths:
   - docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md
+  - docs/agents/OTERYN_OAM_054_LOGIN_PROTOCOL_REVALIDATION.md
 validation:
-  - command: dependency and ownership audit
+  - command: target exact-final gates
     result: PASS
-    evidence: login-protocol dependencies are complete and no active target PR owns its wire paths.
-  - command: four-repository server/client inventory
+    evidence: CI 30250360096 Required 30250359982 and autofix 30250359933 passed on the atomically synchronized feature head.
+  - command: target feature and lifecycle audits
     result: PASS
-    evidence: Exact heads and server/client blobs are pinned; target, legacy and upstream differ.
-  - command: target gap and donor review
+    evidence: Exact path sets clean discussions behind_by zero and expected-head merges e077c51f and 41bc0562.
+  - command: disposition boundary review
     result: PASS
-    evidence: Existing token/profile/handoff strengths are preserved while direct serialization and account-tail gaps require adaptation.
+    evidence: Target changed only bounded login-response wire serialization and deterministic correspondence tests while preserving excluded systems.
 blockers: []
-next_action: Keep this exact preflight head unchanged, pass Ownership and CI, merge PR 983, then create a separately authorized Otheryn target task and implementation PR for the bounded ADAPT proof.
+next_action: Open and merge the two-file Canary governance PR, then archive this task and reconcile the programme as OAM-001 through OAM-054 complete with no OAM-055.
 ```
