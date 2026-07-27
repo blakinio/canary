@@ -4,8 +4,8 @@ name: Oteryn Architecture and Migration
 status: active
 owner: oteryn-architecture-migration-agent
 created: 2026-07-15T15:28:18+02:00
-updated: 2026-07-26T20:00:00+02:00
-last_verified_commit: "adb187edbe948ad2f1801586d5196dd4b0ff8e86"
+updated: 2026-07-27T08:00:00+02:00
+last_verified_commit: "66bdb1a9be9c229720a2e667c760bd56f24d40dd"
 primary_paths:
   - docs/agents/programs/OTERYN_ARCHITECTURE_AND_MIGRATION_PROGRAM.md
   - docs/agents/OTERYN_TARGET_ARCHITECTURE_CONTRACT.md
@@ -26,13 +26,13 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 
 # Rules
 
-- Canary is governance/legacy evidence; Otheryn is the separately authorized target.
+- Canary is governance and legacy evidence; Otheryn is the separately authorized target.
 - Upstream, OTClient and donor repositories remain read-only unless separately authorized.
 - One bounded OAM package/task/branch/PR at a time with exact SHAs.
 - Never infer `REUSE` from file presence, matching blobs or compilation alone.
 - Never bulk-copy legacy Player/IOLoginData or the repository.
 - Preserve OAM-004 persistence gaps: player SQL state and later KV durability are not atomic.
-- Feature/proof merge must be followed by separate lifecycle archive, Canary governance/lifecycle and durable program reconciliation before the next OAM starts.
+- Feature/proof merge must be followed by separate lifecycle archive, Canary governance/lifecycle and durable programme reconciliation before the next OAM starts.
 - Reuse shared deterministic evidence and Universal Physical-Client E2E; do not create duplicate registries, parsers or orchestrators.
 - Final merge requires exact-head gates and clean comments, reviews and review threads.
 
@@ -53,31 +53,34 @@ Migrate from legacy `blakinio/canary` to clean target `blakinio/Otheryn` one bou
 | OAM-050 | `physical-client-e2e → DO_NOT_MIGRATE` | target `92cc602332f0ea86dbb669541020112c299ec66c`; Otheryn lifecycle `ff90e93d872b6b47720f711483a9832203d5258d`; governance `e09b9a922729eb0fa800684faacaac61d02aba3f`; Canary lifecycle `ef05fa5a73434df16b9fca912a15389b10450f12` |
 | OAM-051 | `wheel-of-destiny → ADAPT` | OAM-051B target `546eac0a00ec620e7293d0548e30662024464084`; Otheryn lifecycle `db10096f0ebb484f05883dbde4dd895744fbe8c6`; Canary preflight `9e865b68b9197b28450002412ca1720683cf1f64`; Canary lifecycle `a3a0c647fd6fdac44fcfb449f570ee75bd95f6df` |
 | OAM-052 | `deployment-operations → DO_NOT_MIGRATE` | target `2afcaef4a3d023a7ec987e4380e80905534fdd2b`; Otheryn lifecycle `2c085eee1b1c430d09a87f567aac1a8e701721a4`; governance `b5a45d32b015965fd79aece734857edf4bdc0bac`; Canary lifecycle `adb187edbe948ad2f1801586d5196dd4b0ff8e86` |
+| OAM-053 | `network-transport → ADAPT` | Canary preflight `6a9e6cf106b3e0193fb6a9d923a37cee38888f66`; target `c25fff72dd8b89f6ef1565af2d84ab9eef33dce9`; Otheryn lifecycle `9703da845384423ad85883216bf8853642c21bcd`; governance `91d96d8aa72b3851c4db89a71de9ea9722bcc63b`; Canary lifecycle `66bdb1a9be9c229720a2e667c760bd56f24d40dd` |
 
 Detailed package narratives, exact task-start baselines, gate runs, rejected hypotheses and nonclaims remain authoritative in archived task records and package revalidation reports.
 
-# OAM-052 durable completion
+# OAM-053 durable completion
 
 Final disposition:
 
 ```text
-deployment-operations DO_NOT_MIGRATE
+network-transport ADAPT
 ```
 
-OAM-052 proved that the existing reviewed-content staging and atomic datapack release stack is Canary laboratory and validation infrastructure, not an Otheryn production-runtime responsibility. Canary retains trusted-base plus reviewed-overlay assembly, real-Canary preflight, atomic release publication, `active`/`previous` switching, post-switch smoke, bounded rollback and SHA-256 manifests. Otheryn does not duplicate `tools/deploy/**`, Canary-specific workflows, smoke adapters or the release-root symlink model.
+OAM-053 preserved Otheryn's existing connection, multiprotocol and session-handoff architecture while adapting explicit current transport profiles, complete profile authority for framing/checksum/compression/encrypted layout, typed fail-closed inbound outcomes, checksum-free block-count symmetry and accepted-sequence commit only after complete checksum/XTEA acceptance.
 
-Canary preflight PR #964 passed exact-head Ownership and CI and merged as `80d5daebd1804edc6208e2312733b5b484490587`. Otheryn feature head `b0e6a965399008a9834f8449c95981d78885ed10` passed Required `30214361783` and PR #136 merged as `2afcaef4a3d023a7ec987e4380e80905534fdd2b`; lifecycle head `b5e6fbb7b99280c2d3cc011386d7e23e3a26c8ba` passed Required `30214475223` and PR #138 merged as `2c085eee1b1c430d09a87f567aac1a8e701721a4`. Canary governance head `37aab5fa102fbf6e5ee7093e84dbef9e3da9a79e` passed Ownership `30214671974` and CI `30214672059` and merged as `b5a45d32b015965fd79aece734857edf4bdc0bac`; lifecycle head `bc395c9fefe5d3dc1aa9d96ac657d2b8215ce799` passed Ownership `30214899092` and CI `30214899176` and merged as `adb187edbe948ad2f1801586d5196dd4b0ff8e86`.
+Canary preflight PR #979 merged as `6a9e6cf106b3e0193fb6a9d923a37cee38888f66`. Otheryn feature head `7376eff79e166595a91f4581d8eef6e6c228e754` passed CI `30225971903`, Required `30225971757` and autofix `30225971771`; PR #163 merged as `c25fff72dd8b89f6ef1565af2d84ab9eef33dce9`. Otheryn lifecycle head `34036aa6db8e6f8942a970a214f09493d1fbcd51` passed Required `30226763484` and PR #164 merged as `9703da845384423ad85883216bf8853642c21bcd`. Canary governance head `bacd3b880487c8c35d0e1230b956520cd201ad7c` passed Ownership `30226993622` and CI `30226993717` and merged as `91d96d8aa72b3851c4db89a71de9ea9722bcc63b`. Canary lifecycle head `2fef1da44c757911a00366fcb9c3c16e716e4192` passed Ownership `30241248116` and CI `30241248233` and merged as `66bdb1a9be9c229720a2e667c760bd56f24d40dd`.
 
-Otheryn production operations remain separately governed by the Production Resilience programme: PRS-001 owns backup/PITR proof, while future production Compose, supervisor, rollout and rollback engineering remain target-owned bounded work. OAM-052 does not claim production deployment completeness, PRS-008 implementation, application rollout safety from backup/PITR, guaranteed rollback targets, supervisor integration, production readiness, operator correctness, availability, RPO or RTO.
+The target feature changed exactly eleven intended paths and passed full Linux CTest plus Linux, macOS, Windows and Docker gates. Governance and lifecycle were documentation-only with clean path sets, `behind_by=0`, no comments, reviews or review threads, and expected-head merges.
+
+OAM-053 does not claim complete wire compatibility for every client, account authorization, login or character-list correctness, gameplay packet correctness, session-race safety, economy or transaction safety, Redis/multichannel correctness, hostile-server client resilience, sustained capacity, denial-of-service resistance or production deployment safety.
 
 # Current state
 
 ```text
-Canary reconciliation base: adb187edbe948ad2f1801586d5196dd4b0ff8e86
-Otheryn target head after OAM-052: 2c085eee1b1c430d09a87f567aac1a8e701721a4
-OAM-001..OAM-052: feature/proof, governance and lifecycle complete
-OAM-052 tasks: archived in Canary and Otheryn
-OAM-053: NOT STARTED pending a fresh dependency-valid preflight
+Canary reconciliation base: 66bdb1a9be9c229720a2e667c760bd56f24d40dd
+Otheryn target head after OAM-053: 9703da845384423ad85883216bf8853642c21bcd
+OAM-001..OAM-053: feature/proof, governance and lifecycle complete
+OAM-053 tasks: archived in Canary and Otheryn
+OAM-054: NOT STARTED pending a fresh dependency-valid preflight
 ```
 
 No OAM implementation task is active in this reconciliation record.
@@ -86,16 +89,17 @@ No OAM implementation task is active in this reconciliation record.
 
 | Package | Status | Next action |
 |---|---|---|
-| OAM-001..OAM-052 | completed | preserve durable evidence and nonclaims |
-| OAM-053+ | planned, not active | perform fresh live-state, open-PR, ownership, dependency and exact target/upstream/legacy preflight; select exactly one dependency-valid canonical package |
+| OAM-001..OAM-053 | completed | preserve durable evidence and nonclaims |
+| OAM-054 | dependency-valid, not active | perform fresh live-state, open-PR, ownership and four-repository preflight for canonical `login-protocol`; select a bounded target-proof disposition |
+| OAM-055+ | no unresolved canonical package currently identified | do not fabricate work; refresh the canonical registry after OAM-054 completion |
 
 # Retained boundaries
 
 - Canonical registry records remain the sole logical migration inventory; paths and PR history are discovery evidence only.
-- `network-transport` remains blocked by open authenticated transport work in Canary PR #514; `login-protocol` remains dependency-blocked behind `network-transport`.
+- `login-protocol` is now dependency-valid because `network-transport` is durably complete; it remains unselected until a fresh OAM-054 ownership and target-gap preflight merges.
 - `physical-client-e2e` remains active under the Canary Universal E2E programme and is consumed through exact target-SHA validation, not migration.
-- PR #925's original incomplete baseline remains historical evidence; the merged retention repair enables fresh future attempts but does not rewrite history or prove general stability.
-- OAM-051 completed only its selected Wheel safety and Bonus Promotion boundary; broader Wheel parity remains separately governed and must not be silently reopened.
+- SEC-005 remains bounded evidence for its registered disposable authenticated-session assertions; it is not complete transport or login equivalence proof.
+- OAM-051 completed only its selected Wheel safety and Bonus Promotion boundary; broader Wheel parity remains separately governed.
 - Upstream Intelligence remains active under its own Canary programme; OAM-049 only excludes duplicating it in Otheryn.
-- Canary `deployment-operations` remains laboratory/content-validation tooling; future Otheryn production deployment is separately PRS-owned and must not be inferred from OAM-052.
+- Canary `deployment-operations` remains laboratory/content-validation tooling; future Otheryn production deployment is separately PRS-owned.
 - Completed package nonclaims remain in force; compaction does not upgrade static, unit, runtime or physical-client evidence.
