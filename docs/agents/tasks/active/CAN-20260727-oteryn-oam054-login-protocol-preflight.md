@@ -8,10 +8,10 @@ branch: dudantas/oam-054-login-protocol-governance
 base_branch: main
 created: 2026-07-27
 updated: 2026-07-27
-last_verified_commit: "7caf29ad3aff090c97c8c850d1b857cfe3e66403"
+last_verified_commit: "66cc5a927686be34a219e9fdb4fdf9ac58f188eb"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "986"
 depends_on:
   - OAM-053 durable programme reconciliation merged as 9d395a5563531dfc3d83f4a24361237137715000
   - Otheryn OAM-054 target lifecycle merged as 41bc0562c263781df85c2f6855295fefa201db0a
@@ -46,10 +46,10 @@ Otheryn retained current/11.00/8.60 request layouts, RSA/XTEA, secure opaque ses
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T12:40:00+02:00
-head: 7caf29ad3aff090c97c8c850d1b857cfe3e66403
+updated_at: 2026-07-27T12:45:00+02:00
+head: 66cc5a927686be34a219e9fdb4fdf9ac58f188eb
 branch: dudantas/oam-054-login-protocol-governance
-pr: pending
+pr: 986
 status: validating
 context_routes:
   - agent-governance
@@ -72,6 +72,7 @@ proven:
   - Delivered response serializer matches maintained-client modern status subscription expiry order and preserves legacy premium-days semantics.
   - A single capped u8 snapshot feeds token authorization serialized records and session hints.
   - No maintained-client runtime credential policy account repository game-world gameplay schema datapack endpoint or production write was added.
+  - PR 986 changes exactly this checkpoint and the durable OAM-054 report.
 derived:
   - ADAPT is proven; pure REUSE and wholesale Canary migration are rejected.
   - After Canary lifecycle and programme reconciliation the canonical OAM inventory is exhausted.
@@ -100,5 +101,5 @@ validation:
     result: PASS
     evidence: Target changed only bounded login-response wire serialization and deterministic correspondence tests while preserving excluded systems.
 blockers: []
-next_action: Open and merge the two-file Canary governance PR, then archive this task and reconcile the programme as OAM-001 through OAM-054 complete with no OAM-055.
+next_action: Keep this exact governance head unchanged, pass Ownership and CI, merge PR 986, then archive this task and reconcile the programme as OAM-001 through OAM-054 complete with no OAM-055.
 ```
