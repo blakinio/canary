@@ -8,10 +8,10 @@ branch: dudantas/oam-054-login-protocol-preflight
 base_branch: main
 created: 2026-07-27
 updated: 2026-07-27
-last_verified_commit: "9d395a5563531dfc3d83f4a24361237137715000"
+last_verified_commit: "78e987e249a2f782b4d26f106e7a92706a331673"
 risk: high
 related_issue: ""
-related_pr: "pending"
+related_pr: "983"
 depends_on:
   - OAM-053 durable programme reconciliation merged as 9d395a5563531dfc3d83f4a24361237137715000
 blocks:
@@ -73,10 +73,10 @@ Excluded:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T08:20:00+02:00
-head: 9d395a5563531dfc3d83f4a24361237137715000
+updated_at: 2026-07-27T08:25:00+02:00
+head: 78e987e249a2f782b4d26f106e7a92706a331673
 branch: dudantas/oam-054-login-protocol-preflight
-pr: pending
+pr: 983
 status: implementing
 context_routes:
   - agent-governance
@@ -99,6 +99,7 @@ proven:
   - Canary PR 80 merged as d2e02a3d533bfdfdedc3a81a8f4e4801bc828f22 and removed unconditional rejection of every current-protocol login.
   - Canary PR 82 merged as 9cafe7e945391a6f170f5b96bf68713d91d758be and wired LoginSessionManager into the opaque 0x28 session-key handoff.
   - SEC-004 proves only bounded pre-auth login parser resilience; it does not prove successful account authentication, character-list serialization or client parsing.
+  - PR 983 changes exactly this OAM-054 checkpoint and creates no target or client implementation change.
 derived:
   - Pure REUSE is rejected because direct server-client wire evidence is absent and the modern account tail is semantically mismatched.
   - Wholesale Canary migration is rejected because target secure-token failure handling and profile/session-handoff architecture are newer and stronger.
@@ -128,5 +129,5 @@ validation:
     result: PASS
     evidence: Existing token/profile/handoff strengths are preserved while direct serialization and account-tail gaps require adaptation.
 blockers: []
-next_action: Merge this one-file preflight, then create a separately authorized Otheryn target task and implementation PR for the bounded ADAPT proof.
+next_action: Keep this exact preflight head unchanged, pass Ownership and CI, merge PR 983, then create a separately authorized Otheryn target task and implementation PR for the bounded ADAPT proof.
 ```
