@@ -13,7 +13,7 @@ last_verified_commit: "bacd3b880487c8c35d0e1230b956520cd201ad7c"
 risk: high
 related_issue: ""
 related_pr: "980"
-lifecycle_pr: "pending"
+lifecycle_pr: "981"
 depends_on:
   - OAM-052 durable reconciliation merged as 4dac672b7d7cd67e467411c3c27c85b47f736833
   - Otheryn OAM-053 lifecycle merged as 9703da845384423ad85883216bf8853642c21bcd
@@ -65,10 +65,10 @@ Otheryn preserved its connection, multiprotocol and session-handoff architecture
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T02:35:00+02:00
+updated_at: 2026-07-27T02:40:00+02:00
 head: bacd3b880487c8c35d0e1230b956520cd201ad7c
 branch: dudantas/oam-053-network-transport-lifecycle
-pr: pending
+pr: 981
 status: completed
 context_routes:
   - agent-governance
@@ -109,5 +109,5 @@ validation:
 blockers:
   - lifecycle PR must merge
   - programme reconciliation must merge before OAM-054 starts
-next_action: Merge the docs-only lifecycle PR, reconcile OAM-001 through OAM-053 durably, then start OAM-054 login-protocol preflight.
+next_action: Merge lifecycle PR 981, reconcile OAM-001 through OAM-053 durably, then start OAM-054 login-protocol preflight.
 ```
