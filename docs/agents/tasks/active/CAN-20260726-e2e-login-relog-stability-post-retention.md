@@ -24,7 +24,6 @@ owned_paths:
     - tests/e2e/baselines/login-relog-stability-post-retention-20260726.md
     - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_POST_RETENTION_20260726.md
     - docs/e2e/baselines/e2e-login-relog-stability-post-retention-20260726.json
-    - .github/e2e-controlled-server.env
   shared: []
   read_only:
     - .github/workflows/universal-agent-e2e.yml
