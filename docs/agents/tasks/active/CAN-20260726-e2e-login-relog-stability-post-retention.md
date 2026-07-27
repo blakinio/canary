@@ -95,11 +95,11 @@ The fresh population is **unstable**, not stable:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-27T08:04:00Z
-head: d576d7116b8fe74d9fe777bf697130c2179f767c
+updated_at: 2026-07-27T10:46:54Z
+head: d15f70804cdcf098c2427f0e0062543ed6f4807f
 branch: test/e2e-login-relog-stability-post-retention-20260726
 pr: 975
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - universal-e2e
@@ -109,50 +109,46 @@ owned_paths:
   - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_POST_RETENTION_20260726.md
   - docs/e2e/baselines/e2e-login-relog-stability-post-retention-20260726.json
 proven:
-  - frozen measurement head d576d7116b8fe74d9fe777bf697130c2179f767c triggered Universal Agent E2E run 30220474091
-  - run 30220474091 completed exactly ten sequential physical attempts and no attempt 11 was started
-  - attempts 1 through 7 9 and 10 retained schema-v3 success results and certified schema-v1 cleanup
-  - attempt 8 retained schema-v3 failure result client_build_startup category infrastructure and no valid cleanup certification
-  - every result shares server 7a09367589dfc08e482edadbe77e556ecf0cfaa7 client 2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f datapack data-otservbr-global and tier pr-required
-  - all ten results normalize into certification cell befa7d114a6a18cfa7c8
-  - QRI-022 generated from exactly ten extracted artifact roots with minimum_runs 10 reports unstable mixed-outcomes
-  - population counts are nine clean passes one failed attempt zero blocked attempts and one cleanup-unknown attempt
-  - temporary controlled-server pin is removed from the final readiness candidate
-  - historical PR 961 baseline remains unchanged
-  - pre-population runs 30220358871 and 30220408569 are excluded
-  - every counted artifact ID and digest is preserved in the baseline dossier
+  - run 30220474091 contains exactly ten sequential counted login/relog attempts and no attempt 11
+  - attempts 1 through 7 9 and 10 are clean passes with certified cleanup
+  - attempt 8 is a retained client_build_startup infrastructure failure before gameplay with missing cleanup certification
+  - QRI-022 minimum_runs 10 classifies cell befa7d114a6a18cfa7c8 as unstable mixed-outcomes with nine clean passes and one failure
+  - temporary controlled-server pin is absent from the final changed-file set
+  - exact head d15f70804cdcf098c2427f0e0062543ed6f4807f passed Agent Task Ownership CI autofix and full Universal Agent E2E including physical login/relog and Required physical E2E
+  - PR 975 is ready for review and mergeable with no comments reviews or review threads at checkpoint capture
+  - changed files are limited to the active task and the three QRI-022 evidence outputs
 derived:
-  - the post-PR-965 controlled-server path avoids the former redundant exact-head Canary download
-  - controlled OTClient artifact availability remains a factual infrastructure stability risk
-unknown: []
-conflicts:
-  - the population meets the explicit minimum but one retained infrastructure failure prevents a stability pass
+  - controlled OTClient artifact availability remains the only observed stability risk in the counted population
+unknown:
+  - the post-checkpoint commit head and its required-check state must be verified live before merge
+conflicts: []
 first_failure:
   marker: controlled-otclient-artifact-download
-  evidence: attempt 8 job 89851152772 failed before gameplay with client_build_startup at client-configuration/phase:client-configuration
+  evidence: attempt 8 job 89851152772 failed before gameplay at client-configuration/phase:client-configuration
 rejected_hypotheses:
-  - replace attempt 8 with another green rerun because the measurement contract forbids replacement retries
-  - omit attempt 8 from QRI-022 because it has an authoritative schema-v3 fail-closed result
-  - synthesize schema-v1 cleanup certification for attempt 8
-  - classify nine clean passes as stable because mixed complete evidence is unstable
+  - replace or omit attempt 8 because the measurement contract and authoritative schema-v3 result require retaining it
+  - classify nine clean passes as stable because QRI-022 defines mixed outcomes as unstable
 changed_paths:
+  - docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-post-retention.md
   - tests/e2e/baselines/login-relog-stability-post-retention-20260726.md
   - docs/e2e/baselines/E2E_LOGIN_RELOG_STABILITY_POST_RETENTION_20260726.md
   - docs/e2e/baselines/e2e-login-relog-stability-post-retention-20260726.json
-  - docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-post-retention.md
 validation:
-  - command: exact ten-attempt collection
+  - command: exact ten-attempt collection and QRI-022 minimum_runs=10
     result: PASS
-    evidence: nine clean passes and one retained fail-closed infrastructure failure in run 30220474091 with no attempt 11
-  - command: QRI-022 build with minimum_runs=10
+    evidence: run 30220474091 and certification cell befa7d114a6a18cfa7c8 report nine clean passes one retained failure
+  - command: Agent Task Ownership run 30250274300
     result: PASS
-    evidence: cell befa7d114a6a18cfa7c8 is unstable reason mixed-outcomes run_count 10
-  - command: deterministic report consistency validation
+    evidence: final validated head d15f70804cdcf098c2427f0e0062543ed6f4807f
+  - command: CI runs 30250274515 and 30252933650
     result: PASS
-    evidence: cell digest counts ratios duration distribution failure distribution and evidence-root totals match the repository contract
-  - command: final exact-head GitHub gates
-    result: NOT_RUN
-    evidence: final evidence commit and ci:final-gate validation have not completed
+    evidence: required checks and ready-for-review rerun both completed successfully on d15f70804cdcf098c2427f0e0062543ed6f4807f
+  - command: Universal Agent E2E run 30250274492
+    result: PASS
+    evidence: build Canary build OTClient physical login/relog evidence upload propagation and Required physical E2E all succeeded
+  - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260726-e2e-login-relog-stability-post-retention.md --require-checkpoint
+    result: PASS
+    evidence: compact checkpoint validated before handoff
 blockers: []
-next_action: Apply ci:final-gate, publish the final evidence commit with the temporary pin removed, then complete exact-head CI review and squash merge PR 975.
+next_action: Verify the post-checkpoint PR head and required checks, then squash-merge PR 975 if it remains mergeable and review-clean.
 ```
