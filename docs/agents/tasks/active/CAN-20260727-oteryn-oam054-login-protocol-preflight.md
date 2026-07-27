@@ -8,10 +8,10 @@ branch: docs/oam-054-compact-handover-20260727
 base_branch: main
 created: 2026-07-27
 updated: 2026-07-27T09:06:13+02:00
-last_verified_commit: "d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61"
+last_verified_commit: "2c7b250143cf92169a88825250ce233d906f503c"
 risk: high
 related_issue: ""
-related_pr: "983"
+related_pr: "984"
 depends_on:
   - OAM-053 durable programme reconciliation merged as 9d395a5563531dfc3d83f4a24361237137715000
 blocks:
@@ -74,9 +74,9 @@ Excluded:
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-27T09:06:13+02:00
-head: d8eb3f5520b2a94e788a31e004bf1aa33b9d7c61
+head: 2c7b250143cf92169a88825250ce233d906f503c
 branch: docs/oam-054-compact-handover-20260727
-pr: 983
+pr: 984
 status: blocked
 context_routes:
   - agent-governance
@@ -118,9 +118,12 @@ validation:
   - command: CI run 30242303240
     result: PASS
     evidence: Exact preflight head 7b0ba76e81ff958f9714bc12c8295357ec759faa passed repository CI.
+  - command: Agent Task Ownership run 30245104314
+    result: FAIL
+    evidence: Initial compact-handover head failed only because related_pr and checkpoint pr still referenced merged preflight PR 983 instead of current PR 984.
   - command: live repository and overlap audit
     result: PASS
-    evidence: Canary/Otheryn/OTClient heads were refreshed and no matching open login-protocol PR was found.
+    evidence: Canary/Otheryn/OTClient heads were refreshed and no matching open login-protocol implementation PR was found.
   - command: python tools/agents/checkpoint.py docs/agents/tasks/active/CAN-20260727-oteryn-oam054-login-protocol-preflight.md --require-checkpoint
     result: PASS
     evidence: Compact checkpoint validated before handover publication.
