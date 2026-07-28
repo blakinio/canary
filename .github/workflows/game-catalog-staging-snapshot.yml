@@ -1,6 +1,11 @@
 name: Game Catalog Staging Snapshot
 
 on:
+  push:
+    branches:
+      - feat/CAN-20260728-game-catalog-exporter
+    paths:
+      - '.github/workflows/game-catalog-staging-snapshot.yml'
   pull_request:
     paths:
       - '.github/workflows/game-catalog-staging-snapshot.yml'
@@ -16,7 +21,7 @@ concurrency:
 jobs:
   patch-identifiers:
     name: Apply unique identifier producer fix
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 991
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 991
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact feature branch
