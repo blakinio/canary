@@ -64,11 +64,11 @@ cross_repository_tasks:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T07:24:00Z
+updated_at: 2026-07-28T07:29:00Z
 head: tracked-by-live-pr
 branch: docs/CAN-20260728-game-catalog-export-architecture
 pr: https://github.com/blakinio/canary/pull/989
-status: ready-for-review
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
