@@ -155,61 +155,98 @@ jobs:
           (manifest_dir / 'releases.json').write_text(json.dumps(releases, indent=2) + '\n', encoding='utf-8')
           PY
 
-      - name: Run export-only binary without database or network endpoints
+      - name: Run export-only binary twice without database or network endpoints
         shell: bash
         env:
           CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          output='artifacts/game-catalog-smoke/game-catalog.json'
-          trace='artifacts/game-catalog-smoke/network.trace'
-          log='artifacts/game-catalog-smoke/export.log'
 
-          timeout 900s strace -f -qq \
-            -e trace=connect,bind,listen,accept,accept4 \
-            -o "${trace}" \
-            build/linux-release/bin/canary \
-              --export-game-catalog-only \
-              --game-catalog-output="${output}" \
-              --game-catalog-manifest-directory=artifacts/game-catalog-smoke/manifests \
-              --game-catalog-generated-at=2026-07-28T00:00:00Z \
-              --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
-            >"${log}" 2>&1
+          run_export() {
+            local output="$1"
+            local generated_at="$2"
+            local trace="$3"
+            local log="$4"
 
-          cat "${log}"
-          if [[ -s "${trace}" ]]; then
-            cat "${trace}" >&2
-            echo 'Export-only mode attempted a database or network endpoint syscall.' >&2
-            exit 1
-          fi
+            timeout 900s strace -f -qq \
+              -e trace=connect,bind,listen,accept,accept4 \
+              -o "${trace}" \
+              build/linux-release/bin/canary \
+                --export-game-catalog-only \
+                --game-catalog-output="${output}" \
+                --game-catalog-manifest-directory=artifacts/game-catalog-smoke/manifests \
+                --game-catalog-generated-at="${generated_at}" \
+                --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
+              >"${log}" 2>&1
+          }
 
-      - name: Validate runtime snapshot and sidecar
+          run_export \
+            artifacts/game-catalog-smoke/game-catalog-baseline.json \
+            2026-07-27T00:00:00Z \
+            artifacts/game-catalog-smoke/network-baseline.trace \
+            artifacts/game-catalog-smoke/export-baseline.log
+
+          run_export \
+            artifacts/game-catalog-smoke/game-catalog.json \
+            2026-07-28T00:00:00Z \
+            artifacts/game-catalog-smoke/network.trace \
+            artifacts/game-catalog-smoke/export.log
+
+          cat artifacts/game-catalog-smoke/export-baseline.log
+          cat artifacts/game-catalog-smoke/export.log
+          for trace in artifacts/game-catalog-smoke/network-baseline.trace artifacts/game-catalog-smoke/network.trace; do
+            if [[ -s "${trace}" ]]; then
+              cat "${trace}" >&2
+              echo 'Export-only mode attempted a database or network endpoint syscall.' >&2
+              exit 1
+            fi
+          done
+
+      - name: Validate runtime snapshots and sidecars
         shell: bash
         env:
           CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          output='artifacts/game-catalog-smoke/game-catalog.json'
-          sidecar="${output}.sha256"
 
-          python3 tools/game-catalog/validate_snapshot.py \
-            "${output}" \
-            --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
-          (cd artifacts/game-catalog-smoke && sha256sum --check game-catalog.json.sha256)
-          grep -Eq '^[0-9a-f]{64}  game-catalog\.json$' "${sidecar}"
+          for output in \
+            artifacts/game-catalog-smoke/game-catalog-baseline.json \
+            artifacts/game-catalog-smoke/game-catalog.json; do
+            sidecar="${output}.sha256"
+            python3 tools/game-catalog/validate_snapshot.py \
+              "${output}" \
+              --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+            (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
+            grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
+          done
 
           python3 - <<'PY'
+          import copy
           import json
           import os
           from pathlib import Path
 
-          document = json.loads(Path('artifacts/game-catalog-smoke/game-catalog.json').read_text(encoding='utf-8'))
-          snapshot = document['snapshot']
-          assert snapshot['canary_commit_sha'] == os.environ['CATALOG_HEAD_SHA']
-          assert snapshot['generated_at'] == '2026-07-28T00:00:00Z'
-          assert snapshot['entity_count'] == len(document['entities']) > 0
-          assert snapshot['relation_count'] == len(document['relations']) > 0
-          assert {'item', 'creature'} <= {entity['type'] for entity in document['entities']}
+          directory = Path('artifacts/game-catalog-smoke')
+          baseline = json.loads((directory / 'game-catalog-baseline.json').read_text(encoding='utf-8'))
+          candidate = json.loads((directory / 'game-catalog.json').read_text(encoding='utf-8'))
+
+          for document, generated_at in [
+              (baseline, '2026-07-27T00:00:00Z'),
+              (candidate, '2026-07-28T00:00:00Z'),
+          ]:
+              snapshot = document['snapshot']
+              assert snapshot['canary_commit_sha'] == os.environ['CATALOG_HEAD_SHA']
+              assert snapshot['generated_at'] == generated_at
+              assert snapshot['entity_count'] == len(document['entities']) > 0
+              assert snapshot['relation_count'] == len(document['relations']) > 0
+              assert {'item', 'creature'} <= {entity['type'] for entity in document['entities']}
+
+          normalized_baseline = copy.deepcopy(baseline)
+          normalized_candidate = copy.deepcopy(candidate)
+          normalized_baseline['snapshot']['generated_at'] = 'normalized'
+          normalized_candidate['snapshot']['generated_at'] = 'normalized'
+          assert normalized_baseline == normalized_candidate
+          assert (directory / 'game-catalog-baseline.json').read_bytes() != (directory / 'game-catalog.json').read_bytes()
           PY
 
       - name: Upload smoke evidence
