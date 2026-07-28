@@ -2,7 +2,7 @@
 task_id: CAN-20260728-tcr-009-client-reference-drift
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: TCR-009
-status: validating
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: docs/tcr-009-client-reference-drift-blocker-20260728
 base_branch: main
