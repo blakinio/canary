@@ -3,7 +3,7 @@ task_id: CAN-20260728-game-catalog-exporter
 program_id: none
 agent: chatgpt
 branch: feat/CAN-20260728-game-catalog-exporter
-status: active
+status: implementing
 related_pr: 991
 owned_paths:
   exclusive:
