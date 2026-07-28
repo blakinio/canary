@@ -6,6 +6,7 @@ required_reads:
   - docs/agents/CONTEXT_ROUTING.md
   - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
   - docs/systems/GAME_CATALOG_EXPORTER.md
+  - schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 search_first:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/KNOWN_RISKS.md
@@ -29,7 +30,11 @@ Persist the reviewed Canary-side architecture and cross-repository contract for 
 - [x] Define proposed source, manifest, schema, tooling and test paths.
 - [x] Define items, creatures and loot as the first bounded implementation slice.
 - [x] Preserve NPCs, quests, map availability and historical snapshots as later slices.
-- [ ] Review and accept the architecture PR with the matching Platform contract.
+- [x] Add an implementation prompt independent of chat history.
+- [x] Add the proposed schema v1 and prove byte identity with Platform.
+- [x] Register the durable cross-repository contract.
+- [x] Open the draft architecture PR.
+- [ ] Review and accept both architecture PRs and the shared contract.
 
 ## Ownership
 
@@ -39,6 +44,8 @@ owned_paths:
   - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
   - docs/systems/GAME_CATALOG_EXPORTER.md
   - docs/agents/prompts/GAME_CATALOG_EXPORTER_IMPLEMENTATION_PROMPT.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 modules:
   - game-catalog-export
   - items
@@ -57,11 +64,11 @@ cross_repository_tasks:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T08:00:00Z
-head: pending-first-document-commit
+updated_at: 2026-07-28T07:24:00Z
+head: tracked-by-live-pr
 branch: docs/CAN-20260728-game-catalog-export-architecture
-pr: none
-status: documenting
+pr: https://github.com/blakinio/canary/pull/989
+status: ready-for-review
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -73,11 +80,15 @@ owned_paths:
   - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
   - docs/systems/GAME_CATALOG_EXPORTER.md
   - docs/agents/prompts/GAME_CATALOG_EXPORTER_IMPLEMENTATION_PROMPT.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 proven:
   - Canary loads appearances, items, core scripts, datapack scripts, monsters and NPCs before normal world startup.
   - Canary already has a CLI-only Lua API documentation mode that avoids normal server run behavior.
   - MonsterType contains runtime creature statistics and loot.
   - Protocol support, content completeness, datapack revision and map revision are independent facts.
+  - Canary and Platform schema files have the same Git blob SHA a3c239a6d61385edde0b06f72cdf781f4ce58df3.
+  - The shared schema content SHA-256 is 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b.
 derived:
   - A Game Catalog export mode should follow the existing CLI-only startup precedent.
   - Collectors must read final runtime registries instead of implementing a second partial parser.
@@ -95,14 +106,25 @@ rejected_hypotheses:
   - Infer availability only from the presence of a Lua definition.
   - Export by directly parsing a subset of files and claiming final runtime equivalence.
 changed_paths:
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/prompts/GAME_CATALOG_EXPORTER_IMPLEMENTATION_PROMPT.md
   - docs/agents/tasks/active/CAN-20260728-game-catalog-export-architecture.md
+  - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
+  - docs/systems/GAME_CATALOG_EXPORTER.md
+  - schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 validation:
   - command: repository connector review
     result: PASS
     evidence: startup, item, MonsterType, NPC and protocol-profile boundaries inspected before writing
+  - command: compare schema Git blob SHA across repositories
+    result: PASS
+    evidence: both paths resolve to blob a3c239a6d61385edde0b06f72cdf781f4ce58df3
+  - command: parse proposed schema as JSON and calculate SHA-256
+    result: PASS
+    evidence: JSON valid; SHA-256 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b
 blockers:
   - none
-next_action: Open the draft architecture PR and reconcile the export contract with the matching Platform import contract.
+next_action: Review Canary PR #989 together with Oteryn Platform PR #271 and either accept schema v1 or request a coordinated versioned correction.
 ```
 
 ## Notes
