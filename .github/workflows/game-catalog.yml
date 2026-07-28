@@ -60,6 +60,92 @@ jobs:
       checkout_ref: ${{ github.event.pull_request.head.sha || github.sha }}
     secrets: inherit
 
+  build-failure-diagnostics:
+    name: Compile failure evidence
+    needs: build-exporter
+    if: ${{ always() && needs.build-exporter.result == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Extract compiler failure from this run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/game-catalog-build-failure
+          jobs_json="$(mktemp)"
+          curl --fail --silent --show-error --location \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
+            > "${jobs_json}"
+          job_id="$(jq -r '.jobs[] | select(.name == "Build export binary / Compile (linux-release)") | .id' "${jobs_json}" | head -n 1)"
+          if [[ -z "${job_id}" || "${job_id}" == 'null' ]]; then
+            echo 'Failed build job id was not found.' >&2
+            exit 1
+          fi
+
+          raw_log='artifacts/game-catalog-build-failure/raw-job-log'
+          curl --fail --silent --show-error --location \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" \
+            > "${raw_log}"
+
+          if file "${raw_log}" | grep -qi 'zip archive'; then
+            unzip -p "${raw_log}" > artifacts/game-catalog-build-failure/build.log
+          else
+            mv "${raw_log}" artifacts/game-catalog-build-failure/build.log
+          fi
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          source = Path('artifacts/game-catalog-build-failure/build.log')
+          lines = source.read_text(encoding='utf-8', errors='replace').splitlines()
+          pattern = re.compile(
+              r'(?:fatal error:|\berror:|undefined reference|CMake Error|FAILED:|ninja: build stopped)',
+              re.IGNORECASE,
+          )
+          matches = [index for index, line in enumerate(lines) if pattern.search(line)]
+          selected: list[str] = []
+          if matches:
+              ranges: list[tuple[int, int]] = []
+              for index in matches:
+                  start = max(0, index - 12)
+                  end = min(len(lines), index + 18)
+                  if ranges and start <= ranges[-1][1]:
+                      ranges[-1] = (ranges[-1][0], max(ranges[-1][1], end))
+                  else:
+                      ranges.append((start, end))
+              for start, end in ranges[-8:]:
+                  selected.extend(lines[start:end])
+                  selected.append('---')
+          else:
+              selected = lines[-240:]
+          output = '\n'.join(selected[-500:]) + '\n'
+          Path('artifacts/game-catalog-build-failure/compile-failure.txt').write_text(
+              output,
+              encoding='utf-8',
+          )
+          print(output)
+          PY
+
+      - name: Upload compiler failure evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-catalog-compile-failure
+          path: artifacts/game-catalog-build-failure/
+          if-no-files-found: error
+
   export-smoke:
     name: Export-only runtime smoke
     needs: [contract, build-exporter]
