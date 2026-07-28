@@ -103,7 +103,7 @@ jobs:
 
           config = Path('config.lua.dist').read_text(encoding='utf-8')
           replacements = {
-              'dataPackDirectory': '"data-otservbr-global"',
+              'dataPackDirectory': '"data-canary"',
               'mapDownloadUrl': '""',
               'toggleDownloadMap': 'false',
               'toggleMapCustom': 'false',
@@ -192,8 +192,15 @@ jobs:
             artifacts/game-catalog-smoke/network.trace \
             artifacts/game-catalog-smoke/export.log
 
-          cat artifacts/game-catalog-smoke/export-baseline.log
-          cat artifacts/game-catalog-smoke/export.log
+          for log in artifacts/game-catalog-smoke/export-baseline.log artifacts/game-catalog-smoke/export.log; do
+            cat "${log}"
+            grep -q 'Game Catalog export completed:' "${log}"
+            if grep -Eq 'Database not initialized|Saving server|Shutting down thread pool|Failed to save' "${log}"; then
+              echo 'Export-only mode entered a database-backed save/shutdown path.' >&2
+              exit 1
+            fi
+          done
+
           for trace in artifacts/game-catalog-smoke/network-baseline.trace artifacts/game-catalog-smoke/network.trace; do
             if [[ -s "${trace}" ]]; then
               cat "${trace}" >&2
