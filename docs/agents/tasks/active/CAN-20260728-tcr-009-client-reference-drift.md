@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/archive-tcr-009-blocked-20260728
 base_branch: main
 created: 2026-07-28T22:49:37+02:00
-updated: 2026-07-28T23:26:00+02:00
-last_verified_commit: "8a88e2f09257e620985770e5e053381df32f916d"
+updated: 2026-07-28T23:31:00+02:00
+last_verified_commit: "8644fc5ae56a661c0bd38d9a4a8bcd706abffc2a"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "993"
 depends_on:
   - TCR-009 bounded evidence preflight merged via PR 992
 blocks:
@@ -66,7 +66,7 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 # Acceptance criteria
 
 - [x] Feature/preflight PR merged after exact-final-head and Ready-state protected CI.
-- [ ] Early draft lifecycle PR published.
+- [x] Early draft lifecycle PR published.
 - [ ] Task archived with `status: blocked` and exact feature/CI evidence.
 - [ ] Programme queue, handoff and module discovery updated without claiming TCR-009 stable.
 - [ ] Active task removed and ownership released.
@@ -74,18 +74,18 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 
 # Planned closeout
 
-1. Publish the early draft lifecycle PR.
-2. Archive this task and update the programme/module records in one bounded lifecycle change.
-3. Validate the exact final head, transition Ready, obtain protected CI, merge and verify no stale active ownership remains.
+1. Run the bounded self-removing lifecycle transformer.
+2. Validate the archived task, programme/module records and released active ownership.
+3. Freeze exact final head, transition Ready, obtain protected CI and merge PR #993.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T23:26:00+02:00
-head: 8a88e2f09257e620985770e5e053381df32f916d
+updated_at: 2026-07-28T23:31:00+02:00
+head: 8644fc5ae56a661c0bd38d9a4a8bcd706abffc2a
 branch: docs/archive-tcr-009-blocked-20260728
-pr: none
+pr: 993
 status: implementing
 context_routes:
   - agent-governance
@@ -96,6 +96,7 @@ owned_paths:
   - docs/agents/tasks/archive/CAN-20260728-tcr-009-client-reference-drift.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
   - docs/agents/MODULE_CATALOG.md
+  - .github/workflows/tcr009-lifecycle-closeout.yml
 proven:
   - PR 992 merged the exact TCR-009 evidence request and blocker after Ready-state CI run 30399382989 succeeded.
   - Two complete exact client-reference snapshot sets do not exist in retained repository/workflow/supplied evidence.
@@ -108,7 +109,24 @@ conflicts: []
 first_failure:
   marker: TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
   evidence: RTREQ-TCR-ITEM-DEFINITIONS-0002
+rejected_hypotheses:
+  - Archive TCR-009 as completed or stable despite missing exact snapshot evidence.
+  - Start TCR-010, TCR-011 or OWA-003 before TCR-009 is stable and merged.
+  - Implement TCR-008 without a concrete non-duplicative minimap parity use case.
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260728-tcr-009-client-reference-drift.md
+  - docs/agents/tasks/archive/CAN-20260728-tcr-009-client-reference-drift.md
+  - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
+  - docs/agents/MODULE_CATALOG.md
+  - .github/workflows/tcr009-lifecycle-closeout.yml
+validation:
+  - command: feature PR 992 Ready-state protected CI
+    result: PASS
+    evidence: run 30399382989 completed success on exact head ada7a9e6f7d855a2d6f8c34d003b752a49251c1b
+  - command: fresh post-merge ownership and evidence preflight
+    result: PASS
+    evidence: main 8a88e2f09257e620985770e5e053381df32f916d; no competing TCR-009 owner or newly complete evidence chain
 blockers:
   - TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
-next_action: Publish the early draft lifecycle PR, then archive the task and update programme/module discovery.
+next_action: Run the self-removing lifecycle transformer, then exact-final-head validation and Ready-state protected CI for PR 993.
 ```
