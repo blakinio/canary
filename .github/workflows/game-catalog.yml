@@ -1,5 +1,6 @@
 name: Game Catalog
 
+# Exact-head executable proof for the offline exporter.
 on:
   pull_request:
     paths:
