@@ -1,0 +1,40 @@
+name: Game Catalog
+
+on:
+  pull_request:
+    paths:
+      - 'schemas/game-catalog/**'
+      - 'src/game/catalog/**'
+      - 'tools/game-catalog/**'
+      - 'tests/game_catalog/**'
+      - 'data-*/catalog/**'
+      - '.github/workflows/game-catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-catalog-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Contract and fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile validator
+        run: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_validate_snapshot.py
+      - name: Run focused tests
+        run: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
+      - name: Validate shared fixture
+        run: >-
+          python tools/game-catalog/validate_snapshot.py
+          tests/game_catalog/fixtures/minimal-snapshot.json
+          --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+          --expected-sha256 76b61b167e77a0c0379c5c1d179c3fec808ae1cf3d996e30be5784fde699691e
