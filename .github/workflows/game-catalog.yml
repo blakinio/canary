@@ -18,7 +18,7 @@ jobs:
   repair-known-compile-failures:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -36,30 +36,30 @@ jobs:
           exporter_path = Path('src/game/catalog/game_catalog_exporter.cpp')
           exporter = exporter_path.read_text(encoding='utf-8')
           old_sort = '''\tstd::ranges::sort(entities, {}, [](const Json &entity) {
-\t\treturn std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
-\t});
-\tstd::ranges::sort(relations, {}, [](const Json &relation) {
-\t\treturn std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
-\t});
+          \t\treturn std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
+          \t});
+          \tstd::ranges::sort(relations, {}, [](const Json &relation) {
+          \t\treturn std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
+          \t});
 
-\tJson releases = manifest.releases;
-\tstd::ranges::sort(releases, {}, [](const Json &release) {
-\t\treturn std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
-\t});'''
+          \tJson releases = manifest.releases;
+          \tstd::ranges::sort(releases, {}, [](const Json &release) {
+          \t\treturn std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
+          \t});'''
           new_sort = '''\tauto &entityArray = entities.get_ref<Json::array_t&>();
-\tstd::ranges::sort(entityArray, {}, [](const Json &entity) {
-\t\treturn std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
-\t});
-\tauto &relationArray = relations.get_ref<Json::array_t&>();
-\tstd::ranges::sort(relationArray, {}, [](const Json &relation) {
-\t\treturn std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
-\t});
+          \tstd::ranges::sort(entityArray, {}, [](const Json &entity) {
+          \t\treturn std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
+          \t});
+          \tauto &relationArray = relations.get_ref<Json::array_t&>();
+          \tstd::ranges::sort(relationArray, {}, [](const Json &relation) {
+          \t\treturn std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
+          \t});
 
-\tJson releases = manifest.releases;
-\tauto &releaseArray = releases.get_ref<Json::array_t&>();
-\tstd::ranges::sort(releaseArray, {}, [](const Json &release) {
-\t\treturn std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
-\t});'''
+          \tJson releases = manifest.releases;
+          \tauto &releaseArray = releases.get_ref<Json::array_t&>();
+          \tstd::ranges::sort(releaseArray, {}, [](const Json &release) {
+          \t\treturn std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
+          \t});'''
           if old_sort in exporter:
               exporter = exporter.replace(old_sort, new_sort, 1)
               exporter_path.write_text(exporter, encoding='utf-8', newline='\n')
@@ -69,23 +69,23 @@ jobs:
           runtime_path = Path('src/game/catalog/catalog_runtime.cpp')
           runtime = runtime_path.read_text(encoding='utf-8')
           old_helper = '''
-\tvoid stopExportRuntime() {
-\t\tg_dispatcher().shutdown();
-\t\tg_threadPool().shutdown();
-\t}
-'''
+          \tvoid stopExportRuntime() {
+          \t\tg_dispatcher().shutdown();
+          \t\tg_threadPool().shutdown();
+          \t}
+          '''
           if old_helper in runtime:
               runtime = runtime.replace(old_helper, '\n', 1)
 
           old_function = '''int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
-\ttry {'''
+          \ttry {'''
           new_function = '''int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
-\tconst auto stopExportRuntime = [] {
-\t\tg_dispatcher().shutdown();
-\t\tg_threadPool().shutdown();
-\t};
+          \tconst auto stopExportRuntime = [] {
+          \t\tg_dispatcher().shutdown();
+          \t\tg_threadPool().shutdown();
+          \t};
 
-\ttry {'''
+          \ttry {'''
           if old_function in runtime:
               runtime = runtime.replace(old_function, new_function, 1)
           elif new_function not in runtime:
