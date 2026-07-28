@@ -100,12 +100,12 @@ cross_repository_tasks:
 ## Context checkpoint
 
 ```yaml
-checkpoint_version: 2
-updated_at: 2026-07-28T09:15:00Z
-head: 0767248b3b3541441fbab9561e57ceb52b0880f3
+checkpoint_version: 1
+updated_at: 2026-07-28T09:40:00Z
+head: 62ed3824a0e0237653b234374c87a8118ef611cf
 branch: feat/CAN-20260728-game-catalog-exporter
 pr: 991
-status: active
+status: implementing
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -154,16 +154,16 @@ changed_paths:
 validation:
   - command: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_validate_snapshot.py
     result: PASS
-    evidence: Game Catalog workflow run 30343496965
+    evidence: Game Catalog workflow run 30345793160
   - command: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
     result: PASS
-    evidence: Game Catalog workflow run 30343496965
+    evidence: Game Catalog workflow run 30345793160
   - command: python tools/game-catalog/validate_snapshot.py tests/game_catalog/fixtures/minimal-snapshot.json --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json --expected-sha256 76b61b167e77a0c0379c5c1d179c3fec808ae1cf3d996e30be5784fde699691e
     result: PASS
-    evidence: Game Catalog workflow run 30343496965
+    evidence: Game Catalog workflow run 30345793160
   - command: repository CI
     result: PASS
-    evidence: CI workflow run 30343499336
+    evidence: CI workflow run 30345793523
   - command: local clone/build/test
     result: NOT_RUN
     evidence: sandbox DNS cannot resolve github.com
