@@ -7,119 +7,36 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
   contents: write
 
 concurrency:
   group: game-catalog-staging-snapshot-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Publish exact staging snapshot
+  patch-identifiers:
+    name: Apply unique identifier producer fix
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 991
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      SOURCE_HEAD_SHA: c090e8d6a68730fcf0147105be03c37f3f19d1cb
-      SOURCE_RUN_ID: '30397134686'
-      SOURCE_ARTIFACT_ID: '8703438753'
-      SOURCE_ARTIFACT_DIGEST: sha256:72fb2a99e60e1adc581c807e354ca37a0b06e197d918896c3eefd36af3a01ce8
-      STAGING_RELEASE_TAG: game-catalog-staging-pr-991-c090e8d6
     steps:
-      - name: Download exact successful exporter artifact
-        uses: actions/download-artifact@v7
+      - name: Checkout exact feature branch
+        uses: actions/checkout@v4
         with:
-          name: game-catalog-export-smoke
-          path: staging/source
-          repository: blakinio/canary
-          run-id: ${{ env.SOURCE_RUN_ID }}
-          github-token: ${{ github.token }}
+          ref: feat/CAN-20260728-game-catalog-exporter
+          fetch-depth: 0
+          token: ${{ github.token }}
 
-      - name: Verify and package public staging evidence
+      - name: Apply exact guarded patch
+        run: python3 tools/game-catalog/apply_identifier_fix.py
+
+      - name: Validate and publish source change
         shell: bash
         run: |
           set -euo pipefail
-
-          for snapshot in staging/source/game-catalog-baseline.json staging/source/game-catalog.json; do
-            sidecar="${snapshot}.sha256"
-            test -f "${snapshot}"
-            test -f "${sidecar}"
-            (cd "$(dirname "${snapshot}")" && sha256sum --check "$(basename "${sidecar}")")
-          done
-
-          python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          source = Path('staging/source')
-          expected = os.environ['SOURCE_HEAD_SHA']
-          for name in ['game-catalog-baseline.json', 'game-catalog.json']:
-              document = json.loads((source / name).read_text(encoding='utf-8'))
-              assert document['contract'] == 'oteryn.game-catalog'
-              assert document['schema_version'] == '1.0.0'
-              assert document['snapshot']['canary_commit_sha'] == expected
-              assert document['snapshot']['entity_count'] == len(document['entities']) > 0
-              assert document['snapshot']['relation_count'] == len(document['relations']) > 0
-
-          provenance = {
-              'contract': 'oteryn.game-catalog',
-              'schema_version': '1.0.0',
-              'source_repository': 'blakinio/canary',
-              'source_head_sha': expected,
-              'source_workflow_run_id': int(os.environ['SOURCE_RUN_ID']),
-              'source_artifact_id': int(os.environ['SOURCE_ARTIFACT_ID']),
-              'source_artifact_digest': os.environ['SOURCE_ARTIFACT_DIGEST'],
-              'staging_only': True,
-              'production_activation': False,
-          }
-          (source / 'provenance.json').write_text(
-              json.dumps(provenance, indent=2, sort_keys=True) + '\n',
-              encoding='utf-8',
-          )
-          PY
-
-          mkdir -p staging/package
-          (
-            cd staging/source
-            find . -type f -print | LC_ALL=C sort | zip -X -q ../package/game-catalog-export-smoke.zip -@
-          )
-          (
-            cd staging/package
-            sha256sum game-catalog-export-smoke.zip > game-catalog-export-smoke.zip.sha256
-          )
-
-      - name: Publish public staging-only prerelease
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if ! gh release view "${STAGING_RELEASE_TAG}" --repo blakinio/canary >/dev/null 2>&1; then
-            gh release create "${STAGING_RELEASE_TAG}" \
-              --repo blakinio/canary \
-              --target "${SOURCE_HEAD_SHA}" \
-              --prerelease \
-              --title 'Game Catalog staging snapshot for PR 991' \
-              --notes 'Staging-only cross-repository validation asset. No production deployment or profile activation.'
-          fi
-          gh release upload "${STAGING_RELEASE_TAG}" \
-            staging/package/game-catalog-export-smoke.zip \
-            staging/package/game-catalog-export-smoke.zip.sha256 \
-            --repo blakinio/canary \
-            --clobber
-
-      - name: Write release summary
-        shell: bash
-        run: |
-          {
-            echo '### Game Catalog staging snapshot'
-            echo
-            echo "- producer SHA: \`${SOURCE_HEAD_SHA}\`"
-            echo "- source run: \`${SOURCE_RUN_ID}\`"
-            echo "- source artifact: \`${SOURCE_ARTIFACT_ID}\`"
-            echo "- prerelease tag: \`${STAGING_RELEASE_TAG}\`"
-            echo '- production deployment: `false`'
-            echo '- production profile activation: `false`'
-          } >> "${GITHUB_STEP_SUMMARY}"
+          git diff --check
+          git diff --exit-code -- . ':!src/game/catalog/game_catalog_exporter.cpp' ':!tests/unit/game/catalog/game_catalog_test.cpp'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/game/catalog/game_catalog_exporter.cpp tests/unit/game/catalog/game_catalog_test.cpp
+          git commit -m 'fix(catalog): emit only unique snapshot identifiers'
+          git push origin HEAD:feat/CAN-20260728-game-catalog-exporter
