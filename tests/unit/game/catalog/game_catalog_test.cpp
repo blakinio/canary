@@ -171,6 +171,59 @@ TEST(GameCatalogExporter, MissingReviewedMetadataRemainsUnverifiedAndUnknown) {
 	EXPECT_EQ(item->at("canonical_key"), "item:server-2516");
 }
 
+TEST(GameCatalogExporter, NonUniqueSnapshotIdentifiersRemainDataOnlyAndCollisionsFailClosed) {
+	Items items;
+	Monsters monsters;
+	populateRuntime(items, monsters);
+	items.getItems()[2516].wareId = 777;
+	items.getItems().resize(2518);
+	auto &secondItem = items.getItems()[2517];
+	secondItem.loaded = true;
+	secondItem.id = 2517;
+	secondItem.name = "Dragon Shield Replica";
+	secondItem.type = ITEM_TYPE_SHIELD;
+	secondItem.wareId = 777;
+
+	auto secondMonster = std::make_shared<MonsterType>("Dragon Replica");
+	secondMonster->info.health = 1;
+	secondMonster->info.healthMax = 1;
+	secondMonster->info.raceid = 34;
+	monsters.monsters.emplace("dragon replica", std::move(secondMonster));
+
+	auto document = buildSnapshotDocument(
+		fixtureManifest(), items, monsters, "2026-07-28T00:00:00Z",
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	);
+	EXPECT_TRUE(validateSnapshotDocument(document).empty());
+
+	std::size_t duplicateWareRecords = 0;
+	std::size_t duplicateRaceRecords = 0;
+	for (const auto &entity : document.at("entities")) {
+		const auto &data = entity.at("data");
+		const auto hasIdentifier = [&entity](const std::string &identifierNamespace) {
+			return std::ranges::any_of(entity.at("identifiers"), [&identifierNamespace](const auto &identifier) {
+				return identifier.at("namespace") == identifierNamespace;
+			});
+		};
+		if (entity.at("type") == "item" && data.at("ware_id") == 777) {
+			++duplicateWareRecords;
+			EXPECT_FALSE(hasIdentifier("canary.ware_id"));
+		}
+		if (entity.at("type") == "creature" && data.at("race_id") == 34) {
+			++duplicateRaceRecords;
+			EXPECT_FALSE(hasIdentifier("canary.monster_race_id"));
+		}
+	}
+	EXPECT_EQ(duplicateWareRecords, 2);
+	EXPECT_EQ(duplicateRaceRecords, 2);
+
+	auto &firstEntityIdentifiers = document.at("entities").front().at("identifiers");
+	auto &secondEntityIdentifiers = document.at("entities").at(1).at("identifiers");
+	secondEntityIdentifiers.push_back(firstEntityIdentifiers.front());
+	EXPECT_FALSE(validateSnapshotDocument(document).empty());
+}
+
 TEST(GameCatalogExporter, FixedInputsProduceByteIdenticalOutput) {
 	Items items;
 	Monsters monsters;

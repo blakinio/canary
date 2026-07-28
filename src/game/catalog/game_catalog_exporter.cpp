@@ -116,6 +116,16 @@ namespace {
 		return result;
 	}
 
+	void sortIdentifiers(Json &identifiers) {
+		auto &identifierArray = identifiers.get_ref<Json::array_t&>();
+		std::ranges::sort(identifierArray, {}, [](const Json &identifier) {
+			return std::pair(
+				identifier.at("namespace").get<std::string>(),
+				identifier.at("value").get<std::string>()
+			);
+		});
+	}
+
 	[[nodiscard]] Json commonEntity(
 		const std::string &type,
 		const std::string &canonicalKey,
@@ -298,6 +308,19 @@ Json buildSnapshotDocument(
 	Json entities = Json::array();
 	Json relations = Json::array();
 	std::unordered_map<std::uint16_t, std::string> itemKeys;
+	std::unordered_map<std::uint16_t, std::size_t> wareIdCounts;
+	for (std::size_t id = 0; id < items.size(); ++id) {
+		const auto &item = items.getItemType(id);
+		if (item.loaded && item.id != 0 && !item.name.empty() && item.wareId != 0) {
+			++wareIdCounts[item.wareId];
+		}
+	}
+	std::unordered_map<std::uint32_t, std::size_t> monsterRaceIdCounts;
+	for (const auto &[registryKey, monster] : monsters.monsters) {
+		if (monster && !registryKey.empty() && !monster->name.empty() && monster->info.raceid != 0) {
+			++monsterRaceIdCounts[static_cast<std::uint32_t>(monster->info.raceid)];
+		}
+	}
 
 	for (std::size_t id = 0; id < items.size(); ++id) {
 		const auto &item = items.getItemType(id);
@@ -310,9 +333,10 @@ Json buildSnapshotDocument(
 		itemKeys[item.id] = canonicalKey;
 
 		Json identifiers = Json::array({ Json { { "namespace", "canary.server_item_id" }, { "value", sourceKey } } });
-		if (item.wareId != 0) {
+		if (item.wareId != 0 && wareIdCounts[item.wareId] == 1) {
 			identifiers.push_back(Json { { "namespace", "canary.ware_id" }, { "value", std::to_string(item.wareId) } });
 		}
+		sortIdentifiers(identifiers);
 
 		Json attributes = Json::object();
 		if (!item.vocationString.empty()) {
@@ -363,9 +387,10 @@ Json buildSnapshotDocument(
 		const auto &metadata = metadataFor(manifest.creatures, registryKey);
 		const std::string canonicalKey = metadata.canonicalKey.value_or(fallbackCreatureKey(registryKey));
 		Json identifiers = Json::array({ Json { { "namespace", "canary.monster_registry_key" }, { "value", registryKey } } });
-		if (monster->info.raceid != 0) {
+		if (monster->info.raceid != 0 && monsterRaceIdCounts[static_cast<std::uint32_t>(monster->info.raceid)] == 1) {
 			identifiers.push_back(Json { { "namespace", "canary.monster_race_id" }, { "value", std::to_string(monster->info.raceid) } });
 		}
+		sortIdentifiers(identifiers);
 
 		Json attributes = Json::object();
 		if (!monster->typeName.empty() && monster->typeName != monster->name) {
@@ -508,6 +533,7 @@ std::vector<std::string> validateSnapshotDocument(const Json &document) {
 	}
 
 	std::unordered_set<std::string> entityKeys;
+	std::unordered_map<std::string, std::string> identifierOwners;
 	std::pair<std::string, std::string> previousEntity;
 	for (const auto &entity : document.at("entities")) {
 		if (!entity.is_object()) {
@@ -534,6 +560,30 @@ std::vector<std::string> validateSnapshotDocument(const Json &document) {
 			const auto removed = releaseOrders[entity.at("removed_in").get<std::string>()];
 			if (removed <= introduced) {
 				errors.emplace_back("Entity removed_in is not an exclusive later release: " + key);
+			}
+		}
+		if (!entity.contains("identifiers") || !entity.at("identifiers").is_array()) {
+			errors.emplace_back("Entity identifiers are missing or invalid: " + key);
+		} else {
+			std::optional<std::pair<std::string, std::string>> previousIdentifier;
+			for (const auto &identifier : entity.at("identifiers")) {
+				if (!identifier.is_object() || !identifier.contains("namespace") || !identifier.at("namespace").is_string()
+				    || !identifier.contains("value") || !identifier.at("value").is_string()) {
+					errors.emplace_back("Entity contains an invalid identifier: " + key);
+					continue;
+				}
+				const auto namespaceValue = identifier.at("namespace").get<std::string>();
+				const auto identifierValue = identifier.at("value").get<std::string>();
+				const std::pair currentIdentifier(namespaceValue, identifierValue);
+				if (namespaceValue.empty() || identifierValue.empty() || (previousIdentifier && *previousIdentifier >= currentIdentifier)) {
+					errors.emplace_back("Entity identifiers are empty, duplicated, or not sorted: " + key);
+				}
+				previousIdentifier = currentIdentifier;
+				const auto identityKey = namespaceValue + "\0" + identifierValue;
+				const auto [owner, inserted] = identifierOwners.emplace(identityKey, key);
+				if (!inserted && owner->second != key) {
+					errors.emplace_back("Identifier resolves to multiple canonical entities: " + namespaceValue + ":" + identifierValue);
+				}
 			}
 		}
 	}
