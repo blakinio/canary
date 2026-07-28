@@ -13,7 +13,6 @@
 #include "game/game.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "items/item.hpp"
-#include "lib/thread/thread_pool.hpp"
 #include "lua/creature/events.hpp"
 #include "lua/modules/modules.hpp"
 #include "lua/scripts/lua_environment.hpp"
@@ -62,7 +61,6 @@ namespace {
 		}
 		throw std::runtime_error("Exact Canary commit SHA is unavailable. Build with Git metadata or pass --game-catalog-canary-commit=<sha>.");
 	}
-
 }
 
 void CanaryServer::loadGameCatalogDefinitions() {
@@ -138,9 +136,17 @@ void CanaryServer::loadGameCatalogDefinitions() {
 	timedLoad(datapackFolder + "/scripts/libs", [&datapackFolder] {
 		return g_scripts().loadScripts(datapackFolder + "/scripts/lib", true, false);
 	});
+
+	const auto monsterSpellDirectory = std::filesystem::path(datapackFolder) / "scripts" / "spells";
+	std::error_code spellDirectoryError;
+	if (std::filesystem::is_directory(monsterSpellDirectory, spellDirectoryError) && !spellDirectoryError) {
+		timedLoad(monsterSpellDirectory.generic_string(), [&monsterSpellDirectory] {
+			return g_scripts().loadScripts(monsterSpellDirectory.generic_string(), false, false);
+		});
+	}
+
 	// Do not load the complete datapack scripts tree here. It contains game
 	// migrations and other runtime scripts that may access persistent state.
-	// Monster definitions depend only on the reviewed libraries above.
 	timedLoad(datapackFolder + "/monster", [&datapackFolder] {
 		return g_scripts().loadScripts(datapackFolder + "/monster", false, false);
 	});
@@ -153,7 +159,6 @@ void CanaryServer::loadGameCatalogDefinitions() {
 int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
 	const auto stopExportRuntime = [] {
 		g_dispatcher().shutdown();
-		g_threadPool().shutdown();
 	};
 
 	try {
