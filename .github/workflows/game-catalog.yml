@@ -37,4 +37,4 @@ jobs:
           python tools/game-catalog/validate_snapshot.py
           tests/game_catalog/fixtures/minimal-snapshot.json
           --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
-          --expected-sha256 76b61b167e77a0c0379c5c1d179c3fec808ae1cf3d996e30be5784fde699691e
+          --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
