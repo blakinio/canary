@@ -103,6 +103,7 @@ jobs:
 
           config = Path('config.lua.dist').read_text(encoding='utf-8')
           replacements = {
+              'useAnyDatapackFolder': 'true',
               'dataPackDirectory': '"tests/game_catalog/runtime-datapack"',
               'mapDownloadUrl': '""',
               'toggleDownloadMap': 'false',
