@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260728-game-catalog-exporter-slice-1
 base_branch: main
 created: 2026-07-28T10:15:12+02:00
-updated: 2026-07-28T10:29:30+02:00
-last_verified_commit: "d5321930cdeebe9e9658310df6042cbe7bc194cc"
+updated: 2026-07-28T10:36:00+02:00
+last_verified_commit: "dd0217b748f580c996c96f49f829e0f6807e09cc"
 risk: high
 related_issue: ""
 related_pr: "990"
@@ -87,8 +87,8 @@ production_activation: forbidden
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T10:29:30+02:00
-head: d5321930cdeebe9e9658310df6042cbe7bc194cc
+updated_at: 2026-07-28T10:36:00+02:00
+head: dd0217b748f580c996c96f49f829e0f6807e09cc
 branch: feat/CAN-20260728-game-catalog-exporter-slice-1
 pr: 990
 status: implementing
@@ -115,6 +115,8 @@ owned_paths:
 proven:
   - main head is architecture merge commit 4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e
   - merged architecture requires a deterministic offline exporter using final runtime registries
+  - normal Canary startup calls loadConfigLua, validateDatapack, initializeDatabase, loadModules, map loading, house and market processing, world start and service registration
+  - loadModules registers final appearances, items and monsters before database-dependent boosted-creature, Bosstiary, prey and Cyclopedia calls
   - Platform and Canary schema files have the same Git blob SHA a3c239a6d61385edde0b06f72cdf781f4ce58df3
   - draft PR #990 tracks this task
   - sanitized fixture contains two releases, visible/future items, complete/partial creatures and visible/future loot relations
@@ -125,10 +127,10 @@ proven:
 derived:
   - matching Git blob SHAs prove the two schema files are byte-identical
   - identical fixture and validator bytes plus pinned SHA-256 values create a cross-repository contract gate
-  - shared fixture and contract validation can be delivered before runtime loader splitting
+  - the smallest candidate loader split is the definition-registration prefix of loadModules before boosted/runtime persistence calls
 unknown:
-  - CI confirmation of the expected schema SHA-256 on the branch
-  - exact smallest safe loader boundary between static registries and database/world startup
+  - CI conclusion for Game Catalog Contract run 30342845793
+  - whether all Lua dependencies needed for MonsterType registration can be loaded without unrelated NPC/event modules
   - proven DATA_DIRECTORY path for reviewed catalog manifests
   - existing reusable SHA-256 and atomic replacement helper suitable for this exporter
   - executable local C++ test results because the sandbox cannot clone GitHub or run the repository checkout
@@ -143,6 +145,7 @@ rejected_hypotheses:
   - assume a universal loot chance denominator
   - infer version or availability metadata from external wikis
 changed_paths:
+  - .github/workflows/game-catalog-contract.yml
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter-slice-1.md
   - tests/game_catalog/fixtures/v1/minimal-snapshot.json
   - tools/game-catalog/validate_contract_fixture.py
@@ -159,12 +162,15 @@ validation:
   - command: local validator syntax and semantic smoke
     result: PASS
     evidence: Python validator executed against a Draft 2020-12 smoke schema and the exact fixture
+  - command: Game Catalog Contract
+    result: IN_PROGRESS
+    evidence: workflow run 30342845793 on head dd0217b748f580c996c96f49f829e0f6807e09cc
   - command: local checkout/build/test
     result: NOT_RUN
     evidence: sandbox DNS cannot resolve github.com
 blockers:
   - runtime loader boundary must be proven before editing startup code
-next_action: Add the dedicated Game Catalog contract workflow and inspect its PR #990 run.
+next_action: Inspect renewed PR #990 ownership and contract checks, then implement the bounded catalogue definition loader and exporter DTO/validator package.
 ```
 
 ## Deferred child tasks
