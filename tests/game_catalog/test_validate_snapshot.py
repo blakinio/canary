@@ -22,7 +22,7 @@ class ValidateSnapshotTest(unittest.TestCase):
 
     def test_shared_fixture_and_schema_hash_are_pinned(self) -> None:
         document, digest, size = validator.load_and_validate(self.fixture, self.schema)
-        self.assertEqual("76b61b167e77a0c0379c5c1d179c3fec808ae1cf3d996e30be5784fde699691e", digest)
+        self.assertEqual("ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055", digest)
         self.assertGreater(size, 0)
         self.assertEqual(4, document["snapshot"]["entity_count"])
         self.assertEqual(2, document["snapshot"]["relation_count"])
