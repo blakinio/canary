@@ -36,6 +36,8 @@ target_sources(
             multichannel/mail_delivery_operation_handler.cpp
 )
 
+add_subdirectory(catalog)
+
 if(FEATURE_MULTICHANNEL_REDIS)
     target_sources(
         ${CORE_TARGET_NAME}
