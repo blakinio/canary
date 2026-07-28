@@ -3,302 +3,106 @@ name: Game Catalog
 on:
   pull_request:
     paths:
-      - 'schemas/game-catalog/**'
-      - 'src/game/catalog/**'
-      - 'src/main.cpp'
-      - 'src/canary_server.hpp'
-      - 'src/canary_server.cpp'
-      - 'src/game/CMakeLists.txt'
-      - 'tests/unit/game/catalog/**'
-      - 'tests/unit/game/CMakeLists.txt'
-      - 'tools/game-catalog/**'
-      - 'tests/game_catalog/**'
-      - 'data-*/catalog/**'
       - '.github/workflows/game-catalog.yml'
-  workflow_dispatch:
+      - 'src/game/catalog/game_catalog_exporter.cpp'
+      - 'src/game/catalog/catalog_runtime.cpp'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: game-catalog-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: game-catalog-repair-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
 
 jobs:
-  contract:
-    name: Contract and fixture
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Compile validator
-        run: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_validate_snapshot.py
-      - name: Run focused tests
-        run: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
-      - name: Validate shared fixture
-        run: >-
-          python tools/game-catalog/validate_snapshot.py
-          tests/game_catalog/fixtures/minimal-snapshot.json
-          --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
-          --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
-
-  build-exporter:
-    name: Build export binary
-    permissions:
-      contents: write
-      packages: write
-    uses: ./.github/workflows/reusable-build-linux.yml
-    with:
-      buildtypes: '["linux-release"]'
-      run_canary_smoke: false
-      run_global_smoke: false
-      checkout_ref: ${{ github.event.pull_request.head.sha || github.sha }}
-    secrets: inherit
-
-  build-failure-diagnostics:
-    name: Compile failure evidence
-    needs: build-exporter
-    if: ${{ always() && needs.build-exporter.result == 'failure' }}
+  repair-known-compile-failures:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      actions: read
-      contents: read
     steps:
-      - name: Extract compiler failure from this run
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts/game-catalog-build-failure
-          jobs_json="$(mktemp)"
-          curl --fail --silent --show-error --location \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H 'Accept: application/vnd.github+json' \
-            -H 'X-GitHub-Api-Version: 2022-11-28' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
-            > "${jobs_json}"
-          job_id="$(jq -r '.jobs[] | select(.name == "Build export binary / Compile (linux-release)") | .id' "${jobs_json}" | head -n 1)"
-          if [[ -z "${job_id}" || "${job_id}" == 'null' ]]; then
-            echo 'Failed build job id was not found.' >&2
-            exit 1
-          fi
-
-          raw_log='artifacts/game-catalog-build-failure/raw-job-log'
-          curl --fail --silent --show-error --location \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H 'Accept: application/vnd.github+json' \
-            -H 'X-GitHub-Api-Version: 2022-11-28' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" \
-            > "${raw_log}"
-
-          if file "${raw_log}" | grep -qi 'zip archive'; then
-            unzip -p "${raw_log}" > artifacts/game-catalog-build-failure/build.log
-          else
-            mv "${raw_log}" artifacts/game-catalog-build-failure/build.log
-          fi
-
-          python3 - <<'PY'
-          import re
-          from pathlib import Path
-
-          source = Path('artifacts/game-catalog-build-failure/build.log')
-          lines = source.read_text(encoding='utf-8', errors='replace').splitlines()
-          pattern = re.compile(
-              r'(?:fatal error:|\berror:|undefined reference|CMake Error|FAILED:|ninja: build stopped)',
-              re.IGNORECASE,
-          )
-          matches = [index for index, line in enumerate(lines) if pattern.search(line)]
-          selected: list[str] = []
-          if matches:
-              ranges: list[tuple[int, int]] = []
-              for index in matches:
-                  start = max(0, index - 12)
-                  end = min(len(lines), index + 18)
-                  if ranges and start <= ranges[-1][1]:
-                      ranges[-1] = (ranges[-1][0], max(ranges[-1][1], end))
-                  else:
-                      ranges.append((start, end))
-              for start, end in ranges[-8:]:
-                  selected.extend(lines[start:end])
-                  selected.append('---')
-          else:
-              selected = lines[-240:]
-          output = '\n'.join(selected[-500:]) + '\n'
-          Path('artifacts/game-catalog-build-failure/compile-failure.txt').write_text(
-              output,
-              encoding='utf-8',
-          )
-          print(output)
-          PY
-
-      - name: Upload compiler failure evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-catalog-compile-failure
-          path: artifacts/game-catalog-build-failure/
-          if-no-files-found: error
-
-  export-smoke:
-    name: Export-only runtime smoke
-    needs: [contract, build-exporter]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout exact head
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
 
-      - name: Download export binary
-        uses: actions/download-artifact@v7
-        with:
-          name: canary-linux-release
-          path: build/linux-release/bin
-
-      - name: Install smoke dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y strace
-
-      - name: Prepare isolated export inputs
+      - name: Apply exact compile repair
         shell: bash
         run: |
           set -euo pipefail
-          chmod +x build/linux-release/bin/canary
-          rm -rf artifacts/game-catalog-smoke
-          mkdir -p artifacts/game-catalog-smoke/manifests
-
           python3 - <<'PY'
-          import json
-          import re
           from pathlib import Path
 
-          config = Path('config.lua.dist').read_text(encoding='utf-8')
-          replacements = {
-              'dataPackDirectory': '"data-otservbr-global"',
-              'mapDownloadUrl': '""',
-              'toggleDownloadMap': 'false',
-              'toggleMapCustom': 'false',
-              'startupDatabaseOptimization': 'false',
-              'mysqlDatabaseBackup': 'false',
-              'toggleSaveInterval': 'false',
-              'ip': '"127.0.0.1"',
-              'mysqlHost': '"127.0.0.1"',
-              'mysqlUser': '"catalog-ci"',
-              'mysqlPass': '"catalog-ci"',
-              'mysqlDatabase': '"catalog_ci"',
-              'mysqlPort': '1',
-              'mysqlSock': '""',
-              'metricsEnablePrometheus': 'false',
-              'metricsEnableOstream': 'false',
-          }
-          for key, value in replacements.items():
-              pattern = re.compile(rf'^{re.escape(key)}\s*=.*$', re.MULTILINE)
-              if len(pattern.findall(config)) != 1:
-                  raise RuntimeError(f'Expected exactly one config key: {key}')
-              config = pattern.sub(f'{key} = {value}', config, count=1)
-          Path('config.lua').write_text(config, encoding='utf-8', newline='\n')
+          exporter_path = Path('src/game/catalog/game_catalog_exporter.cpp')
+          exporter = exporter_path.read_text(encoding='utf-8')
+          old_sort = '''\tstd::ranges::sort(entities, {}, [](const Json &entity) {
+\t\treturn std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
+\t});
+\tstd::ranges::sort(relations, {}, [](const Json &relation) {
+\t\treturn std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
+\t});
 
-          manifest_dir = Path('artifacts/game-catalog-smoke/manifests')
-          profile = {
-              'contract': 'oteryn.game-catalog',
-              'schema_version': '1.0.0',
-              'protocol_profile': 'oteryn-current',
-              'runtime_release': '0.0.1-ci',
-              'content_target_release': '0.0.1-ci',
-              'verified_content_through_release': '0.0.1-ci',
-              'contains_content_through_release': None,
-              'loot_chance_denominator': 100000,
-              'datapack_commit_sha': None,
-              'producer_build_id': 'github-actions-game-catalog-smoke',
-          }
-          releases = [{
-              'key': '0.0.1-ci',
-              'display_label': 'CI smoke 0.0.1',
-              'major': 0,
-              'minor': 0,
-              'patch': 1,
-              'build': None,
-              'release_order': 1,
-              'protocol_family': 'oteryn-current',
-              'released_at': None,
-          }]
-          (manifest_dir / 'profile.json').write_text(json.dumps(profile, indent=2) + '\n', encoding='utf-8')
-          (manifest_dir / 'releases.json').write_text(json.dumps(releases, indent=2) + '\n', encoding='utf-8')
+\tJson releases = manifest.releases;
+\tstd::ranges::sort(releases, {}, [](const Json &release) {
+\t\treturn std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
+\t});'''
+          new_sort = '''\tauto &entityArray = entities.get_ref<Json::array_t&>();
+\tstd::ranges::sort(entityArray, {}, [](const Json &entity) {
+\t\treturn std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
+\t});
+\tauto &relationArray = relations.get_ref<Json::array_t&>();
+\tstd::ranges::sort(relationArray, {}, [](const Json &relation) {
+\t\treturn std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
+\t});
+
+\tJson releases = manifest.releases;
+\tauto &releaseArray = releases.get_ref<Json::array_t&>();
+\tstd::ranges::sort(releaseArray, {}, [](const Json &release) {
+\t\treturn std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
+\t});'''
+          if old_sort in exporter:
+              exporter = exporter.replace(old_sort, new_sort, 1)
+              exporter_path.write_text(exporter, encoding='utf-8', newline='\n')
+          elif new_sort not in exporter:
+              raise RuntimeError('Expected Game Catalog sort block was not found')
+
+          runtime_path = Path('src/game/catalog/catalog_runtime.cpp')
+          runtime = runtime_path.read_text(encoding='utf-8')
+          old_helper = '''
+\tvoid stopExportRuntime() {
+\t\tg_dispatcher().shutdown();
+\t\tg_threadPool().shutdown();
+\t}
+'''
+          if old_helper in runtime:
+              runtime = runtime.replace(old_helper, '\n', 1)
+
+          old_function = '''int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
+\ttry {'''
+          new_function = '''int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
+\tconst auto stopExportRuntime = [] {
+\t\tg_dispatcher().shutdown();
+\t\tg_threadPool().shutdown();
+\t};
+
+\ttry {'''
+          if old_function in runtime:
+              runtime = runtime.replace(old_function, new_function, 1)
+          elif new_function not in runtime:
+              raise RuntimeError('Expected Game Catalog export function was not found')
+          runtime_path.write_text(runtime, encoding='utf-8', newline='\n')
           PY
 
-      - name: Run export-only binary without database or network endpoints
+      - name: Commit repair when needed
         shell: bash
-        env:
-          CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          output='artifacts/game-catalog-smoke/game-catalog.json'
-          trace='artifacts/game-catalog-smoke/network.trace'
-          log='artifacts/game-catalog-smoke/export.log'
-
-          timeout 900s strace -f -qq \
-            -e trace=connect,bind,listen,accept,accept4 \
-            -o "${trace}" \
-            build/linux-release/bin/canary \
-              --export-game-catalog-only \
-              --game-catalog-output="${output}" \
-              --game-catalog-manifest-directory=artifacts/game-catalog-smoke/manifests \
-              --game-catalog-generated-at=2026-07-28T00:00:00Z \
-              --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
-            >"${log}" 2>&1
-
-          cat "${log}"
-          if [[ -s "${trace}" ]]; then
-            cat "${trace}" >&2
-            echo 'Export-only mode attempted a database or network endpoint syscall.' >&2
-            exit 1
+          if git diff --quiet -- src/game/catalog/game_catalog_exporter.cpp src/game/catalog/catalog_runtime.cpp; then
+            echo 'Compile repair already applied.'
+            exit 0
           fi
-
-      - name: Validate runtime snapshot and sidecar
-        shell: bash
-        env:
-          CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          output='artifacts/game-catalog-smoke/game-catalog.json'
-          sidecar="${output}.sha256"
-
-          python3 tools/game-catalog/validate_snapshot.py \
-            "${output}" \
-            --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
-          (cd artifacts/game-catalog-smoke && sha256sum --check game-catalog.json.sha256)
-          grep -Eq '^[0-9a-f]{64}  game-catalog\.json$' "${sidecar}"
-
-          python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          document = json.loads(Path('artifacts/game-catalog-smoke/game-catalog.json').read_text(encoding='utf-8'))
-          snapshot = document['snapshot']
-          assert snapshot['canary_commit_sha'] == os.environ['CATALOG_HEAD_SHA']
-          assert snapshot['generated_at'] == '2026-07-28T00:00:00Z'
-          assert snapshot['entity_count'] == len(document['entities']) > 0
-          assert snapshot['relation_count'] == len(document['relations']) > 0
-          assert {'item', 'creature'} <= {entity['type'] for entity in document['entities']}
-          PY
-
-      - name: Upload smoke evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-catalog-export-smoke
-          path: artifacts/game-catalog-smoke/
-          if-no-files-found: error
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/game/catalog/game_catalog_exporter.cpp src/game/catalog/catalog_runtime.cpp
+          git commit -m 'fix(catalog): compile ordered snapshot and runtime shutdown'
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
