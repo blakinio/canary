@@ -1,5 +1,19 @@
 ---
 task_id: CAN-20260728-game-catalog-export-architecture
+program_id: none
+agent: chatgpt
+branch: docs/CAN-20260728-game-catalog-export-architecture
+status: review
+related_pr: 989
+owned_paths:
+  exclusive:
+    - docs/agents/tasks/active/CAN-20260728-game-catalog-export-architecture.md
+    - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
+    - docs/systems/GAME_CATALOG_EXPORTER.md
+    - docs/agents/prompts/GAME_CATALOG_EXPORTER_IMPLEMENTATION_PROMPT.md
+    - schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+  shared:
+    - docs/agents/CROSS_REPO_CONTRACTS.md
 required_reads:
   - AGENTS.md
   - docs/agents/REPOSITORY_MAP.md
@@ -64,10 +78,10 @@ cross_repository_tasks:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T07:29:00Z
-head: tracked-by-live-pr
+updated_at: 2026-07-28T07:33:00Z
+head: c7524eb453e6f646a92d9ecb22114c9a69b015c9
 branch: docs/CAN-20260728-game-catalog-export-architecture
-pr: https://github.com/blakinio/canary/pull/989
+pr: 989
 status: ready
 context_routes:
   - agent-governance
@@ -99,8 +113,8 @@ unknown:
   - complete quest and map availability registries
 conflicts: []
 first_failure:
-  marker: none
-  evidence: none
+  marker: Agent Task Ownership run 30338575516 / Validate active ownership
+  evidence: frontmatter lacked active status, PR, branch and ownership claims; checkpoint head and PR formats were invalid
 rejected_hypotheses:
   - Scrape external wikis to populate the production snapshot.
   - Infer availability only from the presence of a Lua definition.
@@ -122,6 +136,9 @@ validation:
   - command: parse proposed schema as JSON and calculate SHA-256
     result: PASS
     evidence: JSON valid; SHA-256 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b
+  - command: Agent Task Ownership run 30338575516
+    result: FAIL
+    evidence: invalid task lifecycle metadata; corrected in this commit
 blockers:
   - none
 next_action: Review Canary PR #989 together with Oteryn Platform PR #271 and either accept schema v1 or request a coordinated versioned correction.
