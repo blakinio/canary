@@ -1,0 +1,65 @@
+name: Game Catalog Finalize
+
+on:
+  push:
+    branches:
+      - feat/CAN-20260728-game-catalog-exporter
+    paths:
+      - '.github/workflows/game-catalog-finalize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/CAN-20260728-game-catalog-exporter
+          fetch-depth: 0
+
+      - name: Update module catalogue and remove temporary fixture files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          catalog_path = Path('docs/agents/MODULE_CATALOG.md')
+          catalog = catalog_path.read_text(encoding='utf-8')
+          catalog = catalog.replace('Last reviewed: 2026-07-25', 'Last reviewed: 2026-07-28', 1)
+          row = (
+              '| Oteryn Game Catalog exporter | active (#991) | '
+              'Deterministic offline `--export-game-catalog-only` CLI for final runtime item, creature and loot registries; '
+              'fail-closed reviewed manifests, semantic validation, atomic JSON publication and lowercase SHA-256 sidecar without normal world, database or network startup | '
+              '`src/game/catalog/**`, `src/main.cpp`, `tests/unit/game/catalog/game_catalog_test.cpp`, '
+              '`tests/game_catalog/runtime-datapack/**`, `tools/game-catalog/**`, `.github/workflows/game-catalog.yml`, '
+              '`docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md` | '
+              'Reuse this exporter and schema `oteryn.game-catalog` `1.0.0`; do not add a second XML/Lua approximation, '
+              'infer missing history/availability, or enter normal server/database/service startup. Full staging manifests and '
+              'production snapshot review remain separate evidence-gated work. |\n'
+          )
+          if '| Oteryn Game Catalog exporter |' not in catalog:
+              marker = '| Forge history ID resolution |'
+              index = catalog.find(marker)
+              if index < 0:
+                  raise RuntimeError('MODULE_CATALOG insertion marker was not found')
+              catalog = catalog[:index] + row + catalog[index:]
+          catalog_path.write_text(catalog, encoding='utf-8', newline='\n')
+
+          Path('tests/game_catalog/runtime-datapack/lib/core/quests.lua').unlink(missing_ok=True)
+          Path('.github/workflows/game-catalog-finalize.yml').unlink()
+          PY
+
+      - name: Commit finalized catalogue
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'docs(catalog): finalize module registration'
+          git push origin HEAD:feat/CAN-20260728-game-catalog-exporter
