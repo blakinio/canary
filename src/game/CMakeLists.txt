@@ -1,3 +1,5 @@
+add_subdirectory(catalog)
+
 target_sources(
     ${CORE_TARGET_NAME}
     PRIVATE functions/game_reload.cpp
