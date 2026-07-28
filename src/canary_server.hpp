@@ -14,6 +14,10 @@
 
 class Logger;
 
+namespace game_catalog {
+	struct ExportOptions;
+}
+
 class FailedToInitializeCanary : public std::exception {
 private:
 	std::string message;
@@ -39,6 +43,7 @@ public:
 
 	int run();
 	int generateLuaApiDocsOnly();
+	int exportGameCatalogOnly(const game_catalog::ExportOptions &options);
 
 private:
 	enum class LoaderStatus : uint8_t {
@@ -69,6 +74,7 @@ private:
 	void initializeDatabase();
 	void initializeMultichannelCluster();
 	void loadModules();
+	void loadGameCatalogDefinitions();
 	void setWorldType();
 	void loadMaps() const;
 	void setupHousesRent();
