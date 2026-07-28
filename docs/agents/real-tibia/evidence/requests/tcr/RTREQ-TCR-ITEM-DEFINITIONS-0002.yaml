@@ -1,0 +1,188 @@
+{
+  "available_inputs": {
+    "canary_paths": [
+      "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md",
+      "docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md",
+      "tools/ai-agent/tibia_client_reference_manifest.py",
+      "tools/ai-agent/tibia_staticdata_reference_index.py",
+      "tools/ai-agent/tibia_staticmapdata_reference_index.py",
+      "tools/ai-agent/tibia_proficiency_reference_index.py"
+    ],
+    "canary_symbols": [],
+    "exact_map_or_index_hashes": [
+      "0bd51e1660f9d58594eb10000c35ea51113fc668aa3ee416c8c6b7ebb59b78ff",
+      "0967af2eacdd8f2a608e738b9042362676167d6c6455e60d08db7ae16cf7ea53",
+      "1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22"
+    ],
+    "existing_result_ids": [],
+    "external_artifact_hashes": [
+      "01c45146e2fcec3f4087844e0cbc1817fb1d60b310a35ac5d88c07aab6f73d1a",
+      "0bd51e1660f9d58594eb10000c35ea51113fc668aa3ee416c8c6b7ebb59b78ff",
+      "0967af2eacdd8f2a608e738b9042362676167d6c6455e60d08db7ae16cf7ea53",
+      "1a915dffd9265cd1c18d39e55da7ede691b2e58add534bc186238ae028a73f22"
+    ],
+    "source_claims": [
+      "RT-ITEM-DEFINITIONS-0002",
+      "RT-WEAPON-PROFICIENCY-0001"
+    ],
+    "source_urls": []
+  },
+  "blocking": true,
+  "claim_refs": [
+    "RT-ITEM-DEFINITIONS-0002",
+    "RT-WEAPON-PROFICIENCY-0001"
+  ],
+  "collector_must_not_edit": [
+    "proprietary official-client packages or assets",
+    "generated TCR reports retained outside Git",
+    "tools/ai-agent/tibia_client_reference_manifest.py",
+    "tools/ai-agent/tibia_staticdata_reference_index.py",
+    "tools/ai-agent/tibia_staticmapdata_reference_index.py",
+    "tools/ai-agent/tibia_proficiency_reference_index.py",
+    "tools/ai-agent/otbm_evidence_gateway.py",
+    "source or candidate OTBM maps"
+  ],
+  "coordination": {
+    "blocks": [],
+    "collector_pr": 992,
+    "collector_task": "CAN-20260728-tcr-009-client-reference-drift",
+    "coordination_id": "TCR-009-CLIENT-REFERENCE-DRIFT-EVIDENCE",
+    "depends_on": [],
+    "owner_pr": null,
+    "owner_task": null
+  },
+  "format": "canary-real-tibia-owner-request-v1",
+  "history": [
+    {
+      "actor": "TCR-009 evidence preflight",
+      "actor_pr": 992,
+      "actor_role": "collector",
+      "actor_task": "CAN-20260728-tcr-009-client-reference-drift",
+      "at": "2026-07-28T22:55:00+02:00",
+      "from_status": null,
+      "owner_evidence_ref": null,
+      "reason": "Fresh repository, PR, workflow-artifact and supplied-input preflight found one source package but no two complete exact generated TCR snapshot sets.",
+      "to_status": "draft"
+    },
+    {
+      "actor": "TCR-009 structured evidence reviewer",
+      "actor_pr": 992,
+      "actor_role": "reviewer",
+      "actor_task": "CAN-20260728-tcr-009-client-reference-drift",
+      "at": "2026-07-28T22:56:00+02:00",
+      "from_status": "draft",
+      "owner_evidence_ref": null,
+      "reason": "The request is bounded to exact retained input and generated-report provenance, reuses the existing TCR producers, and forbids synthetic snapshots or proprietary payload commits.",
+      "to_status": "ready-for-owner-triage"
+    }
+  ],
+  "module_id": "item-definitions",
+  "owner_kind": "tcr",
+  "owner_paths_read_only_for_collector": [
+    "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md",
+    "docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md",
+    "tools/ai-agent/tibia_client_reference_manifest.py",
+    "tools/ai-agent/tibia_staticdata_reference_index.py",
+    "tools/ai-agent/tibia_staticmapdata_reference_index.py",
+    "tools/ai-agent/tibia_proficiency_reference_index.py",
+    "exact user-supplied official-client packages outside Git",
+    "owner-retained manifest and index reports outside Git"
+  ],
+  "priority": "high",
+  "question": "Provide two distinct complete exact Tibia client-reference snapshot sets, each containing a validated canary-tibia-client-reference-manifest-v1 and exact compatible canary-tibia-staticdata-index-v1, canary-tibia-staticmapdata-index-v1 and canary-tibia-proficiency-index-v1 reports with stable retained references, so TCR-009 can compare baseline A with current B without guessed build identity, reused snapshots or unverifiable outputs.",
+  "related_modules": [
+    "otbm-tooling",
+    "weapon-proficiency"
+  ],
+  "request_id": "RTREQ-TCR-ITEM-DEFINITIONS-0002",
+  "request_type": "client-reference-evidence",
+  "requested_output_contract": {
+    "required_fields": [
+      "exact owner task and PR",
+      "distinct snapshot A and snapshot B reference IDs",
+      "exact manifest format and manifest SHA-256 for each snapshot",
+      "exact selected input relative paths byte sizes roles and SHA-256 for each snapshot",
+      "explicit client build evidence state and supporting package metadata for each snapshot",
+      "exact manifest parser revision for each snapshot",
+      "exact StaticData index format schema family parser revision report SHA-256 and source binding for each snapshot",
+      "exact StaticMapData index format parser revision report SHA-256 and source binding for each snapshot",
+      "exact proficiency index format parser revision report SHA-256 and source binding for each snapshot",
+      "exact generated-index hashes recorded by the corresponding manifest",
+      "compatibility statement covering schema and parser revisions across A and B",
+      "stable retained report references for every manifest and index",
+      "explicit proves and does_not_prove",
+      "first failure or blocker",
+      "freshness and invalidation dependencies"
+    ],
+    "requires_explicit_does_not_prove": true,
+    "requires_explicit_proves": true,
+    "result_format_or_schema": "two complete exact TCR-001/TCR-002/TCR-003/TCR-004 snapshot sets eligible as inputs to canary-tibia-client-reference-drift-v1",
+    "retention_boundary": "owner-retained-report"
+  },
+  "requested_owner_program": "CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE",
+  "required_evidence": {
+    "authority_dimension": "implementation-candidate",
+    "minimum_e2e_maturity": null,
+    "minimum_proof_level": "definition-found",
+    "required_quality_dimensions": [
+      "two distinct exact snapshot identities",
+      "complete manifest-to-index hash closure",
+      "compatible parser and schema revisions",
+      "explicit build evidence state without filename inference",
+      "stable retained references for all generated reports",
+      "no proprietary payload or generated report committed to Git",
+      "no source input mutation"
+    ],
+    "required_static_dimensions": [
+      "snapshot A exact manifest and selected input provenance",
+      "snapshot A exact StaticData StaticMapData and proficiency indexes",
+      "snapshot B exact manifest and selected input provenance",
+      "snapshot B exact StaticData StaticMapData and proficiency indexes",
+      "cross-snapshot manifest index and revision compatibility"
+    ],
+    "required_version_cells": [
+      "official_client_build",
+      "canary_commit"
+    ]
+  },
+  "result": {
+    "available": false,
+    "blockers": [
+      "TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS"
+    ],
+    "consumed_by_evidence_records": [],
+    "does_not_prove": [],
+    "proof_level_reached": null,
+    "proves": [],
+    "result_refs": []
+  },
+  "schema_version": 1,
+  "status": "ready-for-owner-triage",
+  "suggested_owner_capability_gap": {
+    "note": "The required TCR-001 through TCR-004 producers already exist and are stable; the gap is two complete retained exact input/output evidence sets, not missing parser or index infrastructure.",
+    "present": false,
+    "reuse_value": null,
+    "summary": null
+  },
+  "superseded_by": [],
+  "supersedes": [],
+  "version_impact": {
+    "appearances_items_revision": null,
+    "canary_commit": "87149c6b527f43025860c20cca0a440091ee8730",
+    "database_schema_revision": null,
+    "datapack_revision": null,
+    "maintained_otclient_commit": null,
+    "map_sha256": null,
+    "official_client_build": null,
+    "official_tibia_release": null,
+    "protocol_profile": null,
+    "spawn_npc_sidecar_revision": null
+  },
+  "why_existing_evidence_is_insufficient": [
+    "The available external archive is one source package, not two distinct complete generated TCR snapshot sets.",
+    "The available package contains selected source files and package metadata but no retained TCR manifest or generated index reports.",
+    "TCR-003 and TCR-004 final validation workflow runs retain no report artifacts.",
+    "Repository, branch, PR and artifact searches found no second exact package or compatible complete snapshot set.",
+    "The same snapshot cannot be used as both A and B, and client build identity cannot be inferred solely from filenames or labels."
+  ]
+}
