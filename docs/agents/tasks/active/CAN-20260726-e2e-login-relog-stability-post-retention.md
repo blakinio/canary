@@ -2,7 +2,7 @@
 task_id: CAN-20260726-e2e-login-relog-stability-post-retention
 program_id: CAN-PROGRAM-E2E-PLATFORM
 coordination_id: E2E-QRI-022-BASELINE-004
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: test/e2e-login-relog-stability-post-retention-20260726
 base_branch: main
