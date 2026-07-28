@@ -3,8 +3,8 @@ task_id: CAN-20260728-game-catalog-exporter
 program_id: none
 agent: chatgpt
 branch: feat/CAN-20260728-game-catalog-exporter
-status: investigating
-related_pr: none
+status: active
+related_pr: 991
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
@@ -51,9 +51,9 @@ Deliver the deterministic offline Canary exporter for contract `oteryn.game-cata
 - [ ] Items, creatures and loot are collected from final authoritative runtime registries rather than a duplicate partial parser.
 - [ ] Version, completeness and availability manifests fail closed and preserve UNKNOWN facts.
 - [ ] Output is deterministic with fixed `generated_at`, validated before atomic publication and accompanied by a lowercase SHA-256 sidecar.
-- [ ] The shared sanitized fixture validates or is generated deterministically and remains byte-compatible with Platform expectations.
+- [x] The shared sanitized fixture validates and remains byte-compatible with Platform expectations.
 - [ ] Tests prove version semantics, collisions, dangling references, exact runtime values, loot numerators/denominators/counts, deterministic bytes, failure preservation and absence of startup side effects.
-- [ ] Schema bytes remain unchanged and match Platform SHA-256 `099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b`.
+- [x] Schema bytes remain unchanged and match Platform SHA-256 `099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b`.
 - [ ] Required exact-head CI passes before readiness; no production server, datapack activation or deployment occurs.
 
 ## Ownership
@@ -86,7 +86,6 @@ dependencies:
   - parent: CAN-20260728-game-catalog-export-architecture
   - OTERYN-20260728-game-catalog-implementation
 blockers:
-  - exact minimal catalogue loader split remains UNKNOWN until source call paths are inspected
   - local clone/build/test unavailable because sandbox DNS cannot resolve github.com; implementation validation must use repository CI until a runnable checkout is available
 cross_repository_tasks:
   - OTERYN-20260728-game-catalog-implementation
@@ -101,12 +100,12 @@ cross_repository_tasks:
 ## Context checkpoint
 
 ```yaml
-checkpoint_version: 1
-updated_at: 2026-07-28T08:20:51Z
-head: 4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e
+checkpoint_version: 2
+updated_at: 2026-07-28T09:15:00Z
+head: 0767248b3b3541441fbab9561e57ceb52b0880f3
 branch: feat/CAN-20260728-game-catalog-exporter
-pr: none
-status: investigating
+pr: 991
+status: active
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -122,16 +121,21 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
 proven:
   - Canary main is 4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e and contains merged architecture PR 989.
-  - Shared contract ID is oteryn.game-catalog, schema version is 1.0.0 and expected content SHA-256 is 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b.
+  - Shared contract ID is oteryn.game-catalog, schema version is 1.0.0 and expected schema SHA-256 is 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b.
   - Final runtime registries, not source-text approximations, are authoritative for item, creature and loot values.
   - Registration alone does not prove encounterability; missing reviewed evidence remains registered_only or unknown.
   - Current active-work index has no ownership claim on src/game/catalog, tools/game-catalog, tests/game_catalog or catalogue manifest paths.
+  - The shared fixture has identical Git blob SHA e078e87000b3472a26465d4cf0885ee81635a83e in Canary and Platform and content SHA-256 76b61b167e77a0c0379c5c1d179c3fec808ae1cf3d996e30be5784fde699691e.
+  - Normal startup initializes the database before loadModules and later starts maps, houses, market, schedulers and network services.
+  - The authoritative definition load order inside loadModules is appearances, vocations/outfits/familiars/imbuements/storages, final Item registry, core/datapack Lua and final Monsters registry.
+  - Existing generate-lua-api-docs-only parsing proves an early CLI-only path can exit before CanaryServer::run.
 derived:
-  - Export-only startup should reuse the existing CLI-only precedent and split only the smallest safe loader boundary.
+  - Export-only startup must branch before CanaryServer::run database initialization and reuse a smallest safe definition-only loader ending after final Monsters registration.
+  - NPCs, maps, houses, market, raids, schedulers, boosted/prey/statistics, webhooks, backups and ports must remain outside that loader boundary.
   - Deterministic publication requires validation and flush/close before atomic rename in the destination directory.
 unknown:
-  - exact current loader call path between configuration, appearances, items, scripts, monsters and database-dependent startup
   - final DTO field mapping for every bounded runtime item and MonsterType field
+  - exact reviewed Oteryn manifests and staging snapshot contents
   - complete historical introduced/removed and availability metadata
 conflicts: []
 first_failure:
@@ -142,18 +146,30 @@ rejected_hypotheses:
   - Infer availability or historical release metadata from external wikis.
   - Start normal world services and stop them after export.
 changed_paths:
+  - .github/workflows/game-catalog.yml
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
+  - tests/game_catalog/fixtures/minimal-snapshot.json
+  - tests/game_catalog/test_validate_snapshot.py
+  - tools/game-catalog/validate_snapshot.py
 validation:
-  - command: GitHub connector preflight, branch/PR/task overlap search and architecture baseline verification
+  - command: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_validate_snapshot.py
     result: PASS
-    evidence: current main, required architecture commits, open PRs, active work index and ownership overlap were inspected
+    evidence: Game Catalog workflow run 30343496965
+  - command: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
+    result: PASS
+    evidence: Game Catalog workflow run 30343496965
+  - command: python tools/game-catalog/validate_snapshot.py tests/game_catalog/fixtures/minimal-snapshot.json --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json --expected-sha256 76b61b167e77a0c0379c5c1d179c3fec808ae1cf3d996e30be5784fde699691e
+    result: PASS
+    evidence: Game Catalog workflow run 30343496965
+  - command: repository CI
+    result: PASS
+    evidence: CI workflow run 30343499336
   - command: local clone/build/test
     result: NOT_RUN
     evidence: sandbox DNS cannot resolve github.com
 blockers:
-  - exact loader boundary requires source inspection before implementation
   - local runtime validation unavailable until CI or another runnable checkout is used
-next_action: Inspect the current startup, item registry, MonsterType and loot call paths and record the proven minimal export-only loader boundary.
+next_action: Inspect exact final Item, Monsters, MonsterType and loot APIs and implement the definition-only exporter boundary without database or world startup.
 ```
 
 ## Notes
