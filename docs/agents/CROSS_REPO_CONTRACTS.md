@@ -1,16 +1,16 @@
-# Canary ↔ OTClient Contract Registry
+# Canary Cross-Repository Contract Registry
 
-Last reviewed: 2026-07-23
+Last reviewed: 2026-07-28
 
 Copy durable contract changes to both repositories when both sides change. Task-specific details belong in task records. An unchanged consumer may remain pinned by exact commit when evidence proves that no consumer-side mutation is required.
 
 ## Required fields
 
-- shared `OTS-*` ID and linked `CAN-*`/`OTC-*` tasks;
+- shared coordination ID and linked repository tasks;
 - producer and consumer;
-- opcode/message/protobuf/feature/config/identifier/path;
+- opcode/message/protobuf/feature/config/identifier/path or file-schema boundary;
 - old/new behavior;
-- field order, widths, signedness, optional values;
+- field order, widths, signedness, optional values or schema constraints;
 - capability/version gate;
 - supported/unsupported combinations;
 - rollout order and one-sided failure behavior;
@@ -19,22 +19,24 @@ Copy durable contract changes to both repositories when both sides change. Task-
 
 ## Durable areas
 
-| Area | Canary source | OTClient source | Rule |
+| Area | Canary source | Consumer source | Rule |
 |---|---|---|---|
-| Protocol/opcodes | server protocol handlers and related definitions | `src/client` and affected modules | Never reuse an opcode without checking both sides/versions. |
-| Protobuf | `src/protobuf` and serialization | `src/protobuf` and deserialization | Schemas and generated expectations stay synchronized. |
-| Feature flags | server capability/version behavior | `modules/game_features` and C++ checks | Gate new behavior while older combinations remain supported. |
-| Assets/IDs/paths | datapack/distribution definitions | things/sounds/assets/loaders | Definitions and references differ; IDs/paths cannot be silently repurposed. |
-| Login/auth | login service/config/protocol | enter-game/server-list/login modules | Defaults, TLS, fallback, and failure behavior are explicit. |
-| Feature payloads | game logic/emission | matching `modules/game_*` consumer | Field order, optionals, and gates match exactly. |
-| Coupled defaults | server config/schema/migrations | client config/setup/module defaults | Defaults do not silently diverge. |
+| Protocol/opcodes | server protocol handlers and related definitions | affected client/server consumer | Never reuse an opcode without checking both sides/versions. |
+| Protobuf | `src/protobuf` and serialization | matching generated schema/deserialization | Schemas and generated expectations stay synchronized. |
+| Feature flags | server capability/version behavior | consumer feature checks | Gate new behavior while older combinations remain supported. |
+| Assets/IDs/paths | datapack/distribution definitions | assets/loaders/catalogue consumer | Definitions and references differ; IDs/paths cannot be silently repurposed. |
+| Login/auth | login service/config/protocol | enter-game/server-list/login consumer | Defaults, TLS, fallback, and failure behavior are explicit. |
+| Feature payloads | game logic/emission | matching consumer | Field order, optionals, and gates match exactly. |
+| File/schema exports | deterministic producer and schema | importer, persistence and visibility logic | Schema version, hash, bounds, rollout and failure semantics remain synchronized. |
+| Coupled defaults | server config/schema/migrations | consumer config/setup/module defaults | Defaults do not silently diverge. |
 
 ## Compatibility matrix
 
-| Coordination ID | Canary PR/commit | OTClient PR/commit | Protocol | Rollout | Status | Last verified |
-|---|---|---|---:|---|---|---|
-| `OTS-001` / `OAM-006` | Otheryn PR #21 → `c547d8ad70ef1252624c255476e6cb83fa125e14`; Canary governance PR #436 | unchanged baseline `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` | `1525` current-profile login: server-issued opaque single-use session key is forwarded unchanged into game login; server preserves DB-session/password and old-protocol fallbacks | server-first-safe | verified | Universal Agent E2E #118 (`29531221365`): exact Otheryn `c547d8ad70ef1252624c255476e6cb83fa125e14` + OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, `login/relog` PASS, Required physical E2E PASS |
+| Coordination ID | Canary PR/commit | Consumer PR/commit | Boundary | Rollout | Status | Last verified |
+|---|---|---|---|---|---|---|
+| `OTS-001` / `OAM-006` | Otheryn PR #21 → `c547d8ad70ef1252624c255476e6cb83fa125e14`; Canary governance PR #436 | OTClient unchanged baseline `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f` | `1525` current-profile login: server-issued opaque single-use session key is forwarded unchanged into game login; server preserves DB-session/password and old-protocol fallbacks | server-first-safe | verified | Universal Agent E2E #118 (`29531221365`): exact Otheryn `c547d8ad70ef1252624c255476e6cb83fa125e14` + OTClient `2a1b93bcdf6d4317ceeb2254b1e89429453a8e7f`, `login/relog` PASS, Required physical E2E PASS |
 | `OTS-20260721-oteryn-identity-auth` | Canary adapter PR #722 → `b8a88f073b2609b444fa15370aae30ac9f80b908`; Canary rotation PR #807; Platform hardening PR #124 → `53158217a6c6017230301cf4daa783b04fcc13d5` | OTClient PR #17 → `bb87346f6c516a19d19497d82bb01fb389334ff5` | Gateway HTTP protocol v1 issues a process-local opaque Game Session; existing `GameSessionKey` world-entry field and current game protocol remain unchanged | atomic-required at activation; Platform/Canary code is deploy-first-safe while native auth remains disabled | hardened, activation-gated | pre-hardening bounded native-auth E2E `29988893301` and final physical evidence `29992417296` PASS; hardened exact-revision E2E pending Canary #807 merge |
+| `OTS-20260728-game-catalog-v1` | task `CAN-20260728-game-catalog-export-architecture`; PR #989 | Platform PR #271 → `8aa1fc29dd13895efb2a7006204a6b88105e6972` | Offline file contract `oteryn.game-catalog` schema `1.0.0`; byte-identical schema SHA-256 `099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b` | additive producer-first-safe after inactive consumer importer; unsupported schema fails closed | producer architecture review | Platform architecture merged; Canary final-gate review pending; both schema paths resolve to Git blob `a3c239a6d61385edde0b06f72cdf781f4ce58df3` |
 
 ### OTS-001 contract details
 
@@ -70,4 +72,18 @@ Copy durable contract changes to both repositories when both sides change. Task-
 - **Production activation blockers:** hardened exact-revision native-auth E2E remains pending; exact production private-network ingress/firewall, TLS certificate/hostname, secret-manager injection/rotation and deployed revision state remain unproven. Gateway v1 also does not forward Identity `security_generation`, so immediate generation-based Game Session revocation is not claimed.
 - **E2E status:** pre-hardening bounded native OTClient→Oteryn Gateway→Canary behavior is proven by run `29988893301`: `Knight 1` entered exactly once and replay of the same Game Session was rejected with `login_error` while `successful_world_entries=1`. Final evidence run `29992417296` passed physical job `89166128089` and Required physical E2E job `89167924405` using Canary `285dec6a034aa3620ae5ca12549fb9e8e1b35631`, OTClient `bb87346f6c516a19d19497d82bb01fb389334ff5`, and Gateway `8006534108d835474dadd208b0ec934e4a12528b`. The same scenario must be rerun after Canary #807 merges, pinned to exact merged hardened Platform and Canary revisions.
 
-Rollout values: `server-first-safe`, `client-first-safe`, `backward-compatible`, `atomic-required`, `breaking-migration`, `unverified`.
+### OTS-20260728-game-catalog-v1 contract details
+
+- **Producer:** `blakinio/canary`, offline deterministic CLI export.
+- **Consumer:** `blakinio/Oteryn-Platform`, transactional inactive snapshot importer and profile visibility owner.
+- **Paths:** Canary `schemas/game-catalog/v1/game-catalog-snapshot.schema.json`; Platform `resources/schemas/game-catalog/v1/game-catalog-snapshot.schema.json`.
+- **Transport:** local operator/deployment `game-catalog.json` plus optional `.sha256` sidecar; no network push or browser upload in v1.
+- **Initial entities:** items and creatures. Initial relation: creature loot. NPCs, quests, spawns and historical profiles are reserved later slices.
+- **Version gate:** releases use explicit integer `release_order`; versions are never floats; entity and relation ranges are independent and `removed_in` is exclusive.
+- **Completeness/availability:** missing evidence stays unknown; public projection is complete-only and fail-closed by default; registration alone does not prove obtainability or encounterability.
+- **Rollout:** architecture/contracts first; inactive Platform importer second; optional Canary exporter third; reviewed staging snapshot/import/rollback fourth; public activation later. Producer-only deployment has no runtime effect. Consumer rejects unsupported schema versions.
+- **Tests:** both repositories must validate the same sanitized fixture and prove byte-identical schema hash. Canary additionally proves deterministic offline generation; Platform proves transactional import, visibility and rollback.
+- **One-sided failure:** missing producer output leaves the prior active Platform snapshot unchanged; unsupported/malformed output is rejected; exporter failure leaves no partial final file.
+- **Production:** no production deployment, import or activation is authorized by the architecture tasks.
+
+Rollout values: `server-first-safe`, `client-first-safe`, `backward-compatible`, `atomic-required`, `breaking-migration`, `unverified`, `additive-producer-first-safe`.
