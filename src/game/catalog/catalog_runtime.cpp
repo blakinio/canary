@@ -138,9 +138,9 @@ void CanaryServer::loadGameCatalogDefinitions() {
 	timedLoad(datapackFolder + "/scripts/libs", [&datapackFolder] {
 		return g_scripts().loadScripts(datapackFolder + "/scripts/lib", true, false);
 	});
-	timedLoad(datapackFolder + "/scripts", [&datapackFolder] {
-		return g_scripts().loadScripts(datapackFolder + "/scripts", false, false);
-	});
+	// Do not load the complete datapack scripts tree here. It contains game
+	// migrations and other runtime scripts that may access persistent state.
+	// Monster definitions depend only on the reviewed libraries above.
 	timedLoad(datapackFolder + "/monster", [&datapackFolder] {
 		return g_scripts().loadScripts(datapackFolder + "/monster", false, false);
 	});
