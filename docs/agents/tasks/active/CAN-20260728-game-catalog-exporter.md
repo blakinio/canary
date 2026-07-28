@@ -12,6 +12,7 @@ owned_paths:
     - tools/game-catalog/**
     - tests/game_catalog/**
     - tests/fixtures/game-catalog/**
+    - tests/unit/game/catalog/**
     - data-otservbr-global/catalog/**
   shared:
     - src/main.cpp
@@ -19,6 +20,9 @@ owned_paths:
     - src/canary_server.cpp
     - CMakeLists.txt
     - src/CMakeLists.txt
+    - src/game/CMakeLists.txt
+    - tests/unit/game/CMakeLists.txt
+    - .github/workflows/game-catalog.yml
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - docs/agents/BUILD_TEST_MATRIX.md
@@ -64,6 +68,7 @@ owned_paths:
   - tools/game-catalog/**
   - tests/game_catalog/**
   - tests/fixtures/game-catalog/**
+  - tests/unit/game/catalog/**
   - data-otservbr-global/catalog/**
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
   - docs/agents/tasks/deferred/CAN-20260728-game-catalog-*.md
@@ -72,6 +77,9 @@ owned_paths:
   - src/canary_server.cpp
   - CMakeLists.txt
   - src/CMakeLists.txt
+  - src/game/CMakeLists.txt
+  - tests/unit/game/CMakeLists.txt
+  - .github/workflows/game-catalog.yml
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CROSS_REPO_CONTRACTS.md
 modules:
