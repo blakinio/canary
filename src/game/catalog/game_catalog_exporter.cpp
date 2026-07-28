@@ -406,15 +406,18 @@ Json buildSnapshotDocument(
 		collectLoot(manifest, registryKey, canonicalKey, monster->info.lootItems, itemKeys, relations, std::nullopt, lootOrdinal, "");
 	}
 
-	std::ranges::sort(entities, {}, [](const Json &entity) {
+	auto &entityArray = entities.get_ref<Json::array_t&>();
+	std::ranges::sort(entityArray, {}, [](const Json &entity) {
 		return std::pair(entity.at("type").get<std::string>(), entity.at("canonical_key").get<std::string>());
 	});
-	std::ranges::sort(relations, {}, [](const Json &relation) {
+	auto &relationArray = relations.get_ref<Json::array_t&>();
+	std::ranges::sort(relationArray, {}, [](const Json &relation) {
 		return std::pair(relation.at("type").get<std::string>(), relation.at("canonical_key").get<std::string>());
 	});
 
 	Json releases = manifest.releases;
-	std::ranges::sort(releases, {}, [](const Json &release) {
+	auto &releaseArray = releases.get_ref<Json::array_t&>();
+	std::ranges::sort(releaseArray, {}, [](const Json &release) {
 		return std::pair(release.at("release_order").get<std::int64_t>(), release.at("key").get<std::string>());
 	});
 

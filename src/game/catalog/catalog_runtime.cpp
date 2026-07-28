@@ -63,10 +63,6 @@ namespace {
 		throw std::runtime_error("Exact Canary commit SHA is unavailable. Build with Git metadata or pass --game-catalog-canary-commit=<sha>.");
 	}
 
-	void stopExportRuntime() {
-		g_dispatcher().shutdown();
-		g_threadPool().shutdown();
-	}
 }
 
 void CanaryServer::loadGameCatalogDefinitions() {
@@ -155,6 +151,11 @@ void CanaryServer::loadGameCatalogDefinitions() {
 }
 
 int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
+	const auto stopExportRuntime = [] {
+		g_dispatcher().shutdown();
+		g_threadPool().shutdown();
+	};
+
 	try {
 		loadConfigLua();
 		validateDatapack();
