@@ -9,6 +9,7 @@
 
 #include "canary_server.hpp"
 #include "core.hpp"
+#include "game/catalog/game_catalog_exporter.hpp"
 #include "game/multichannel/channel_context.hpp"
 #include "lib/di/container.hpp"
 
@@ -31,8 +32,22 @@ namespace {
 }
 
 int main(int argc, char* argv[]) {
-	auto &server = inject<CanaryServer>();
 	const std::span<char*> arguments(argv, static_cast<std::size_t>(argc));
+	const auto catalogArguments = oteryn::catalog::parseGameCatalogExportArguments(arguments);
+	if (catalogArguments.requested) {
+		if (!catalogArguments.error.empty() || !catalogArguments.options.has_value()) {
+			g_logger().error(
+				"[game-catalog] Invalid export-only arguments: {}",
+				catalogArguments.error.empty() ? "missing export options" : catalogArguments.error
+			);
+			return EXIT_FAILURE;
+		}
+
+		auto &exporter = inject<oteryn::catalog::GameCatalogExporter>();
+		return exporter.run(*catalogArguments.options);
+	}
+
+	auto &server = inject<CanaryServer>();
 
 	// Resolves this process's multi-channel cluster identity (--channel-id
 	// CLI arg > CANARY_CHANNEL_ID env > single-channel fallback) before
