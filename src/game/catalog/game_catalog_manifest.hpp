@@ -3,6 +3,7 @@
 #include <nlohmann/json_fwd.hpp>
 
 #ifndef USE_PRECOMPILED_HEADERS
+	#include <cstdint>
 	#include <filesystem>
 	#include <optional>
 	#include <string>
@@ -28,6 +29,7 @@ struct CatalogManifest {
 	std::string runtimeRelease;
 	std::string contentTargetRelease;
 	std::string verifiedContentThroughRelease;
+	std::uint32_t lootChanceDenominator = 0;
 	std::optional<std::string> containsContentThroughRelease;
 	std::optional<std::string> datapackCommitSha;
 	std::optional<std::string> producerBuildId;
