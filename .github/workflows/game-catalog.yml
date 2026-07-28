@@ -103,7 +103,7 @@ jobs:
 
           config = Path('config.lua.dist').read_text(encoding='utf-8')
           replacements = {
-              'dataPackDirectory': '"data-canary"',
+              'dataPackDirectory': '"tests/game_catalog/runtime-datapack"',
               'mapDownloadUrl': '""',
               'toggleDownloadMap': 'false',
               'toggleMapCustom': 'false',
