@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260728-game-catalog-exporter-slice-1
 base_branch: main
 created: 2026-07-28T10:15:12+02:00
-updated: 2026-07-28T10:15:12+02:00
-last_verified_commit: "4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e"
+updated: 2026-07-28T10:29:30+02:00
+last_verified_commit: "d5321930cdeebe9e9658310df6042cbe7bc194cc"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "990"
 depends_on:
   - oteryn.game-catalog schema version 1.0.0
 blocks:
@@ -19,6 +19,7 @@ blocks:
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter-slice-1.md
+    - .github/workflows/game-catalog-contract.yml
     - src/game/catalog/**
     - schemas/game-catalog/v1/**
     - tools/game-catalog/**
@@ -86,10 +87,10 @@ production_activation: forbidden
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T10:15:12+02:00
-head: 4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e
+updated_at: 2026-07-28T10:29:30+02:00
+head: d5321930cdeebe9e9658310df6042cbe7bc194cc
 branch: feat/CAN-20260728-game-catalog-exporter-slice-1
-pr: none
+pr: 990
 status: implementing
 context_routes:
   - agent-governance
@@ -98,6 +99,7 @@ context_routes:
   - testing
 owned_paths:
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter-slice-1.md
+  - .github/workflows/game-catalog-contract.yml
   - src/game/catalog/**
   - schemas/game-catalog/v1/**
   - tools/game-catalog/**
@@ -113,17 +115,23 @@ owned_paths:
 proven:
   - main head is architecture merge commit 4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e
   - merged architecture requires a deterministic offline exporter using final runtime registries
-  - no open Canary PR is dedicated to Game Catalog
+  - Platform and Canary schema files have the same Git blob SHA a3c239a6d61385edde0b06f72cdf781f4ce58df3
+  - draft PR #990 tracks this task
+  - sanitized fixture contains two releases, visible/future items, complete/partial creatures and visible/future loot relations
+  - shared validator performs pinned hash checks, Draft 2020-12 validation, semantic integrity checks and two-release visibility assertions
   - external wikis are not authoritative game-data sources
   - opentibiabr/canary is read-only and forbidden for writes
   - production deployment and production mutation are excluded
 derived:
+  - matching Git blob SHAs prove the two schema files are byte-identical
+  - identical fixture and validator bytes plus pinned SHA-256 values create a cross-repository contract gate
   - shared fixture and contract validation can be delivered before runtime loader splitting
 unknown:
+  - CI confirmation of the expected schema SHA-256 on the branch
   - exact smallest safe loader boundary between static registries and database/world startup
   - proven DATA_DIRECTORY path for reviewed catalog manifests
   - existing reusable SHA-256 and atomic replacement helper suitable for this exporter
-  - executable local test results because the sandbox cannot clone GitHub or run the repository checkout
+  - executable local C++ test results because the sandbox cannot clone GitHub or run the repository checkout
   - complete historical content and availability facts listed by the architecture
 conflicts: []
 first_failure:
@@ -136,19 +144,27 @@ rejected_hypotheses:
   - infer version or availability metadata from external wikis
 changed_paths:
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter-slice-1.md
+  - tests/game_catalog/fixtures/v1/minimal-snapshot.json
+  - tools/game-catalog/validate_contract_fixture.py
 validation:
   - command: GitHub repository and main-head inspection
     result: PASS
     evidence: main head 4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e
-  - command: open PR ownership inspection
+  - command: GitHub schema blob comparison
     result: PASS
-    evidence: no Game Catalog PR or identified overlapping owned path
+    evidence: both schema paths resolve to blob a3c239a6d61385edde0b06f72cdf781f4ce58df3
+  - command: local synthetic fixture semantic validation
+    result: PASS
+    evidence: counts, ranges, endpoints, probability/count bounds and 15.20/15.21 visibility assertions passed; fixture SHA-256 c947e461c1ee8f6fbf511c9890b61135d2585d6c16e2e99a0f72dd5a946c2181
+  - command: local validator syntax and semantic smoke
+    result: PASS
+    evidence: Python validator executed against a Draft 2020-12 smoke schema and the exact fixture
   - command: local checkout/build/test
     result: NOT_RUN
     evidence: sandbox DNS cannot resolve github.com
 blockers:
   - runtime loader boundary must be proven before editing startup code
-next_action: Add the sanitized shared fixture and automated schema/fixture contract validation before changing the runtime startup path.
+next_action: Add the dedicated Game Catalog contract workflow and inspect its PR #990 run.
 ```
 
 ## Deferred child tasks
