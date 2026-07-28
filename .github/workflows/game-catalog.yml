@@ -94,7 +94,13 @@ jobs:
           set -euo pipefail
           chmod +x build/linux-release/bin/canary
           rm -rf artifacts/game-catalog-smoke
-          mkdir -p artifacts/game-catalog-smoke/manifests
+          mkdir -p \
+            artifacts/game-catalog-smoke/manifests \
+            artifacts/game-catalog-smoke/runtime-datapack
+
+          cp -a data-canary/lib artifacts/game-catalog-smoke/runtime-datapack/lib
+          cp -a tests/game_catalog/runtime-datapack/monster artifacts/game-catalog-smoke/runtime-datapack/monster
+          cp -a tests/game_catalog/runtime-datapack/scripts artifacts/game-catalog-smoke/runtime-datapack/scripts
 
           python3 - <<'PY'
           import json
@@ -104,7 +110,7 @@ jobs:
           config = Path('config.lua.dist').read_text(encoding='utf-8')
           replacements = {
               'useAnyDatapackFolder': 'true',
-              'dataPackDirectory': '"tests/game_catalog/runtime-datapack"',
+              'dataPackDirectory': '"artifacts/game-catalog-smoke/runtime-datapack"',
               'mapDownloadUrl': '""',
               'toggleDownloadMap': 'false',
               'toggleMapCustom': 'false',
