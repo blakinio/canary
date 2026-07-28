@@ -40,27 +40,25 @@ jobs:
 
           active = active_path.read_text(encoding="utf-8")
           assert "status: implementing" in active
-          assert 'related_pr: ""' in active
+          assert 'related_pr: "993"' in active
           active = active.replace("status: implementing", "status: blocked", 1)
-          active = active.replace("updated: 2026-07-28T23:26:00+02:00", "updated: 2026-07-28T23:29:00+02:00", 1)
+          active = active.replace("updated: 2026-07-28T23:31:00+02:00", "updated: 2026-07-28T23:33:00+02:00", 1)
           active = re.sub(r'last_verified_commit: "[0-9a-f]+"', f'last_verified_commit: "{feature_merge}"', active, count=1)
-          active = active.replace('related_pr: ""', 'related_pr: "992"\nlifecycle_pr: "993"', 1)
-          active = active.replace("- [ ] Early draft lifecycle PR published.", "- [x] Early draft lifecycle PR published.")
+          active = active.replace('related_pr: "993"', 'related_pr: "992"\nlifecycle_pr: "993"', 1)
           active = active.replace("- [ ] Task archived with `status: blocked` and exact feature/CI evidence.", "- [x] Task archived with `status: blocked` and exact feature/CI evidence.")
           active = active.replace("- [ ] Programme queue, handoff and module discovery updated without claiming TCR-009 stable.", "- [x] Programme queue, handoff and module discovery updated without claiming TCR-009 stable.")
           active = active.replace("- [ ] Active task removed and ownership released.", "- [x] Active task removed and ownership released.")
           active = active.replace("- [ ] Lifecycle exact-final-head checks, Ready-state protected CI and merge completed.", "- [ ] Lifecycle exact-final-head checks, Ready-state protected CI and merge completed after this archive commit.")
           active = active.replace("# Planned closeout", "# Lifecycle closeout")
           active = re.sub(
-              r"1\. Publish the early draft lifecycle PR\.\n2\. Archive this task and update the programme/module records in one bounded lifecycle change\.\n3\. Validate the exact final head, transition Ready, obtain protected CI, merge and verify no stale active ownership remains\.",
+              r"1\. Run the bounded self-removing lifecycle transformer\.\n2\. Validate the archived task, programme/module records and released active ownership\.\n3\. Freeze exact final head, transition Ready, obtain protected CI and merge PR #993\.",
               "- Lifecycle PR `#993` was published early as draft.\n- This commit archives the blocked task, updates programme/module discovery and removes the active ownership record.\n- Remaining lifecycle action is exact-final-head validation, Ready-state protected CI and merge of PR `#993`.",
               active,
               count=1,
           )
-          active = active.replace("pr: none", "pr: 993", 1)
           active = active.replace("status: implementing\ncontext_routes:", "status: blocked\ncontext_routes:", 1)
           active = active.replace(
-              "next_action: Publish the early draft lifecycle PR, then archive the task and update programme/module discovery.",
+              "next_action: Run the self-removing lifecycle transformer, then exact-final-head validation and Ready-state protected CI for PR 993.",
               "next_action: Validate exact final head for lifecycle PR 993, transition Ready, obtain protected CI and merge.",
               1,
           )
@@ -69,7 +67,7 @@ jobs:
           active_path.unlink()
 
           program = program_path.read_text(encoding="utf-8")
-          program = re.sub(r"^updated: .*?$", "updated: 2026-07-28T23:29:00+02:00", program, count=1, flags=re.MULTILINE)
+          program = re.sub(r"^updated: .*?$", "updated: 2026-07-28T23:33:00+02:00", program, count=1, flags=re.MULTILINE)
           program = re.sub(r'^last_verified_commit: "[0-9a-f]+"$', f'last_verified_commit: "{feature_merge}"', program, count=1, flags=re.MULTILINE)
           replacements = {
               "| TCR-008 |": "| TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case | no concrete parity use case found in fresh 2026-07-28 preflight | TCR-001 merged | low | Do not implement on speculation. Reopen only for a documented advisory-only use case not already covered by World Index, landmarks, Reachability, factual rendering or StaticMapData. |",
