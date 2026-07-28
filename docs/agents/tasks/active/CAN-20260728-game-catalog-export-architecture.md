@@ -3,7 +3,7 @@ task_id: CAN-20260728-game-catalog-export-architecture
 program_id: none
 agent: chatgpt
 branch: docs/CAN-20260728-game-catalog-export-architecture
-status: review
+status: ready
 related_pr: 989
 owned_paths:
   exclusive:
@@ -48,7 +48,8 @@ Persist the reviewed Canary-side architecture and cross-repository contract for 
 - [x] Add the proposed schema v1 and prove byte identity with Platform.
 - [x] Register the durable cross-repository contract.
 - [x] Open the draft architecture PR.
-- [ ] Review and accept both architecture PRs and the shared contract.
+- [x] Merge the matching Platform architecture PR.
+- [ ] Pass Canary final-head validation and merge PR #989.
 
 ## Ownership
 
@@ -67,7 +68,7 @@ modules:
   - startup-cli
 dependencies:
   - contract: oteryn.game-catalog/v1
-  - OTERYN-20260728-versioned-game-catalog-architecture
+  - OTERYN-20260728-versioned-game-catalog-architecture merged as 8aa1fc29dd13895efb2a7006204a6b88105e6972
 blockers:
   - none for architecture documentation
 cross_repository_tasks:
@@ -78,8 +79,8 @@ cross_repository_tasks:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T07:33:00Z
-head: c7524eb453e6f646a92d9ecb22114c9a69b015c9
+updated_at: 2026-07-28T07:38:00Z
+head: e3442bd505a5b5b02da34aa624bed34e381cb1aa
 branch: docs/CAN-20260728-game-catalog-export-architecture
 pr: 989
 status: ready
@@ -103,6 +104,9 @@ proven:
   - Protocol support, content completeness, datapack revision and map revision are independent facts.
   - Canary and Platform schema files have the same Git blob SHA a3c239a6d61385edde0b06f72cdf781f4ce58df3.
   - The shared schema content SHA-256 is 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b.
+  - Oteryn Platform architecture PR 271 merged as 8aa1fc29dd13895efb2a7006204a6b88105e6972 after all final-head workflows passed.
+  - Canary Agent Task Ownership run 30338906129 passed after lifecycle metadata repair.
+  - Canary incremental CI run 30338906295 completed with Required success before the final-gate commit.
 derived:
   - A Game Catalog export mode should follow the existing CLI-only startup precedent.
   - Collectors must read final runtime registries instead of implementing a second partial parser.
@@ -138,10 +142,16 @@ validation:
     evidence: JSON valid; SHA-256 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b
   - command: Agent Task Ownership run 30338575516
     result: FAIL
-    evidence: invalid task lifecycle metadata; corrected in this commit
+    evidence: invalid task lifecycle metadata; repaired and superseded by successful run 30338906129
+  - command: Agent Task Ownership run 30338906129
+    result: PASS
+    evidence: changed checkpoint validation and full ownership index validation succeeded
+  - command: CI run 30338906295
+    result: PASS
+    evidence: Detect Build Scope and Required succeeded; non-applicable runtime builds were skipped for documentation-only changes
 blockers:
   - none
-next_action: Review Canary PR #989 together with Oteryn Platform PR #271 and either accept schema v1 or request a coordinated versioned correction.
+next_action: Wait for the ci:final-gate workflows on this exact final commit, then mark PR 989 ready and squash-merge if every required check remains green.
 ```
 
 ## Notes
