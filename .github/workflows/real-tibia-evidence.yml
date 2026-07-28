@@ -101,7 +101,7 @@ jobs:
       - name: Exercise factual index output
         run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-26 > /tmp/real-tibia-evidence-index.json
 
-      - name: Verify production request stays unclaimed
+      - name: Verify production request dry-run stays non-mutating
         run: |
           python tools/agents/real_tibia_owner_request.py transition \
             --request-id RTREQ-FEATURE-VOCATIONS-0001 \
@@ -109,8 +109,12 @@ jobs:
             --as-of 2026-07-26 \
             --at 2026-07-26T12:00:00+02:00 \
             --actor ci-dry-run \
-            --actor-role reviewer \
+            --actor-role owner \
             --actor-task CAN-RTEC-CI-DRY-RUN \
-            --reason "CI dry-run verifies validation without owner-state mutation." \
-            --to-status rejected > /tmp/real-tibia-owner-request-dry-run.json
+            --actor-pr 910 \
+            --owner-task CAN-RTEC-CI-DRY-RUN \
+            --owner-pr 910 \
+            --owner-evidence-ref github-pr:blakinio/canary#910 \
+            --reason "CI dry-run verifies a corpus-valid candidate without owner-state mutation." \
+            --to-status accepted-by-owner > /tmp/real-tibia-owner-request-dry-run.json
           test "$(python -c 'import json; print(json.load(open("docs/agents/real-tibia/evidence/requests/feature/RTREQ-FEATURE-VOCATIONS-0001.yaml"))["status"])')" = "ready-for-owner-triage"
