@@ -4,7 +4,6 @@
 
 #ifndef USE_PRECOMPILED_HEADERS
 	#include <fstream>
-	#include <limits>
 	#include <stdexcept>
 #endif
 
@@ -43,15 +42,27 @@ namespace {
 	}
 
 	[[nodiscard]] std::string requiredString(const Json &value, const std::string_view key, const std::filesystem::path &path) {
-		const auto iterator = value.find(key);
+		const auto iterator = value.find(std::string(key));
 		if (iterator == value.end() || !iterator->is_string() || iterator->get_ref<const std::string&>().empty()) {
 			throw std::runtime_error("Game Catalog manifest field [" + std::string(key) + "] must be a non-empty string in " + path.generic_string());
 		}
 		return iterator->get<std::string>();
 	}
 
+	[[nodiscard]] std::uint32_t requiredPositiveUint32(const Json &value, const std::string_view key, const std::filesystem::path &path) {
+		const auto iterator = value.find(std::string(key));
+		if (iterator == value.end() || !iterator->is_number_unsigned()) {
+			throw std::runtime_error("Game Catalog manifest field [" + std::string(key) + "] must be a positive unsigned integer in " + path.generic_string());
+		}
+		const auto number = iterator->get<std::uint64_t>();
+		if (number == 0 || number > std::numeric_limits<std::uint32_t>::max()) {
+			throw std::runtime_error("Game Catalog manifest field [" + std::string(key) + "] is outside uint32 bounds in " + path.generic_string());
+		}
+		return static_cast<std::uint32_t>(number);
+	}
+
 	[[nodiscard]] std::optional<std::string> nullableString(const Json &value, const std::string_view key, const std::filesystem::path &path) {
-		const auto iterator = value.find(key);
+		const auto iterator = value.find(std::string(key));
 		if (iterator == value.end() || iterator->is_null()) {
 			return std::nullopt;
 		}
@@ -153,6 +164,7 @@ CatalogManifest loadCatalogManifest(const std::filesystem::path &directory) {
 	manifest.runtimeRelease = requiredString(profile, "runtime_release", profilePath);
 	manifest.contentTargetRelease = requiredString(profile, "content_target_release", profilePath);
 	manifest.verifiedContentThroughRelease = requiredString(profile, "verified_content_through_release", profilePath);
+	manifest.lootChanceDenominator = requiredPositiveUint32(profile, "loot_chance_denominator", profilePath);
 	manifest.containsContentThroughRelease = nullableString(profile, "contains_content_through_release", profilePath);
 	manifest.datapackCommitSha = nullableString(profile, "datapack_commit_sha", profilePath);
 	manifest.producerBuildId = nullableString(profile, "producer_build_id", profilePath);
