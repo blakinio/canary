@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - docs/tcr-009-client-reference-drift-blocker-20260728
-    paths:
-      - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-CLIENT-REFERENCE-DRIFT-0001.yaml
-      - .github/workflows/tcr009-evidence-request-generate.yml
 
 permissions:
   contents: write
@@ -46,6 +43,6 @@ jobs:
           git add docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
           git add docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml
           git add .github/workflows/tcr009-evidence-request-generate.yml
-          git diff --cached --exit-code && { echo "Expected generated index changes were not produced"; exit 1; } || true
+          git diff --cached --quiet && { echo "Expected generated index changes were not produced"; exit 1; }
           git commit -m "chore(tcr): regenerate evidence request indexes"
           git push origin HEAD:docs/tcr-009-client-reference-drift-blocker-20260728
