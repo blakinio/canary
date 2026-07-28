@@ -1,0 +1,2 @@
+-- Intentionally empty. The Game Catalog runtime fixture uses only the
+-- engine-provided monster registration API and no gameplay helper libraries.
