@@ -48,8 +48,8 @@
     "collector_task": "CAN-20260728-tcr-009-client-reference-drift",
     "coordination_id": "TCR-009-CLIENT-REFERENCE-DRIFT-EVIDENCE",
     "depends_on": [],
-    "owner_pr": null,
-    "owner_task": null
+    "owner_pr": 1018,
+    "owner_task": "CAN-20260729-tcr-009-client-reference-drift"
   },
   "format": "canary-real-tibia-owner-request-v1",
   "history": [
@@ -74,6 +74,61 @@
       "owner_evidence_ref": null,
       "reason": "The request is bounded to exact retained input and generated-report provenance, reuses the existing TCR producers, and forbids synthetic snapshots or proprietary payload commits.",
       "to_status": "ready-for-owner-triage"
+    },
+    {
+      "actor": "tcr-009-owner",
+      "actor_pr": 1018,
+      "actor_role": "owner",
+      "actor_task": "CAN-20260729-tcr-009-client-reference-drift",
+      "at": "2026-07-29T23:46:00+02:00",
+      "from_status": "ready-for-owner-triage",
+      "owner_evidence_ref": "github-pr:blakinio/canary#1018",
+      "reason": "TCR-009 owner accepts two independently hash-closed retained snapshot sets.",
+      "to_status": "accepted-by-owner"
+    },
+    {
+      "actor": "tcr-009-owner",
+      "actor_pr": 1018,
+      "actor_role": "owner",
+      "actor_task": "CAN-20260729-tcr-009-client-reference-drift",
+      "at": "2026-07-29T23:47:00+02:00",
+      "from_status": "accepted-by-owner",
+      "owner_evidence_ref": "github-pr:blakinio/canary#1018",
+      "reason": "The accepted retained evidence is planned for bounded TCR-009 drift consumption.",
+      "to_status": "planned"
+    },
+    {
+      "actor": "tcr-009-owner",
+      "actor_pr": 1018,
+      "actor_role": "owner",
+      "actor_task": "CAN-20260729-tcr-009-client-reference-drift",
+      "at": "2026-07-29T23:48:00+02:00",
+      "from_status": "planned",
+      "owner_evidence_ref": "github-pr:blakinio/canary#1018",
+      "reason": "TCR-009 implementation and exact retained comparison are active in PR 1018.",
+      "to_status": "active"
+    },
+    {
+      "actor": "tcr-009-owner",
+      "actor_pr": 1018,
+      "actor_role": "owner",
+      "actor_task": "CAN-20260729-tcr-009-client-reference-drift",
+      "at": "2026-07-29T23:49:00+02:00",
+      "from_status": "active",
+      "owner_evidence_ref": "github-pr:blakinio/canary#1018",
+      "reason": "Record stable retained evidence and bounded TCR-009 drift output.",
+      "to_status": "result-available"
+    },
+    {
+      "actor": "tcr-009-owner",
+      "actor_pr": 1018,
+      "actor_role": "reviewer",
+      "actor_task": "CAN-20260729-tcr-009-client-reference-drift",
+      "at": "2026-07-29T23:50:00+02:00",
+      "from_status": "result-available",
+      "owner_evidence_ref": null,
+      "reason": "Consume the stable TCR owner result into the accepted retained-snapshot evidence record.",
+      "to_status": "consumed"
     }
   ],
   "module_id": "item-definitions",
@@ -146,18 +201,28 @@
     ]
   },
   "result": {
-    "available": false,
-    "blockers": [
-      "TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS"
+    "available": true,
+    "blockers": [],
+    "consumed_by_evidence_records": [
+      "RT-ITEM-DEFINITIONS-0003"
     ],
-    "consumed_by_evidence_records": [],
-    "does_not_prove": [],
-    "proof_level_reached": null,
-    "proves": [],
-    "result_refs": []
+    "does_not_prove": [
+      "The owner result does not prove gameplay, runtime, protocol, map or physical-client parity.",
+      "The owner result does not authorize OTBM, datapack, runtime or production mutation."
+    ],
+    "proof_level_reached": "definition-found",
+    "proves": [
+      "Two distinct complete retained manifest/index snapshot sets exist with exact SHA-256 closure.",
+      "The retained snapshots are eligible exact inputs to canary-tibia-client-reference-drift-v1."
+    ],
+    "result_refs": [
+      "external-report:sha256:6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431",
+      "external-report:sha256:be0593cb260cc717b2d8e9e1a19a565f958e85935fde4ac09ce8fb5bbb853b31",
+      "github-pr:blakinio/canary#1018"
+    ]
   },
   "schema_version": 1,
-  "status": "ready-for-owner-triage",
+  "status": "consumed",
   "suggested_owner_capability_gap": {
     "note": "The required TCR-001 through TCR-004 producers already exist and are stable; the gap is two complete retained exact input/output evidence sets, not missing parser or index infrastructure.",
     "present": false,

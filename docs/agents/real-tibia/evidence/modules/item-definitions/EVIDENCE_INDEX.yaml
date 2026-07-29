@@ -4,6 +4,9 @@
     "current-canary-behavior": [
       "RT-ITEM-DEFINITIONS-0002"
     ],
+    "implementation-candidate": [
+      "RT-ITEM-DEFINITIONS-0003"
+    ],
     "visible-gameplay-behavior": [
       "RT-ITEM-DEFINITIONS-0001"
     ]
@@ -14,23 +17,29 @@
     ],
     "cloud-in-a-bottle-selected-path-scan-and-loader-boundary": [
       "RT-ITEM-DEFINITIONS-0002"
+    ],
+    "tcr-client-reference-two-snapshot-retained-evidence": [
+      "RT-ITEM-DEFINITIONS-0003"
     ]
   },
   "by_proof_level": {
     "definition-found": [
       "RT-ITEM-DEFINITIONS-0001",
-      "RT-ITEM-DEFINITIONS-0002"
+      "RT-ITEM-DEFINITIONS-0002",
+      "RT-ITEM-DEFINITIONS-0003"
     ]
   },
   "by_state": {
     "PROVEN": [
       "RT-ITEM-DEFINITIONS-0001",
-      "RT-ITEM-DEFINITIONS-0002"
+      "RT-ITEM-DEFINITIONS-0002",
+      "RT-ITEM-DEFINITIONS-0003"
     ]
   },
   "evidence_ids": [
     "RT-ITEM-DEFINITIONS-0001",
-    "RT-ITEM-DEFINITIONS-0002"
+    "RT-ITEM-DEFINITIONS-0002",
+    "RT-ITEM-DEFINITIONS-0003"
   ],
   "format": "canary-real-tibia-module-evidence-index-v1",
   "module_id": "item-definitions",
@@ -38,7 +47,7 @@
     "RTREQ-TCR-ITEM-DEFINITIONS-0001",
     "RTREQ-TCR-ITEM-DEFINITIONS-0002"
   ],
-  "record_count": 2,
+  "record_count": 3,
   "schema_version": 1,
   "stale_evidence_ids": [],
   "superseded_evidence_ids": [],
