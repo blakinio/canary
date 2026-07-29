@@ -1,0 +1,212 @@
+name: Game Catalog Staging Snapshot
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/game-catalog-staging-snapshot.yml'
+      - '.github/workflows/game-catalog.yml'
+      - 'src/game/catalog/**'
+      - 'tests/unit/game/catalog/**'
+      - 'tests/game_catalog/**'
+      - 'tools/game-catalog/**'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: game-catalog-staging-snapshot-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish exact-head staging snapshot
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 991
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      SOURCE_REPOSITORY: blakinio/canary
+    steps:
+      - name: Checkout exact producer head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SOURCE_HEAD_SHA }}
+          persist-credentials: false
+
+      - name: Resolve exact successful exporter run and artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p staging/source
+          runs_url="https://api.github.com/repos/${SOURCE_REPOSITORY}/actions/workflows/game-catalog.yml/runs?event=pull_request&head_sha=${SOURCE_HEAD_SHA}&per_page=20"
+          run_id=''
+
+          for attempt in $(seq 1 40); do
+            gh api "${runs_url#https://api.github.com}" > staging/runs.json
+            set +e
+            python3 - <<'PY' > staging/run-id.txt
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          payload = json.loads(Path('staging/runs.json').read_text(encoding='utf-8'))
+          expected = os.environ['SOURCE_HEAD_SHA']
+          runs = [run for run in payload.get('workflow_runs', []) if run.get('head_sha') == expected]
+          successful = [run for run in runs if run.get('status') == 'completed' and run.get('conclusion') == 'success']
+          if successful:
+              successful.sort(key=lambda run: run['id'], reverse=True)
+              print(successful[0]['id'])
+              raise SystemExit(0)
+          active = [run for run in runs if run.get('status') in {'queued', 'in_progress', 'waiting', 'pending', 'requested'}]
+          if active or not runs:
+              raise SystemExit(2)
+          print(json.dumps([{'id': run.get('id'), 'status': run.get('status'), 'conclusion': run.get('conclusion')} for run in runs]), file=sys.stderr)
+          raise SystemExit(3)
+          PY
+            status=$?
+            set -e
+            if [[ ${status} -eq 0 ]]; then
+              run_id="$(tr -d '[:space:]' < staging/run-id.txt)"
+              break
+            fi
+            if [[ ${status} -eq 3 ]]; then
+              echo 'The exact-head Game Catalog workflow completed without success.' >&2
+              exit 1
+            fi
+            sleep 30
+          done
+
+          if [[ -z "${run_id}" ]]; then
+            echo 'Timed out waiting for the exact-head Game Catalog workflow.' >&2
+            exit 1
+          fi
+
+          gh api "/repos/${SOURCE_REPOSITORY}/actions/runs/${run_id}/artifacts?name=game-catalog-export-smoke&per_page=10" > staging/artifacts.json
+          SOURCE_RUN_ID="${run_id}" python3 - <<'PY' > staging/artifact.env
+          import json
+          import os
+          from pathlib import Path
+
+          payload = json.loads(Path('staging/artifacts.json').read_text(encoding='utf-8'))
+          artifacts = [artifact for artifact in payload.get('artifacts', []) if artifact.get('name') == 'game-catalog-export-smoke' and artifact.get('expired') is False]
+          if len(artifacts) != 1:
+              raise RuntimeError(f'Expected one exact-head smoke artifact, found {len(artifacts)}.')
+          artifact = artifacts[0]
+          digest = artifact.get('digest')
+          if not isinstance(digest, str) or not digest.startswith('sha256:'):
+              raise RuntimeError('Smoke artifact has no SHA-256 digest.')
+          print(f"SOURCE_RUN_ID={os.environ['SOURCE_RUN_ID']}")
+          print(f"SOURCE_ARTIFACT_ID={artifact['id']}")
+          print(f"SOURCE_ARTIFACT_DIGEST={digest}")
+          PY
+          cat staging/artifact.env >> "${GITHUB_ENV}"
+
+      - name: Download and verify exact exporter artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          source staging/artifact.env
+          gh api "/repos/${SOURCE_REPOSITORY}/actions/artifacts/${SOURCE_ARTIFACT_ID}/zip" > staging/source-artifact.zip
+          expected_digest="${SOURCE_ARTIFACT_DIGEST#sha256:}"
+          echo "${expected_digest}  staging/source-artifact.zip" | sha256sum --check -
+          unzip -q staging/source-artifact.zip -d staging/source
+
+          for snapshot in staging/source/game-catalog-baseline.json staging/source/game-catalog.json; do
+            sidecar="${snapshot}.sha256"
+            test -f "${snapshot}"
+            test -f "${sidecar}"
+            (cd "$(dirname "${snapshot}")" && sha256sum --check "$(basename "${sidecar}")")
+          done
+
+      - name: Verify provenance and package public staging evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          source staging/artifact.env
+          SOURCE_RUN_ID="${SOURCE_RUN_ID}" \
+          SOURCE_ARTIFACT_ID="${SOURCE_ARTIFACT_ID}" \
+          SOURCE_ARTIFACT_DIGEST="${SOURCE_ARTIFACT_DIGEST}" \
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          source = Path('staging/source')
+          expected = os.environ['SOURCE_HEAD_SHA']
+          for name in ['game-catalog-baseline.json', 'game-catalog.json']:
+              document = json.loads((source / name).read_text(encoding='utf-8'))
+              assert document['contract'] == 'oteryn.game-catalog'
+              assert document['schema_version'] == '1.0.0'
+              assert document['snapshot']['canary_commit_sha'] == expected
+              assert document['snapshot']['entity_count'] == len(document['entities']) > 0
+              assert document['snapshot']['relation_count'] == len(document['relations']) > 0
+
+          provenance = {
+              'contract': 'oteryn.game-catalog',
+              'schema_version': '1.0.0',
+              'source_repository': os.environ['SOURCE_REPOSITORY'],
+              'source_head_sha': expected,
+              'source_workflow_run_id': int(os.environ['SOURCE_RUN_ID']),
+              'source_artifact_id': int(os.environ['SOURCE_ARTIFACT_ID']),
+              'source_artifact_digest': os.environ['SOURCE_ARTIFACT_DIGEST'],
+              'staging_only': True,
+              'production_activation': False,
+          }
+          (source / 'provenance.json').write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
+
+          mkdir -p staging/package
+          (
+            cd staging/source
+            find . -type f -print | LC_ALL=C sort | zip -X -q ../package/game-catalog-export-smoke.zip -@
+          )
+          (
+            cd staging/package
+            sha256sum game-catalog-export-smoke.zip > game-catalog-export-smoke.zip.sha256
+          )
+
+      - name: Publish public staging-only prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          short_sha="${SOURCE_HEAD_SHA:0:8}"
+          tag="game-catalog-staging-pr-991-${short_sha}"
+          if ! gh release view "${tag}" --repo "${SOURCE_REPOSITORY}" >/dev/null 2>&1; then
+            gh release create "${tag}" \
+              --repo "${SOURCE_REPOSITORY}" \
+              --target "${SOURCE_HEAD_SHA}" \
+              --prerelease \
+              --title 'Game Catalog staging snapshot for PR 991' \
+              --notes 'Staging-only cross-repository validation asset. No production deployment or profile activation.'
+          fi
+          gh release upload "${tag}" \
+            staging/package/game-catalog-export-smoke.zip \
+            staging/package/game-catalog-export-smoke.zip.sha256 \
+            --repo "${SOURCE_REPOSITORY}" \
+            --clobber
+          echo "STAGING_RELEASE_TAG=${tag}" >> "${GITHUB_ENV}"
+
+      - name: Write release summary
+        shell: bash
+        run: |
+          source staging/artifact.env
+          {
+            echo '### Game Catalog staging snapshot'
+            echo
+            echo "- producer SHA: \`${SOURCE_HEAD_SHA}\`"
+            echo "- source run: \`${SOURCE_RUN_ID}\`"
+            echo "- source artifact: \`${SOURCE_ARTIFACT_ID}\`"
+            echo "- source artifact digest: \`${SOURCE_ARTIFACT_DIGEST}\`"
+            echo "- prerelease tag: \`${STAGING_RELEASE_TAG}\`"
+            echo '- production deployment: `false`'
+            echo '- production profile activation: `false`'
+          } >> "${GITHUB_STEP_SUMMARY}"
