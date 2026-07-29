@@ -31,6 +31,7 @@ namespace game_catalog {
 		std::string contentTargetRelease;
 		std::optional<std::string> verifiedContentThroughRelease;
 		std::uint32_t lootChanceDenominator = 0;
+		std::uint32_t lootRollMaximum = 0;
 		std::optional<std::string> containsContentThroughRelease;
 		std::optional<std::string> datapackCommitSha;
 		std::optional<std::string> producerBuildId;

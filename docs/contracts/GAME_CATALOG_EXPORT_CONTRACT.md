@@ -3,7 +3,7 @@
 Status: Proposed  
 Contract ID: `oteryn.game-catalog`  
 Initial schema version: `1.0.0`  
-Current additive schema version: `1.1.0`
+Current additive schema version: `1.2.0`
 Producer: `blakinio/canary`  
 Consumer: `blakinio/Oteryn-Platform`
 
@@ -346,6 +346,8 @@ Canary: schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 Platform: resources/schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 Canary: schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
 Platform: resources/schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+Canary: schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
+Platform: resources/schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
 ```
 
 Both files must be byte-identical. Proposed schema v1 SHA-256:
@@ -354,10 +356,16 @@ Both files must be byte-identical. Proposed schema v1 SHA-256:
 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b
 ```
 
-Schema `1.1.0` SHA-256:
+Schema v1.1 SHA-256:
 
 ```text
 323ff6ae849759c9190f2a0c342855194ed74645816adc45051b6d914e67c7ac
+```
+
+Schema v1.2 SHA-256:
+
+```text
+a9fa1e3c6366a90d61005796511c344ced9c39594ed676276279a5917287c6de
 ```
 
 A schema change requires a new semantic version, compatibility analysis, fixture updates, contract tests and explicit rollout order in both repositories. Schema `1.0.0` remains byte unchanged.

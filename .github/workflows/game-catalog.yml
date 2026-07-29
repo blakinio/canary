@@ -17,6 +17,7 @@ on:
       - 'data-*/catalog/**'
       - 'docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md'
       - 'docs/agents/tasks/active/CAN-20260729-game-catalog-schema-1-1.md'
+      - 'docs/agents/tasks/active/CAN-20260729-game-catalog-loot-threshold-schema.md'
       - '.github/workflows/game-catalog.yml'
   workflow_dispatch:
 
@@ -54,6 +55,10 @@ jobs:
             tests/game_catalog/fixtures/v1.1/minimal-snapshot.json \
             --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json \
             --expected-sha256 747467af3716873e2738973bc2d2c5cd0b0230bc69ae68e53f763e4d9f995dee
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/v1.2/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json \
+            --expected-sha256 42b832954f9aa68cf7e2465351f92266771b8132d9634757391d010eaec84855
 
   build-exporter:
     name: Build export binary
@@ -146,13 +151,13 @@ jobs:
           manifest_dir = Path('artifacts/game-catalog-smoke/manifests')
           profile = {
               'contract': 'oteryn.game-catalog',
-              'schema_version': '1.1.0',
+              'schema_version': '1.2.0',
               'protocol_profile': 'oteryn-current',
               'runtime_release': '0.0.1-ci',
               'content_target_release': '0.0.1-ci',
               'verified_content_through_release': None,
               'contains_content_through_release': None,
-              'loot_chance_denominator': 100000,
+              'loot_roll_maximum': 100000,
               'datapack_commit_sha': None,
               'producer_build_id': 'github-actions-game-catalog-smoke',
           }
@@ -238,7 +243,7 @@ jobs:
             sidecar="${output}.sha256"
             python3 tools/game-catalog/validate_snapshot.py \
               "${output}" \
-              --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+              --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
             (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
             grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
           done
@@ -316,7 +321,7 @@ jobs:
             sidecar="${output}.sha256"
             python3 tools/game-catalog/validate_snapshot.py \
               "${output}" \
-              --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+              --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
             (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
             grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
           done
@@ -372,11 +377,12 @@ jobs:
           assert loot['introduced_in'] is None
           assert loot['removed_in'] is None
           assert loot['completeness'] == 'unverified'
-          assert loot['data']['chance_numerator'] == 110
-          assert loot['data']['chance_denominator'] == 100000
+          assert loot['data']['chance_model'] == 'canary_dynamic_threshold_v1'
+          assert loot['data']['chance_threshold'] == 110
+          assert loot['data']['roll_maximum'] == 100000
           PY
 
-      - name: Prove default-datapack endpoint integrity and preserve chance blocker
+      - name: Prove complete default-datapack schema 1.2 export
         shell: bash
         env:
           CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -399,7 +405,6 @@ jobs:
           output=artifacts/game-catalog-smoke/default-datapack.json
           trace=artifacts/game-catalog-smoke/default-datapack.trace
           log=artifacts/game-catalog-smoke/default-datapack.log
-          set +e
           timeout 900s strace -f -qq \
             -e trace=connect,bind,listen,accept,accept4 \
             -o "${trace}" \
@@ -410,21 +415,38 @@ jobs:
               --game-catalog-generated-at=2026-07-29T00:00:00Z \
               --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
             >"${log}" 2>&1
-          status=$?
-          set -e
 
           cat "${log}"
-          if [[ ${status} -eq 0 ]]; then
-            echo 'Default-datapack export unexpectedly passed before chance-contract resolution.' >&2
-            exit 1
-          fi
+          grep -q 'Game Catalog export completed:' "${log}"
           if grep -q 'dangling endpoint' "${log}"; then
             echo 'Default-datapack export still contains dangling loot endpoints.' >&2
             exit 1
           fi
-          [[ $(grep -c 'Relation has an invalid probability:' "${log}") -eq 92 ]]
-          [[ ! -e "${output}" ]]
-          [[ ! -e "${output}.sha256" ]]
+          if grep -q 'invalid loot chance model' "${log}"; then
+            echo 'Default-datapack export contains an invalid schema 1.2 loot chance model.' >&2
+            exit 1
+          fi
+          python3 tools/game-catalog/validate_snapshot.py \
+            "${output}" \
+            --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
+          (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${output}.sha256")")
+          grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${output}.sha256"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          document = json.loads(Path('artifacts/game-catalog-smoke/default-datapack.json').read_text(encoding='utf-8'))
+          assert document['schema_version'] == '1.2.0'
+          assert document['snapshot']['entity_count'] == len(document['entities']) > 0
+          assert document['snapshot']['relation_count'] == len(document['relations']) > 0
+          assert all(relation['source'] and relation['target'] for relation in document['relations'])
+          loot_data = [relation['data'] for relation in document['relations']]
+          assert loot_data
+          assert all(data['chance_model'] == 'canary_dynamic_threshold_v1' for data in loot_data)
+          assert all(data['roll_maximum'] == 100000 for data in loot_data)
+          assert all('chance_numerator' not in data and 'chance_denominator' not in data for data in loot_data)
+          assert sum(data['chance_threshold'] > data['roll_maximum'] for data in loot_data) == 92
+          PY
           if [[ -s "${trace}" ]]; then
             cat "${trace}" >&2
             echo 'Default-datapack diagnostic attempted a database or network endpoint syscall.' >&2

@@ -227,15 +227,28 @@ namespace game_catalog {
 		populateRuntime(items, monsters);
 		monsters.monsters.at("dragon")->info.lootItems.front().chance = 100320;
 
+		auto manifest = fixtureManifest();
+		manifest.schemaVersion = "1.2.0";
+		manifest.lootChanceDenominator = 0;
+		manifest.lootRollMaximum = 100000;
 		const auto document = buildSnapshotDocument(
-			fixtureManifest(), items, monsters, "2026-07-28T00:00:00Z",
+			manifest, items, monsters, "2026-07-28T00:00:00Z",
 			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 		);
 
 		ASSERT_EQ(document.at("relations").size(), 1);
-		EXPECT_EQ(document.at("relations").front().at("data").at("chance_numerator"), 100320);
-		EXPECT_FALSE(validateSnapshotDocument(document).empty());
+		const auto &data = document.at("relations").front().at("data");
+		EXPECT_EQ(data.at("chance_model"), "canary_dynamic_threshold_v1");
+		EXPECT_EQ(data.at("chance_threshold"), 100320);
+		EXPECT_EQ(data.at("roll_maximum"), 100000);
+		EXPECT_FALSE(data.contains("chance_numerator"));
+		EXPECT_FALSE(data.contains("chance_denominator"));
+		EXPECT_TRUE(validateSnapshotDocument(document).empty());
+
+		auto mixed = document;
+		mixed["relations"][0]["data"]["chance_numerator"] = 100320;
+		EXPECT_FALSE(validateSnapshotDocument(mixed).empty());
 	}
 
 	TEST(GameCatalogExporter, Schema11PreservesUnknownVerifiedContentBoundary) {

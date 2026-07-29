@@ -21,6 +21,8 @@ class ValidateSnapshotTest(unittest.TestCase):
     schema = ROOT / "schemas/game-catalog/v1/game-catalog-snapshot.schema.json"
     fixture_v11 = ROOT / "tests/game_catalog/fixtures/v1.1/minimal-snapshot.json"
     schema_v11 = ROOT / "schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json"
+    fixture_v12 = ROOT / "tests/game_catalog/fixtures/v1.2/minimal-snapshot.json"
+    schema_v12 = ROOT / "schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json"
 
     def test_shared_fixture_and_schema_hash_are_pinned(self) -> None:
         document, digest, size = validator.load_and_validate(self.fixture, self.schema)
@@ -36,11 +38,22 @@ class ValidateSnapshotTest(unittest.TestCase):
         self.assertEqual("1.1.0", document["schema_version"])
         self.assertIsNone(document["snapshot"]["verified_content_through_release"])
 
+    def test_schema_12_runtime_threshold_fixture_is_pinned(self) -> None:
+        document, digest, size = validator.load_and_validate(self.fixture_v12, self.schema_v12)
+        self.assertEqual("42b832954f9aa68cf7e2465351f92266771b8132d9634757391d010eaec84855", digest)
+        self.assertGreater(size, 0)
+        self.assertEqual("1.2.0", document["schema_version"])
+        loot = document["relations"][0]["data"]
+        self.assertEqual("canary_dynamic_threshold_v1", loot["chance_model"])
+        self.assertGreater(loot["chance_threshold"], loot["roll_maximum"])
+
     def test_schema_version_mismatch_is_rejected(self) -> None:
         with self.assertRaises(validator.CatalogValidationError):
             validator.load_and_validate(self.fixture_v11, self.schema)
         with self.assertRaises(validator.CatalogValidationError):
             validator.load_and_validate(self.fixture, self.schema_v11)
+        with self.assertRaises(validator.CatalogValidationError):
+            validator.load_and_validate(self.fixture_v12, self.schema_v11)
 
     def test_removed_in_is_an_exclusive_later_bound(self) -> None:
         document = self._document()
@@ -66,6 +79,13 @@ class ValidateSnapshotTest(unittest.TestCase):
         self.assertIn("semantic.invalid_probability", codes)
         self.assertIn("semantic.invalid_count_range", codes)
 
+    def test_schema_12_rejects_mixed_and_invalid_threshold_models(self) -> None:
+        document = json.loads(self.fixture_v12.read_text(encoding="utf-8"))
+        document["relations"][0]["data"]["chance_numerator"] = 12
+        document["relations"][0]["data"]["roll_maximum"] = 0
+        codes = self._rejection_codes(document, self.schema_v12)
+        self.assertTrue(any(code.startswith("schema.") for code in codes))
+
     def test_unknown_schema_property_is_rejected(self) -> None:
         document = self._document()
         document["unexpected"] = True
@@ -86,12 +106,12 @@ class ValidateSnapshotTest(unittest.TestCase):
     def _assert_rejected(self, document: dict[str, object], expected_code: str) -> None:
         self.assertIn(expected_code, self._rejection_codes(document))
 
-    def _rejection_codes(self, document: dict[str, object]) -> list[str]:
+    def _rejection_codes(self, document: dict[str, object], schema: Path | None = None) -> list[str]:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "snapshot.json"
             path.write_text(json.dumps(document, separators=(",", ":")) + "\n", encoding="utf-8")
             with self.assertRaises(validator.CatalogValidationError) as caught:
-                validator.load_and_validate(path, self.schema)
+                validator.load_and_validate(path, schema or self.schema)
             return [finding.code for finding in caught.exception.findings]
 
 
