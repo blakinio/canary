@@ -405,6 +405,7 @@ jobs:
           output=artifacts/game-catalog-smoke/default-datapack.json
           trace=artifacts/game-catalog-smoke/default-datapack.trace
           log=artifacts/game-catalog-smoke/default-datapack.log
+          set +e
           timeout 900s strace -f -qq \
             -e trace=connect,bind,listen,accept,accept4 \
             -o "${trace}" \
@@ -415,8 +416,14 @@ jobs:
               --game-catalog-generated-at=2026-07-29T00:00:00Z \
               --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
             >"${log}" 2>&1
+          status=$?
+          set -e
 
           cat "${log}"
+          if [[ ${status} -ne 0 ]]; then
+            echo "Default-datapack export exited with status ${status}." >&2
+            exit "${status}"
+          fi
           grep -q 'Game Catalog export completed:' "${log}"
           if grep -q 'dangling endpoint' "${log}"; then
             echo 'Default-datapack export still contains dangling loot endpoints.' >&2

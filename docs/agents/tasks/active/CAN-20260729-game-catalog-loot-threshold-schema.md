@@ -7,7 +7,7 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 base_branch: main
 created: 2026-07-29T18:11:53Z
-updated: 2026-07-29T18:19:00Z
+updated: 2026-07-29T18:28:30Z
 last_verified_commit: "e81a1daf3e32448047118bf07f22b941658128a4"
 risk: high
 related_issue: ""
@@ -115,7 +115,7 @@ Never write `passed` without verification on the stated commit.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T18:18:00Z
+updated_at: 2026-07-29T18:28:30Z
 head: e81a1daf3e32448047118bf07f22b941658128a4
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 pr: 1012
@@ -151,8 +151,8 @@ unknown:
   - Exact Canary full default-datapack schema 1.2 runtime result.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: Preflight ownership validates 33 active tasks on main e81a1daf3e32448047118bf07f22b941658128a4.
+  marker: default-datapack-runtime-exit-139
+  evidence: Game Catalog run 30479374835 passed contract tests, C++ compilation, deterministic schema 1.2 smoke and reviewed metadata export, then the complete default-datapack process exited 139 before the workflow printed its redirected log.
 rejected_hypotheses:
   - Change schema 1.1 in place because its bytes and probability semantics are immutable.
   - Clamp configured thresholds because that loses runtime evidence.
@@ -189,6 +189,9 @@ validation:
   - command: python3 tools/agents/task_ownership.py
     result: PASS
     evidence: 34 active task records validate after the new ownership claim.
+  - command: Game Catalog 30479374835
+    result: FAIL
+    evidence: Contract and C++ compilation passed; default-datapack runtime export exited 139. The next workflow revision captures and prints the redirected process log before propagating failure.
 blockers: []
-next_action: publish the implementation to a draft PR and inspect exact-head compilation and full default-datapack runtime evidence.
+next_action: publish diagnostic log capture, rerun the exact default-datapack export, and use its last runtime marker to isolate the exit-139 cause.
 ```
