@@ -1,0 +1,10 @@
+{
+  "dragon": {
+    "canonical_key": "creature:dragon",
+    "introduced_in": null,
+    "removed_in": null,
+    "completeness": "unverified",
+    "source_path": "monster/dragons/dragon.lua",
+    "image_key": null
+  }
+}

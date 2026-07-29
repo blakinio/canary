@@ -1,0 +1,9 @@
+{
+  "dragon|3416|20": {
+    "canonical_key": "loot:dragon:dragon-shield",
+    "introduced_in": null,
+    "removed_in": null,
+    "completeness": "unverified",
+    "source_path": "monster/dragons/dragon.lua"
+  }
+}

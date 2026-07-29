@@ -1,7 +1,7 @@
 # Game Catalog Exporter Architecture
 
 Status: Proposed  
-Contract: `oteryn.game-catalog` / schema `1.0.0`
+Contract: `oteryn.game-catalog` / schemas `1.0.0`, `1.1.0`
 
 ## Goal
 
@@ -15,6 +15,7 @@ Provide a deterministic, offline Canary export of final runtime items, creatures
 4. The exporter is a separate CLI lifecycle, not a normal server startup with ports disabled afterward.
 5. Output is immutable, bounded, deterministic and transaction-like at the filesystem boundary.
 6. External wikis are research/UX references only.
+7. Schema `1.1.0` represents an unproven datapack-wide verified-content boundary as null; null never implies completeness or activation safety.
 
 ## First vertical slice
 
@@ -72,6 +73,7 @@ Proposed support files:
 
 ```text
 schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
 
 tools/game-catalog/
 ├── validate_manifest.py
@@ -107,6 +109,18 @@ Metadata resolves relative to the selected `DATA_DIRECTORY`:
 ```
 
 The implementation must not hardcode `data-otservbr-global` as the only allowed source.
+
+`profile.json` declares the output schema version. Schema `1.0.0` requires a concrete `verified_content_through_release`. Schema `1.1.0` permits null and serializes it unchanged. Unsupported versions and a null boundary mislabeled as `1.0.0` fail closed.
+
+The first repository-default schema 1.1 seed lives under
+`data-otservbr-global/catalog`. It reviews only Dragon, dragon shield and their
+resolved loot relation. Exact claim sources are recorded in
+`data-otservbr-global/catalog/EVIDENCE.md`; historical bounds and completeness
+remain null or unverified. CI loads the real Dragon definition in a bounded
+runtime projection and exports the seed twice. This projection does not
+certify the complete datapack: unresolved item endpoints and out-of-range loot
+probabilities found by a full export remain separate fail-closed integrity
+findings before staging.
 
 ## CLI lifecycle
 

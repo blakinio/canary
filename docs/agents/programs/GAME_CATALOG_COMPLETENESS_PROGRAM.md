@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:40:57Z
-last_verified_commit: "000ce71c52229c9d8e56b2ab9e90a3e139f2e303"
+updated: 2026-07-29T16:25:00Z
+last_verified_commit: "3ad7155dd833e105cebfd4b472800a4156ac1e90"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -38,7 +38,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 # Explicit exclusions
 
 - External wikis are not runtime or historical truth; they may only identify claims that must be proven from reviewed evidence.
-- This program does not authorize writes outside `blakinio/canary`; `blakinio/Oteryn-Platform` remains read-only until separately authorized.
+- Repository writes are authorized only in `blakinio/canary` and `blakinio/Oteryn-Platform`.
 - Production activation is not automatic. It requires direct environment evidence, rollback proof, compatible deployed revisions, and the repository's manual production gate.
 - Secrets, credentials, database dumps, proprietary assets, `**/*.otbm`, and `**/items.otb` are excluded.
 - Unknown release, availability, spawn, quest, or map facts remain explicit `unknown`.
@@ -50,40 +50,43 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 | Offline Game Catalog exporter | `src/game/catalog/**`, PR #991 | Extend final runtime registry collection; do not build a second parser or normal-server export path. |
 | Snapshot validator | `tools/game-catalog/validate_snapshot.py` | Keep schema and semantic validation fail-closed. |
 | Game Catalog workflow | `.github/workflows/game-catalog.yml` | Preserve exact-head deterministic export and no-network/no-database syscall proof. |
-| File contract | `oteryn.game-catalog` schema `1.0.0` | Version schema changes explicitly and keep producer/consumer compatibility evidence synchronized. |
+| File contract | `oteryn.game-catalog` schemas `1.0.0` and `1.1.0` | Keep `1.0.0` byte unchanged; use `1.1.0` null only for unknown evidence and keep producer/consumer compatibility synchronized. |
 | Archived exporter task | `CAN-20260728-game-catalog-exporter`, PR #991 | Reuse its PROVEN facts; do not reopen or expand the archived task. |
 
 # Active tasks
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | blocked | Obtain Platform write authorization for a synchronized schema that represents an unknown verified-content boundary. |
+| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | implementing | Publish the reviewed manifests and pass exact-head deterministic runtime checks. |
 
 # Queue
 
 1. Complete `CAN-20260729-game-catalog-metadata-evidence`: bounded reviewed release/versioning/availability manifests and deterministic validation, without production activation.
-2. Add NPCs and shop offers in a new versioned producer/consumer contract task.
-3. Add spells in a separate versioned contract task.
-4. Add quests and rewards in a separate versioned contract task.
-5. Add areas, spawns, raids, and map attainability in separate evidence-backed tasks.
-6. Certify compatible consumer schema/import behavior; this requires separate write authorization for `blakinio/Oteryn-Platform`.
-7. Generate a reviewed staging snapshot and prove import, candidate activation, rollback, and visibility.
-8. Verify production revisions, storage, routing, permissions, monitoring, rollback, and operator procedure.
-9. Cross the manual production activation gate only after every blocker is closed.
+2. Repair or explicitly resolve default-datapack loot endpoint and probability integrity in a separate evidence-backed task.
+3. Add NPCs and shop offers in a new versioned producer/consumer contract task.
+4. Add spells in a separate versioned contract task.
+5. Add quests and rewards in a separate versioned contract task.
+6. Add areas, spawns, raids, and map attainability in separate evidence-backed tasks.
+7. Certify compatible consumer schema/import behavior.
+8. Generate a reviewed staging snapshot and prove import, candidate activation, rollback, and visibility.
+9. Verify production revisions, storage, routing, permissions, monitoring, rollback, and operator procedure.
+10. Cross the manual production activation gate only after every blocker is closed.
 
 # Completed work
 
 | Task/PR | Result | Merge commit | Follow-up |
 |---|---|---|---|
 | `CAN-20260728-game-catalog-exporter` / #991 | Deterministic offline item, creature, and loot exporter | `4ae896d9c6ad33e4193a314f47daeff9ea4ac66b` | Start reviewed metadata evidence. |
+| `OTERYN-20260729-game-catalog-null-boundary` / Platform #299 | Schema 1.1 storage/import and activation guard | `b2b2871eed0375e22d48de5dd4947fe29c2bb974` | Merge producer support. |
+| `CAN-20260729-game-catalog-schema-1-1` / #1006 | Schema 1.1 producer with explicit unknown verified boundary | `3ad7155dd833e105cebfd4b472800a4156ac1e90` | Publish reviewed metadata. |
 
 # Dependencies and blockers
 
 - Later entity families require explicit schema/version and consumer compatibility decisions.
-- Consumer mutations are blocked by the current repository allowlist.
 - Production activation requires direct environment evidence and remains a manual gate.
 - The repository default datapack is `data-otservbr-global`; the actual deployed production configuration and reviewed evidence boundary are not yet verified.
-- Schema v1 requires a non-null `verified_content_through_release`, but protocol `15.25` and bounded runtime presence do not prove datapack-wide content coverage; inventing that value is forbidden.
+- Schema 1.1 preserves the unknown verified-content boundary as null; activation remains blocked.
+- A full default-datapack export currently fails closed on pre-existing unresolved loot endpoints and loot chances above `MAX_LOOTCHANCE`.
 
 # Decisions and invariants
 
@@ -92,6 +95,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 - Runtime fields come from final Canary registries; reviewed manifests contain only evidence-backed annotations.
 - Schema changes are versioned, fail closed, and coordinated through the cross-repository contract registry.
 - No task may weaken deterministic export, atomic publication, or network/database isolation.
+- Bounded metadata evidence never converts unrelated full-datapack integrity failures into dropped, clamped, or invented records.
 - No production action occurs from a repository PR alone.
 
 # Validation strategy
@@ -120,10 +124,11 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program record, the active task 
 - Do not infer historical or availability facts from external wikis.
 - Do not add all future entity types in one schema/implementation PR.
 - Do not treat a staging artifact or repository merge as production activation.
-- Do not invent a verified-content release or sentinel value to avoid the synchronized schema decision.
+- Do not treat schema 1.1 null as completeness or activation evidence.
+- Do not hide unresolved loot endpoints or out-of-range chance data during export.
 
 ## Open questions
 
 - Does the deployed production configuration retain the repository default `data-otservbr-global` datapack/profile?
-- Which versioned producer/consumer representation will preserve an unknown verified-content boundary?
+- Which reviewed source corrections resolve each default-datapack loot-integrity failure?
 - Which schema version and rollout order will be used for each additional entity family?

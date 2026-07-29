@@ -16,6 +16,7 @@ on:
       - 'tests/game_catalog/**'
       - 'data-*/catalog/**'
       - 'docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md'
+      - 'docs/agents/tasks/active/CAN-20260729-game-catalog-schema-1-1.md'
       - '.github/workflows/game-catalog.yml'
   workflow_dispatch:
 
@@ -39,16 +40,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile validator
-        run: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_validate_snapshot.py
+      - name: Compile validator and metadata tests
+        run: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_*.py
       - name: Run focused tests
         run: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
       - name: Validate shared fixture
-        run: >-
-          python tools/game-catalog/validate_snapshot.py
-          tests/game_catalog/fixtures/minimal-snapshot.json
-          --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
-          --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
+        run: |
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json \
+            --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/v1.1/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json \
+            --expected-sha256 747467af3716873e2738973bc2d2c5cd0b0230bc69ae68e53f763e4d9f995dee
 
   build-exporter:
     name: Build export binary
@@ -101,6 +106,10 @@ jobs:
           cp -a data-canary/lib artifacts/game-catalog-smoke/runtime-datapack/lib
           cp -a tests/game_catalog/runtime-datapack/monster artifacts/game-catalog-smoke/runtime-datapack/monster
           cp -a tests/game_catalog/runtime-datapack/scripts artifacts/game-catalog-smoke/runtime-datapack/scripts
+          mkdir -p artifacts/game-catalog-smoke/runtime-datapack/monster/dragons
+          cp \
+            data-otservbr-global/monster/dragons/dragon.lua \
+            artifacts/game-catalog-smoke/runtime-datapack/monster/dragons/dragon.lua
 
           python3 - <<'PY'
           import json
@@ -137,11 +146,11 @@ jobs:
           manifest_dir = Path('artifacts/game-catalog-smoke/manifests')
           profile = {
               'contract': 'oteryn.game-catalog',
-              'schema_version': '1.0.0',
+              'schema_version': '1.1.0',
               'protocol_profile': 'oteryn-current',
               'runtime_release': '0.0.1-ci',
               'content_target_release': '0.0.1-ci',
-              'verified_content_through_release': '0.0.1-ci',
+              'verified_content_through_release': None,
               'contains_content_through_release': None,
               'loot_chance_denominator': 100000,
               'datapack_commit_sha': None,
@@ -229,7 +238,7 @@ jobs:
             sidecar="${output}.sha256"
             python3 tools/game-catalog/validate_snapshot.py \
               "${output}" \
-              --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+              --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
             (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
             grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
           done
@@ -253,6 +262,7 @@ jobs:
               assert snapshot['generated_at'] == generated_at
               assert snapshot['entity_count'] == len(document['entities']) > 0
               assert snapshot['relation_count'] == len(document['relations']) > 0
+              assert snapshot['verified_content_through_release'] is None
               assert {'item', 'creature'} <= {entity['type'] for entity in document['entities']}
 
           normalized_baseline = copy.deepcopy(baseline)
@@ -261,6 +271,109 @@ jobs:
           normalized_candidate['snapshot']['generated_at'] = 'normalized'
           assert normalized_baseline == normalized_candidate
           assert (directory / 'game-catalog-baseline.json').read_bytes() != (directory / 'game-catalog.json').read_bytes()
+          PY
+
+      - name: Validate reviewed default metadata seed
+        shell: bash
+        env:
+          CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          run_export() {
+            local output="$1"
+            local generated_at="$2"
+            local trace="$3"
+            local log="$4"
+
+            timeout 900s strace -f -qq \
+              -e trace=connect,bind,listen,accept,accept4 \
+              -o "${trace}" \
+              build/linux-release/bin/canary \
+                --export-game-catalog-only \
+                --game-catalog-output="${output}" \
+                --game-catalog-manifest-directory=data-otservbr-global/catalog \
+                --game-catalog-generated-at="${generated_at}" \
+                --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
+              >"${log}" 2>&1
+          }
+
+          run_export \
+            artifacts/game-catalog-smoke/reviewed-baseline.json \
+            2026-07-28T00:00:00Z \
+            artifacts/game-catalog-smoke/reviewed-baseline.trace \
+            artifacts/game-catalog-smoke/reviewed-baseline.log
+
+          run_export \
+            artifacts/game-catalog-smoke/reviewed-candidate.json \
+            2026-07-29T00:00:00Z \
+            artifacts/game-catalog-smoke/reviewed-candidate.trace \
+            artifacts/game-catalog-smoke/reviewed-candidate.log
+
+          for output in \
+            artifacts/game-catalog-smoke/reviewed-baseline.json \
+            artifacts/game-catalog-smoke/reviewed-candidate.json; do
+            sidecar="${output}.sha256"
+            python3 tools/game-catalog/validate_snapshot.py \
+              "${output}" \
+              --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+            (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
+            grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
+          done
+
+          for trace in \
+            artifacts/game-catalog-smoke/reviewed-baseline.trace \
+            artifacts/game-catalog-smoke/reviewed-candidate.trace; do
+            if [[ -s "${trace}" ]]; then
+              cat "${trace}" >&2
+              echo 'Reviewed metadata export attempted a database or network endpoint syscall.' >&2
+              exit 1
+            fi
+          done
+
+          python3 - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+
+          directory = Path('artifacts/game-catalog-smoke')
+          baseline = json.loads((directory / 'reviewed-baseline.json').read_text(encoding='utf-8'))
+          candidate = json.loads((directory / 'reviewed-candidate.json').read_text(encoding='utf-8'))
+
+          normalized_baseline = copy.deepcopy(baseline)
+          normalized_candidate = copy.deepcopy(candidate)
+          normalized_baseline['snapshot']['generated_at'] = 'normalized'
+          normalized_candidate['snapshot']['generated_at'] = 'normalized'
+          assert normalized_baseline == normalized_candidate
+
+          snapshot = candidate['snapshot']
+          assert snapshot['runtime_release'] == '15.25'
+          assert snapshot['content_target_release'] == '15.25'
+          assert snapshot['verified_content_through_release'] is None
+          assert snapshot['contains_content_through_release'] is None
+
+          entities = {entity['canonical_key']: entity for entity in candidate['entities']}
+          item = entities['item:dragon-shield']
+          creature = entities['creature:dragon']
+          assert item['introduced_in'] is None
+          assert item['removed_in'] is None
+          assert item['completeness'] == 'unverified'
+          assert item['availability'] == 'obtainable'
+          assert item['data']['server_id'] == 3416
+          assert creature['introduced_in'] is None
+          assert creature['removed_in'] is None
+          assert creature['completeness'] == 'unverified'
+          assert creature['availability'] == 'encounterable'
+
+          relations = {relation['canonical_key']: relation for relation in candidate['relations']}
+          loot = relations['loot:dragon:dragon-shield']
+          assert loot['source'] == 'creature:dragon'
+          assert loot['target'] == 'item:dragon-shield'
+          assert loot['introduced_in'] is None
+          assert loot['removed_in'] is None
+          assert loot['completeness'] == 'unverified'
+          assert loot['data']['chance_numerator'] == 110
+          assert loot['data']['chance_denominator'] == 100000
           PY
 
       - name: Upload smoke evidence

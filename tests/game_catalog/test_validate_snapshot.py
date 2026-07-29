@@ -19,6 +19,8 @@ SPEC.loader.exec_module(validator)
 class ValidateSnapshotTest(unittest.TestCase):
     fixture = ROOT / "tests/game_catalog/fixtures/minimal-snapshot.json"
     schema = ROOT / "schemas/game-catalog/v1/game-catalog-snapshot.schema.json"
+    fixture_v11 = ROOT / "tests/game_catalog/fixtures/v1.1/minimal-snapshot.json"
+    schema_v11 = ROOT / "schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json"
 
     def test_shared_fixture_and_schema_hash_are_pinned(self) -> None:
         document, digest, size = validator.load_and_validate(self.fixture, self.schema)
@@ -26,6 +28,19 @@ class ValidateSnapshotTest(unittest.TestCase):
         self.assertGreater(size, 0)
         self.assertEqual(4, document["snapshot"]["entity_count"])
         self.assertEqual(2, document["snapshot"]["relation_count"])
+
+    def test_schema_11_preserves_unknown_verified_content_boundary(self) -> None:
+        document, digest, size = validator.load_and_validate(self.fixture_v11, self.schema_v11)
+        self.assertEqual("747467af3716873e2738973bc2d2c5cd0b0230bc69ae68e53f763e4d9f995dee", digest)
+        self.assertGreater(size, 0)
+        self.assertEqual("1.1.0", document["schema_version"])
+        self.assertIsNone(document["snapshot"]["verified_content_through_release"])
+
+    def test_schema_version_mismatch_is_rejected(self) -> None:
+        with self.assertRaises(validator.CatalogValidationError):
+            validator.load_and_validate(self.fixture_v11, self.schema)
+        with self.assertRaises(validator.CatalogValidationError):
+            validator.load_and_validate(self.fixture, self.schema_v11)
 
     def test_removed_in_is_an_exclusive_later_bound(self) -> None:
         document = self._document()
