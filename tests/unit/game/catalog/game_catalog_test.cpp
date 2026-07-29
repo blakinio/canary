@@ -1,6 +1,7 @@
 #include "game/catalog/catalog_export_options.hpp"
 #include "game/catalog/game_catalog_exporter.hpp"
 #include "items/items.hpp"
+#include "lua/scripts/luascript.hpp"
 #include "creatures/monsters/monsters.hpp"
 
 #include <gtest/gtest.h>
