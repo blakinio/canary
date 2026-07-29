@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-metadata-evidence
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: implementing
+status: ready
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T16:25:00Z
-last_verified_commit: "3ad7155dd833e105cebfd4b472800a4156ac1e90"
+updated: 2026-07-29T16:41:22Z
+last_verified_commit: "5ab9d1288875d2318d4943652caa76a9e774bcfb"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -49,15 +49,15 @@ Create the first bounded, reviewed metadata baseline for the Game Catalog schema
 
 # Acceptance criteria
 
-- [ ] The exact target datapack/profile and manifest root are verified from repository and deployment contracts.
-- [ ] Every seeded release, `introduced_in`, `removed_in`, completeness, availability, and enabled claim has a reviewable evidence reference.
-- [ ] Missing or conflicting evidence remains `unknown`, `unverified`, or a blocking finding.
-- [ ] The bounded manifest set covers reviewed item, creature, and loot examples without claiming bulk historical completeness.
-- [ ] Manifest loading and snapshot validation fail closed for malformed, conflicting, dangling, or unsupported data.
-- [ ] Two fixed-input exports are byte-identical apart from the controlled `generated_at`.
-- [ ] No production profile is imported or activated.
-- [ ] Relevant focused checks and current-head GitHub checks pass.
-- [ ] Module catalogue, contract, architecture, changelog, and program impacts are updated or explicitly recorded as none.
+- [x] The exact target datapack/profile and manifest root are verified from repository and deployment contracts.
+- [x] Every seeded release, `introduced_in`, `removed_in`, completeness, availability, and enabled claim has a reviewable evidence reference.
+- [x] Missing or conflicting evidence remains `unknown`, `unverified`, or a blocking finding.
+- [x] The bounded manifest set covers reviewed item, creature, and loot examples without claiming bulk historical completeness.
+- [x] Manifest loading and snapshot validation fail closed for malformed, conflicting, dangling, or unsupported data.
+- [x] Two fixed-input exports are byte-identical apart from the controlled `generated_at`.
+- [x] No production profile is imported or activated.
+- [x] Relevant focused checks and current-head GitHub checks pass.
+- [x] Module catalogue, contract, architecture, changelog, and program impacts are updated or explicitly recorded as none.
 - [x] Cross-repository impact is documented and schema 1.1 consumer compatibility is merged before producer metadata.
 - [ ] Autonomous merge gate is satisfied.
 
@@ -139,6 +139,13 @@ The full default datapack currently fails catalogue validation on pre-existing u
 - Failed/blocked: local `ptrace` is unavailable, while the exact-head workflow retains syscall isolation. A full default-datapack export separately failed closed on pre-existing unresolved loot endpoints and out-of-range loot chance values.
 - Result: the metadata seed is implemented without historical or completeness inference. Publication and exact-head CI remain before merge; full-datapack loot integrity is a separate pre-staging blocker.
 
+## 2026-07-29T16:41:22Z
+
+- Changed: published the bounded metadata implementation as `5ab9d1288875d2318d4943652caa76a9e774bcfb` and applied `ci:final-gate` before this final readiness checkpoint.
+- Validated: Agent Task Ownership `30471275199`, CI `30471275856`, Universal E2E Stability `30471273492`, and Game Catalog `30471274026` passed on the implementation head.
+- Proven: Game Catalog compiled the exporter and passed the isolated two-run export, schema and sidecar validation, normalized determinism comparison, no-network/no-database syscall tracing, and exact reviewed Dragon metadata assertions.
+- Result: the bounded metadata package is ready for its exact-final-head gate. The full default-datapack loot-integrity finding remains a separate program blocker and is not hidden or reclassified.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -155,13 +162,13 @@ The full default datapack currently fails catalogue validation on pre-existing u
 
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
-| `docs/agents/tasks/active/CAN-20260729-game-catalog-metadata-evidence.md` | exclusive | Task state and checkpoint | active |
+| `docs/agents/tasks/active/CAN-20260729-game-catalog-metadata-evidence.md` | exclusive | Task state and checkpoint | ready |
 | `docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md` | shared | Multi-task sequence and gates | active |
 | `src/game/catalog/**` | read_only | Existing manifest loader/exporter | reused unchanged |
 | `schemas/game-catalog/v1.1/**` | read_only | Unknown-boundary contract shape | reused unchanged |
 | `data-otservbr-global/catalog/**` | exclusive | Repository-default reviewed metadata manifests | implemented |
 | `tests/game_catalog/test_default_metadata.py` | exclusive | Claim-to-source regression tests | 3 tests pass |
-| `.github/workflows/game-catalog.yml` | shared | Two-run reviewed-metadata runtime and syscall proof | implemented; CI pending |
+| `.github/workflows/game-catalog.yml` | shared | Two-run reviewed-metadata runtime and syscall proof | passed on implementation head |
 
 # Validation and CI
 
@@ -174,6 +181,11 @@ The full default datapack currently fails catalogue validation on pre-existing u
 | `3ad7155dd833e105cebfd4b472800a4156ac1e90` + working tree | `python3 -m unittest discover -s tests/game_catalog -p 'test_*.py' -v` | passed | 13 tests, including 3 claim-to-source metadata tests. |
 | `3ad7155dd833e105cebfd4b472800a4156ac1e90` + working tree | Bounded real-Dragon export, two controlled timestamps | passed | Both schema 1.1 snapshots contain 32,941 entities and 21 relations, valid sidecars, exact reviewed records, and match after normalizing only `generated_at`. |
 | `3ad7155dd833e105cebfd4b472800a4156ac1e90` + working tree | Full repository-default datapack export | blocked | Fail-closed validation reports pre-existing unresolved item endpoints and loot chances above the declared denominator. |
+| `5ab9d1288875d2318d4943652caa76a9e774bcfb` | Agent Task Ownership `30471275199` | passed | Exact implementation-head ownership and overlap validation. |
+| `5ab9d1288875d2318d4943652caa76a9e774bcfb` | CI `30471275856` | passed | Exact implementation-head Required aggregator passed. |
+| `5ab9d1288875d2318d4943652caa76a9e774bcfb` | Universal E2E Stability `30471273492` | passed | Exact implementation-head stability certification passed. |
+| `5ab9d1288875d2318d4943652caa76a9e774bcfb` | Game Catalog `30471274026` | passed | Contract tests, compilation, two export-only runtime executions, schema/sidecar/determinism validation, syscall isolation, and reviewed metadata assertions passed. |
+| PR #1005 before final checkpoint | `ci:final-gate` label | applied | Applied before the final checkpoint commit as required by `BUILD_TEST_MATRIX.md`. |
 
 Never write `passed` without verification on the stated commit.
 
@@ -197,18 +209,18 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Publish the implementation, pass exact-head CI and the Game Catalog reviewed-metadata runtime, then merge and archive this task.
-2. Create a separate bounded task for default-datapack loot endpoint/probability integrity before staging.
+1. Pass the full exact-final-head gate without further commits, audit reviews and main drift, then squash-merge PR #1005.
+2. Let the repository lifecycle archive this task, then create a separate bounded task for default-datapack loot endpoint/probability integrity before staging.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T16:25:00Z
-head: 3ad7155dd833e105cebfd4b472800a4156ac1e90
+updated_at: 2026-07-29T16:41:22Z
+head: 5ab9d1288875d2318d4943652caa76a9e774bcfb
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 pr: 1005
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -229,6 +241,8 @@ proven:
   - Item 3416, creature Dragon, explicit Dragon spawns and Dragon loot block 20 prove the bounded runtime identities and availability claims.
   - Two bounded real-Dragon exports validated 32941 entities and 21 relations and matched after normalizing only generated_at.
   - The reviewed loot relation resolves to loot:dragon:dragon-shield with chance 110/100000.
+  - Implementation-head Agent Task Ownership 30471275199, CI 30471275856, Universal E2E Stability 30471273492 and Game Catalog 30471274026 passed.
+  - ci:final-gate was applied before the final checkpoint commit.
 derived:
   - The bounded metadata seed is implementable without historical or completeness inference.
   - Full default-datapack integrity must be repaired before staging but does not invalidate the reviewed Dragon seed.
@@ -262,8 +276,8 @@ validation:
     result: PASS
     evidence: 24267183 bytes each; 32941 entities; 21 relations; normalized documents identical.
 blockers:
-  - Exact-head GitHub validation has not run on the implementation commit.
-next_action: Publish the metadata implementation and pass exact-head Game Catalog, ownership and CI checks.
+  - Full exact-final-head validation must pass on the checkpoint commit before merge.
+next_action: Freeze the final checkpoint commit, require exact-final-head Ownership, full CI and Game Catalog success, audit reviews and main drift, then squash-merge PR 1005 with the validated expected head.
 ```
 
 # Handoff
@@ -302,10 +316,10 @@ Read root and nested agent rules, the program record, this checkpoint, PR #991's
 
 # Completion
 
-- Final status: implementing
+- Final status: ready
 - PR: #1005
 - Merge commit: none
 - Program record updated: yes
-- Catalogue updated: pending
-- Changelog updated: pending
+- Catalogue updated: yes
+- Changelog updated: yes
 - Archived at: not archived
