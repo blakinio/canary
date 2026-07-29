@@ -8,6 +8,7 @@ on:
       - "tools/ai-agent/test_tibia_client_reference_drift.py"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.md"
       - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json"
+      - "docs/agents/real-tibia/evidence/**"
       - ".github/workflows/tibia-client-reference-drift.yml"
   workflow_dispatch:
 
@@ -21,12 +22,107 @@ jobs:
       PYTHONPATH: tools/ai-agent
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install schema checker
+        run: python -m pip install --disable-pip-version-check jsonschema
       - name: Run drift tests
         run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_drift.py" -v
       - name: Compile producer
         run: python -m py_compile tools/ai-agent/tibia_client_reference_drift.py tools/ai-agent/test_tibia_client_reference_drift.py
-      - name: Validate schema syntax
+      - name: Validate drift schema syntax
         run: python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json > /dev/null
+      - name: Materialize canonical owner-request lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          common=(
+            --request-id RTREQ-TCR-ITEM-DEFINITIONS-0002
+            --as-of 2026-07-29
+            --actor tcr-009-owner
+            --actor-task CAN-20260729-tcr-009-client-reference-drift
+            --actor-pr 1018
+          )
+          python tools/agents/real_tibia_owner_request.py transition \
+            "${common[@]}" \
+            --expected-status ready-for-owner-triage \
+            --at 2026-07-29T23:46:00+02:00 \
+            --actor-role owner \
+            --owner-task CAN-20260729-tcr-009-client-reference-drift \
+            --owner-pr 1018 \
+            --owner-evidence-ref github-pr:blakinio/canary#1018 \
+            --reason "TCR-009 owner accepts two independently hash-closed retained snapshot sets." \
+            --to-status accepted-by-owner \
+            --write
+          python tools/agents/real_tibia_owner_request.py transition \
+            "${common[@]}" \
+            --expected-status accepted-by-owner \
+            --at 2026-07-29T23:47:00+02:00 \
+            --actor-role owner \
+            --owner-task CAN-20260729-tcr-009-client-reference-drift \
+            --owner-pr 1018 \
+            --owner-evidence-ref github-pr:blakinio/canary#1018 \
+            --reason "The accepted retained evidence is planned for bounded TCR-009 drift consumption." \
+            --to-status planned \
+            --write
+          python tools/agents/real_tibia_owner_request.py transition \
+            "${common[@]}" \
+            --expected-status planned \
+            --at 2026-07-29T23:48:00+02:00 \
+            --actor-role owner \
+            --owner-task CAN-20260729-tcr-009-client-reference-drift \
+            --owner-pr 1018 \
+            --owner-evidence-ref github-pr:blakinio/canary#1018 \
+            --reason "TCR-009 implementation and exact retained comparison are active in PR 1018." \
+            --to-status active \
+            --write
+          python tools/agents/real_tibia_owner_request.py record-result \
+            "${common[@]}" \
+            --expected-status active \
+            --at 2026-07-29T23:49:00+02:00 \
+            --owner-task CAN-20260729-tcr-009-client-reference-drift \
+            --owner-pr 1018 \
+            --owner-evidence-ref github-pr:blakinio/canary#1018 \
+            --result-ref external-report:sha256:6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431 \
+            --result-ref external-report:sha256:be0593cb260cc717b2d8e9e1a19a565f958e85935fde4ac09ce8fb5bbb853b31 \
+            --result-ref github-pr:blakinio/canary#1018 \
+            --proof-level definition-found \
+            --proves "Two distinct complete retained manifest/index snapshot sets exist with exact SHA-256 closure." \
+            --proves "The retained snapshots are eligible exact inputs to canary-tibia-client-reference-drift-v1." \
+            --does-not-prove "The owner result does not prove gameplay, runtime, protocol, map or physical-client parity." \
+            --does-not-prove "The owner result does not authorize OTBM, datapack, runtime or production mutation." \
+            --reason "Record stable retained evidence and bounded TCR-009 drift output." \
+            --write
+          python tools/agents/real_tibia_owner_request.py consume-result \
+            "${common[@]}" \
+            --expected-status result-available \
+            --at 2026-07-29T23:50:00+02:00 \
+            --actor-role reviewer \
+            --evidence-id RT-ITEM-DEFINITIONS-0003 \
+            --reason "Consume the stable TCR owner result into the accepted retained-snapshot evidence record." \
+            --write
+      - name: Validate canonical evidence result
+        run: |
+          python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-29
+          python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-29
+          git diff --check
+          test "$(python -c 'import json; print(json.load(open("docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml"))["status"])')" = "consumed"
+      - name: Package canonical lifecycle patch
+        shell: bash
+        run: |
+          git diff --binary -- \
+            docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml \
+            docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json \
+            docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml \
+            > /tmp/tcr009-owner-lifecycle.patch
+          test -s /tmp/tcr009-owner-lifecycle.patch
+      - name: Upload canonical lifecycle patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcr009-owner-lifecycle
+          path: /tmp/tcr009-owner-lifecycle.patch
+          if-no-files-found: error
+          retention-days: 14
