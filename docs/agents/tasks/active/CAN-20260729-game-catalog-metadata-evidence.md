@@ -7,8 +7,8 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:32:56Z
-last_verified_commit: "04e129fc5a73b2471491bedc91478219fda4e7ff"
+updated: 2026-07-29T13:36:44Z
+last_verified_commit: "666369126319bdac3ecc4ff83584011db1ce6c2f"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -137,7 +137,8 @@ The archived exporter is complete. No reviewed production manifest root was foun
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `23a8148f72805676fa623c15ffa6ad20e7dc3d2f` | GitHub open PR/issue search for `catalog` | passed | No open matching PR or issue returned. |
-| `04e129fc5a73b2471491bedc91478219fda4e7ff` | Agent Task Ownership run `30456538856` | failed | First failure: active task frontmatter used unsupported `investigating`; checkpoint status remains valid. |
+| `666369126319bdac3ecc4ff83584011db1ce6c2f` | Agent Task Ownership `30456714386` | passed | Structured claims validated with no overlap. |
+| `666369126319bdac3ecc4ff83584011db1ce6c2f` | CI `30456714463` | passed | Exact-head documentation/fast checks passed. |
 | pending | Game Catalog focused validation | not-run | No implementation changes yet. |
 
 Never write `passed` without verification on the stated commit.
@@ -159,14 +160,14 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Pass exact structured ownership for `data-otservbr-global/catalog/**`, then identify repository-backed evidence for the bounded seed set before creating manifests.
+1. Identify a bounded item, creature, and loot seed set whose release and availability claims are provable from repository-backed evidence, then record the exact manifest entries before implementation.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T13:32:56Z
-head: 04e129fc5a73b2471491bedc91478219fda4e7ff
+updated_at: 2026-07-29T13:36:44Z
+head: 666369126319bdac3ecc4ff83584011db1ce6c2f
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 pr: 1005
 status: investigating
@@ -195,8 +196,8 @@ unknown:
   - Exact consumer changes and schema versions required by each additional entity family.
 conflicts: []
 first_failure:
-  marker: active-task-frontmatter-status
-  evidence: Agent Task Ownership run 30456538856 rejected frontmatter status investigating; corrected to planned on the next commit.
+  marker: repository-backed-metadata-evidence-unverified
+  evidence: Ownership and CI pass, but no claim-level reviewed seed set has been selected or implemented.
 rejected_hypotheses:
   - Continue the archived exporter task: PR 996 archived it as completed.
   - Treat isolated CI manifests as production metadata: the workflow creates them under artifacts for smoke testing only.
@@ -208,13 +209,15 @@ validation:
   - command: Narrow GitHub open PR and issue search for catalog
     result: PASS
     evidence: No matching open PR or issue returned on 2026-07-29.
-  - command: Agent Task Ownership run 30456538856
-    result: FAIL
-    evidence: Active task frontmatter used unsupported status investigating; corrected to planned.
+  - command: Agent Task Ownership run 30456714386
+    result: PASS
+    evidence: Exact structured ownership passed at 666369126319bdac3ecc4ff83584011db1ce6c2f.
+  - command: CI run 30456714463
+    result: PASS
+    evidence: Exact-head documentation and fast checks passed at 666369126319bdac3ecc4ff83584011db1ce6c2f.
 blockers:
-  - Structured ownership for data-otservbr-global/catalog/** must pass before manifest edits.
   - Local checkout is required for implementation and deterministic validation.
-next_action: Pass exact structured ownership for data-otservbr-global/catalog/**, then identify repository-backed evidence for the bounded seed set before creating manifests.
+next_action: Identify a bounded item, creature and loot seed set whose release and availability claims are provable from repository-backed evidence, then record the exact manifest entries before implementation.
 ```
 
 # Handoff
