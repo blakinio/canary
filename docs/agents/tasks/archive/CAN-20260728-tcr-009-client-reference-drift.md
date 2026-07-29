@@ -2,16 +2,17 @@
 task_id: CAN-20260728-tcr-009-client-reference-drift
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: TCR-009
-status: implementing
+status: blocked
 agent: "GPT-5.6 Thinking"
 branch: docs/archive-tcr-009-blocked-20260728
 base_branch: main
 created: 2026-07-28T22:49:37+02:00
-updated: 2026-07-28T23:31:00+02:00
-last_verified_commit: "8644fc5ae56a661c0bd38d9a4a8bcd706abffc2a"
+updated: 2026-07-28T23:33:00+02:00
+last_verified_commit: "8a88e2f09257e620985770e5e053381df32f916d"
 risk: low
 related_issue: ""
-related_pr: "993"
+related_pr: "992"
+lifecycle_pr: "993"
 depends_on:
   - TCR-009 bounded evidence preflight merged via PR 992
 blocks:
@@ -67,16 +68,16 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 
 - [x] Feature/preflight PR merged after exact-final-head and Ready-state protected CI.
 - [x] Early draft lifecycle PR published.
-- [ ] Task archived with `status: blocked` and exact feature/CI evidence.
-- [ ] Programme queue, handoff and module discovery updated without claiming TCR-009 stable.
-- [ ] Active task removed and ownership released.
-- [ ] Lifecycle exact-final-head checks, Ready-state protected CI and merge completed.
+- [x] Task archived with `status: blocked` and exact feature/CI evidence.
+- [x] Programme queue, handoff and module discovery updated without claiming TCR-009 stable.
+- [x] Active task removed and ownership released.
+- [ ] Lifecycle exact-final-head checks, Ready-state protected CI and merge completed after this archive commit.
 
-# Planned closeout
+# Lifecycle closeout
 
-1. Run the bounded self-removing lifecycle transformer.
-2. Validate the archived task, programme/module records and released active ownership.
-3. Freeze exact final head, transition Ready, obtain protected CI and merge PR #993.
+- Lifecycle PR `#993` was published early as draft.
+- This commit archives the blocked task, updates programme/module discovery and removes the active ownership record.
+- Remaining lifecycle action is exact-final-head validation, Ready-state protected CI and merge of PR `#993`.
 
 ## Context checkpoint
 
@@ -86,7 +87,7 @@ updated_at: 2026-07-28T23:31:00+02:00
 head: 8644fc5ae56a661c0bd38d9a4a8bcd706abffc2a
 branch: docs/archive-tcr-009-blocked-20260728
 pr: 993
-status: implementing
+status: blocked
 context_routes:
   - agent-governance
   - otbm
@@ -128,5 +129,9 @@ validation:
     evidence: main 8a88e2f09257e620985770e5e053381df32f916d; no competing TCR-009 owner or newly complete evidence chain
 blockers:
   - TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
-next_action: Run the self-removing lifecycle transformer, then exact-final-head validation and Ready-state protected CI for PR 993.
+next_action: Validate exact final head for lifecycle PR 993, transition Ready, obtain protected CI and merge.
 ```
+
+# Ownership release
+
+The active task path is removed by this lifecycle commit. Historical ownership claims remain in this archive only and do not authorize new implementation.
