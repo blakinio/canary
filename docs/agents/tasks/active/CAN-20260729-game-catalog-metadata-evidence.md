@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-metadata-evidence
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: investigating
+status: planned
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
 updated: 2026-07-29T13:32:56Z
-last_verified_commit: "483a9fae64b3d113bd143d946fc72537f3a1a5ee"
+last_verified_commit: "04e129fc5a73b2471491bedc91478219fda4e7ff"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -137,7 +137,7 @@ The archived exporter is complete. No reviewed production manifest root was foun
 | Commit | Command/check/workflow | Result | Evidence/notes |
 |---|---|---|---|
 | `23a8148f72805676fa623c15ffa6ad20e7dc3d2f` | GitHub open PR/issue search for `catalog` | passed | No open matching PR or issue returned. |
-| pending | `python tools/agents/task_ownership.py` | blocked | No local checkout in this session. |
+| `04e129fc5a73b2471491bedc91478219fda4e7ff` | Agent Task Ownership run `30456538856` | failed | First failure: active task frontmatter used unsupported `investigating`; checkpoint status remains valid. |
 | pending | Game Catalog focused validation | not-run | No implementation changes yet. |
 
 Never write `passed` without verification on the stated commit.
@@ -166,7 +166,7 @@ Never write `passed` without verification on the stated commit.
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-29T13:32:56Z
-head: 483a9fae64b3d113bd143d946fc72537f3a1a5ee
+head: 04e129fc5a73b2471491bedc91478219fda4e7ff
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 pr: 1005
 status: investigating
@@ -195,8 +195,8 @@ unknown:
   - Exact consumer changes and schema versions required by each additional entity family.
 conflicts: []
 first_failure:
-  marker: manifest-ownership-and-evidence-unverified
-  evidence: data-otservbr-global/catalog is newly claimed from the repository default, but exact ownership CI and claim-level metadata evidence have not yet passed.
+  marker: active-task-frontmatter-status
+  evidence: Agent Task Ownership run 30456538856 rejected frontmatter status investigating; corrected to planned on the next commit.
 rejected_hypotheses:
   - Continue the archived exporter task: PR 996 archived it as completed.
   - Treat isolated CI manifests as production metadata: the workflow creates them under artifacts for smoke testing only.
@@ -208,9 +208,9 @@ validation:
   - command: Narrow GitHub open PR and issue search for catalog
     result: PASS
     evidence: No matching open PR or issue returned on 2026-07-29.
-  - command: python tools/agents/task_ownership.py
-    result: BLOCKED
-    evidence: No local Git checkout is available in this session.
+  - command: Agent Task Ownership run 30456538856
+    result: FAIL
+    evidence: Active task frontmatter used unsupported status investigating; corrected to planned.
 blockers:
   - Structured ownership for data-otservbr-global/catalog/** must pass before manifest edits.
   - Local checkout is required for implementation and deterministic validation.
