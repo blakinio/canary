@@ -2,16 +2,16 @@
 task_id: CAN-20260729-tcr-009-client-reference-drift
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: TCR-009
-status: implementing
+status: validating
 agent: chatgpt
 branch: feat/CAN-20260729-tcr-009-client-reference-drift
 base_branch: main
 created: 2026-07-29T23:36:00+02:00
-updated: 2026-07-29T23:36:00+02:00
-last_verified_commit: "20b4d6c98a6893d90281216487437a61c8e0aa66"
+updated: 2026-07-29T23:52:00+02:00
+last_verified_commit: "c3fe43d7a442f7335ac82e791601cc869d69140b"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "1018"
 depends_on:
   - TCR-002 merged stable canary-tibia-staticdata-index-v1
   - TCR-003 merged stable canary-tibia-staticmapdata-index-v1
@@ -31,6 +31,7 @@ owned_paths:
     - .github/workflows/tibia-client-reference-drift.yml
   shared:
     - docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml
+    - docs/agents/real-tibia/evidence/modules/item-definitions/records/RT-ITEM-DEFINITIONS-0003.yaml
     - docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
     - docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml
     - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
@@ -63,13 +64,13 @@ Implement the deterministic, read-only TCR-009 client-reference drift producer o
 
 # Acceptance criteria
 
-- [ ] Consume exact final and bootstrap manifests plus StaticData, StaticMapData and proficiency reports for baseline A and current B.
-- [ ] Validate manifest/report format, schema, parser revision, hash closure and source bindings fail closed.
-- [ ] Emit deterministic input-component and record-level findings with bounded field changes.
-- [ ] Emit explicit StaticData schema-family drift and skip cross-family record comparison.
-- [ ] Compute dependency-scoped staleness without timestamp freshness.
-- [ ] Keep appearances/assets under existing owners and make no gameplay or mutation claims.
-- [ ] Add focused malformed, determinism, compatibility, boundedness and real-retained smoke tests.
+- [x] Consume exact final and bootstrap manifests plus StaticData, StaticMapData and proficiency reports for baseline A and current B.
+- [x] Validate manifest/report format, schema, parser revision, hash closure and source bindings fail closed.
+- [x] Emit deterministic input-component and record-level findings with bounded field changes.
+- [x] Emit explicit StaticData schema-family drift and skip cross-family record comparison.
+- [x] Compute dependency-scoped staleness without timestamp freshness.
+- [x] Keep appearances/assets under existing owners and make no gameplay or mutation claims.
+- [x] Add focused malformed, determinism, compatibility, boundedness and retained-evidence smoke coverage.
 - [ ] Fulfil and consume the owner request through the canonical lifecycle and generated indexes.
 - [ ] Reconcile programme, catalogue and changelog, pass exact-final-head CI, merge and archive.
 
@@ -77,11 +78,11 @@ Implement the deterministic, read-only TCR-009 client-reference drift producer o
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T23:36:00+02:00
-head: 20b4d6c98a6893d90281216487437a61c8e0aa66
+updated_at: 2026-07-29T23:52:00+02:00
+head: c3fe43d7a442f7335ac82e791601cc869d69140b
 branch: feat/CAN-20260729-tcr-009-client-reference-drift
-pr: null
-status: implementing
+pr: 1018
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -92,29 +93,52 @@ owned_paths:
   - docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.md
   - docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json
   - .github/workflows/tibia-client-reference-drift.yml
+  - docs/agents/real-tibia/evidence/modules/item-definitions/records/RT-ITEM-DEFINITIONS-0003.yaml
 proven:
   - PR 1014 merged proficiency schemaVersion 2 as b68fbf7bf26b57f0cf716abffb52cfa951fa66ce.
   - Final retained A/B manifests and all six reports were regenerated with that parser revision and independently hash-closed.
   - Snapshot A manifest SHA-256 is 6096b021ca21d911165f89bfc714f558fc7efde0a455855caed071852ccfcee1.
   - Snapshot B manifest SHA-256 is 54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53.
   - Retained evidence summary SHA-256 is 6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431.
-  - A retained drift smoke produced 27 findings and SHA-256 be0593cb260cc717b2d8e9e1a19a565f958e85935fde4ac09ce8fb5bbb853b31.
+  - Retained drift smoke produced 27 findings and SHA-256 be0593cb260cc717b2d8e9e1a19a565f958e85935fde4ac09ce8fb5bbb853b31.
+  - The published producer has focused deterministic and fail-closed coverage for hash closure, source binding, schema/revision mismatch, duplicate JSON keys, bounds and StaticData family changes.
+  - A synthetic producer output validates against the published Draft 2020-12 schema.
 derived:
   - RTREQ-TCR-ITEM-DEFINITIONS-0002 is no longer blocked by missing snapshot evidence.
 unknown:
-  - Exact implementation PR number and final-head CI evidence.
+  - Exact canonical lifecycle patch generated by the official owner-request tool.
+  - Exact final-head CI evidence and merge commit.
 conflicts: []
 first_failure:
   marker: none
-  evidence: The former external-evidence blocker is satisfied; implementation has not yet been published.
+  evidence: The former external-evidence blocker is satisfied; canonical lifecycle materialization is running in the dedicated workflow.
 rejected_hypotheses:
   - Reparse client packages inside the drift producer.
   - Compare StaticData records across legacy and newer schema families.
   - Use timestamps as freshness evidence.
   - Commit proprietary inputs or retained reports.
+  - Hand-edit generated evidence indexes.
 changed_paths:
+  - .github/workflows/tibia-client-reference-drift.yml
   - docs/agents/tasks/active/CAN-20260729-tcr-009-client-reference-drift.md
-validation: []
+  - docs/agents/real-tibia/evidence/modules/item-definitions/records/RT-ITEM-DEFINITIONS-0003.yaml
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.md
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json
+  - tools/ai-agent/test_tibia_client_reference_drift.py
+  - tools/ai-agent/tibia_client_reference_drift.py
+validation:
+  - command: python -m unittest -v test_tibia_client_reference_drift.py
+    result: PASS
+    evidence: Nine deterministic positive and fail-closed tests passed locally.
+  - command: python -m py_compile tibia_client_reference_drift.py test_tibia_client_reference_drift.py
+    result: PASS
+    evidence: Producer and tests compile under the local Python runtime.
+  - command: Draft 2020-12 validation of synthetic drift output
+    result: PASS
+    evidence: The published schema accepts the producer output and its schema itself is valid.
+  - command: retained A/B source and binding audit
+    result: PASS
+    evidence: Archive hashes, selected input sizes, bootstrap bindings and final generated-index closure passed without input mutation.
 blockers: []
-next_action: open the draft PR, implement and validate the bounded drift producer, then record the owner result with stable external-report hashes.
+next_action: obtain the official lifecycle patch artifact, commit its exact generated files, reconcile programme discovery documents, then run final-head gates.
 ```
