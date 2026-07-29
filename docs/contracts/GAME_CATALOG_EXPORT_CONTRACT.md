@@ -3,6 +3,7 @@
 Status: Proposed  
 Contract ID: `oteryn.game-catalog`  
 Initial schema version: `1.0.0`  
+Current additive schema version: `1.1.0`
 Producer: `blakinio/canary`  
 Consumer: `blakinio/Oteryn-Platform`
 
@@ -113,6 +114,8 @@ producer_build_id
 Protocol support, runtime release, target content release, verified content boundary, datapack revision, appearance revision and map revision are independent facts.
 
 A newer protocol profile does not prove that all content for that protocol release is complete.
+
+Schema `1.0.0` requires `verified_content_through_release` to reference a concrete release. Schema `1.1.0` permits null when no reviewed datapack-wide completeness boundary exists. Null means unknown, never complete or verified. It allows deterministic inactive export and review but is not sufficient for Platform activation.
 
 ## Release registry
 
@@ -324,6 +327,8 @@ Canonical paths:
 ```text
 Canary: schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 Platform: resources/schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+Canary: schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+Platform: resources/schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
 ```
 
 Both files must be byte-identical. Proposed schema v1 SHA-256:
@@ -332,7 +337,13 @@ Both files must be byte-identical. Proposed schema v1 SHA-256:
 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b
 ```
 
-A schema change requires a new semantic version, compatibility analysis, fixture updates, contract tests and explicit rollout order in both repositories.
+Schema `1.1.0` SHA-256:
+
+```text
+323ff6ae849759c9190f2a0c342855194ed74645816adc45051b6d914e67c7ac
+```
+
+A schema change requires a new semantic version, compatibility analysis, fixture updates, contract tests and explicit rollout order in both repositories. Schema `1.0.0` remains byte unchanged.
 
 ## First shared fixture
 
@@ -348,13 +359,15 @@ The first implementation fixture contains at least:
 
 ## Rollout
 
-1. Merge compatible architecture and contract documentation.
-2. Implement Platform import/storage without activation.
-3. Implement Canary offline exporter.
-4. Generate and review a staging snapshot.
-5. Import and activate only a non-production profile with rollback proof.
-6. Add public items and creatures.
-7. Add NPCs, quests, map availability and historical profiles in separate tasks.
+Schema `1.1.0` uses a consumer-first-safe rollout:
+
+1. merge Platform dual-schema validation, nullable inactive persistence and fail-closed activation while preserving retained `1.0.0` rollback;
+2. merge Canary `1.1.0` producer support;
+3. generate and review a schema `1.1.0` staging snapshot;
+4. keep activation blocked until a concrete verified boundary is supplied by reviewed evidence;
+5. add NPCs, quests, map availability and historical profiles in separate tasks.
+
+Older consumers reject `1.1.0` fail closed. Producer `1.1.0` output must not be routed to an older consumer.
 
 No production deployment or profile activation is authorized by this contract.
 

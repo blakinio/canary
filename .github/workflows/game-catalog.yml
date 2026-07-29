@@ -16,6 +16,7 @@ on:
       - 'tests/game_catalog/**'
       - 'data-*/catalog/**'
       - 'docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md'
+      - 'docs/agents/tasks/active/CAN-20260729-game-catalog-schema-1-1.md'
       - '.github/workflows/game-catalog.yml'
   workflow_dispatch:
 
@@ -44,11 +45,15 @@ jobs:
       - name: Run focused tests
         run: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
       - name: Validate shared fixture
-        run: >-
-          python tools/game-catalog/validate_snapshot.py
-          tests/game_catalog/fixtures/minimal-snapshot.json
-          --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
-          --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
+        run: |
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json \
+            --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/v1.1/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json \
+            --expected-sha256 747467af3716873e2738973bc2d2c5cd0b0230bc69ae68e53f763e4d9f995dee
 
   build-exporter:
     name: Build export binary
@@ -137,11 +142,11 @@ jobs:
           manifest_dir = Path('artifacts/game-catalog-smoke/manifests')
           profile = {
               'contract': 'oteryn.game-catalog',
-              'schema_version': '1.0.0',
+              'schema_version': '1.1.0',
               'protocol_profile': 'oteryn-current',
               'runtime_release': '0.0.1-ci',
               'content_target_release': '0.0.1-ci',
-              'verified_content_through_release': '0.0.1-ci',
+              'verified_content_through_release': None,
               'contains_content_through_release': None,
               'loot_chance_denominator': 100000,
               'datapack_commit_sha': None,
@@ -229,7 +234,7 @@ jobs:
             sidecar="${output}.sha256"
             python3 tools/game-catalog/validate_snapshot.py \
               "${output}" \
-              --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+              --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
             (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
             grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
           done
@@ -253,6 +258,7 @@ jobs:
               assert snapshot['generated_at'] == generated_at
               assert snapshot['entity_count'] == len(document['entities']) > 0
               assert snapshot['relation_count'] == len(document['relations']) > 0
+              assert snapshot['verified_content_through_release'] is None
               assert {'item', 'creature'} <= {entity['type'] for entity in document['entities']}
 
           normalized_baseline = copy.deepcopy(baseline)

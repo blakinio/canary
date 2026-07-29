@@ -14,8 +14,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 CONTRACT_ID = "oteryn.game-catalog"
-SCHEMA_VERSION = "1.0.0"
-SCHEMA_SHA256 = "099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b"
+SCHEMA_SHA256_BY_VERSION = {
+    "1.0.0": "099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b",
+    "1.1.0": "323ff6ae849759c9190f2a0c342855194ed74645816adc45051b6d914e67c7ac",
+}
 MAX_DOCUMENT_BYTES = 67_108_864
 MAX_FINDINGS = 200
 
@@ -389,7 +391,15 @@ def load_and_validate(snapshot_path: Path, schema_path: Path, expected_hash: str
         raise CatalogValidationError([Finding("schema.unavailable", "$", "Pinned Game Catalog schema is unavailable.")])
     schema_raw = schema_path.read_bytes()
     schema_hash = hashlib.sha256(schema_raw).hexdigest()
-    if schema_hash != SCHEMA_SHA256:
+    schema_version = next(
+        (
+            version
+            for version, expected_schema_hash in SCHEMA_SHA256_BY_VERSION.items()
+            if schema_hash == expected_schema_hash
+        ),
+        None,
+    )
+    if schema_version is None:
         raise CatalogValidationError([Finding("schema.hash", "$", "Pinned schema hash does not match the cross-repository contract.")])
 
     try:
@@ -399,6 +409,13 @@ def load_and_validate(snapshot_path: Path, schema_path: Path, expected_hash: str
         raise CatalogValidationError([Finding("json.invalid", "$", f"Invalid UTF-8 or JSON: {error}")]) from error
     if not isinstance(document, dict) or not isinstance(schema, dict):
         raise CatalogValidationError([Finding("json.root", "$", "Snapshot and schema roots must be JSON objects.")])
+    declared_schema_version = (
+        schema.get("properties", {})
+        .get("schema_version", {})
+        .get("const")
+    )
+    if declared_schema_version != schema_version:
+        raise CatalogValidationError([Finding("schema.version", "$schema", "Pinned schema hash and declared version do not match.")])
 
     schema_findings = SchemaSubsetValidator(schema).validate(document)
     if schema_findings:
@@ -428,7 +445,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(json.dumps({
         "contract": CONTRACT_ID,
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": document["schema_version"],
         "sha256": content_hash,
         "bytes": size,
         "entity_count": document["snapshot"]["entity_count"],
