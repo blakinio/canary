@@ -2,13 +2,13 @@
 task_id: CAN-20260729-rtec-005-wave-2-preflight
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-WAVE-2-PREFLIGHT
-status: validating
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-2-preflight-20260729
 base_branch: main
 created: 2026-07-29T09:05:00+02:00
-updated: 2026-07-29T09:20:00+02:00
-last_verified_commit: "1b55e84a9dc3d3dd6f33eaa64ceccca28d1ddc4c"
+updated: 2026-07-29T09:23:00+02:00
+last_verified_commit: "8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa"
 risk: medium
 related_issue: ""
 related_pr: "995"
@@ -108,8 +108,8 @@ Reconcile the live Real Tibia evidence programme after RTEC-005 wave 1 and selec
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T09:20:00+02:00
-head: 1b55e84a9dc3d3dd6f33eaa64ceccca28d1ddc4c
+updated_at: 2026-07-29T09:23:00+02:00
+head: 8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa
 branch: docs/rtec-005-wave-2-preflight-20260729
 pr: 995
 status: validating
@@ -128,23 +128,24 @@ proven:
   - both selected registry records and all selected current-Canary source files exist at the pinned blobs recorded above
   - open PR changed-file sets do not overlap the selected dossier, registry or source paths
   - RTEC-005 remains limited to two workers, two worker PRs and one serialized coordinator index lane
+  - ordinary CI run 30431112265 passed on head 8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa
 derived:
   - chat-communication and engine-scheduler form a safe bounded wave 2 candidate pair
   - no existing owner-request transition or shared-index mutation belongs in the preflight
 unknown:
   - exact evidence claims each Collector will submit
   - whether either Collector will need a new owner request
-  - exact-head ownership and ordinary CI result after correcting the active-task status contract
+  - exact-head ownership result after using the frontmatter lifecycle state review
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: run 30430981753 job 90507923896 rejected frontmatter status active because active task records require an execution state such as validating
+  evidence: run 30431112170 job 90508327083 proved frontmatter uses lifecycle states from task_ownership.ACTIVE_STATUSES, while validating is only a compatible checkpoint execution state
 rejected_hypotheses:
   - reuse the merged wave 1 task or PR: archived tasks and merged PRs are not continuation branches
   - select sanctions concurrently: the open security audit reviews related trust/security behavior, so a less coupled candidate is preferred
   - let workers update the shared global index: RTEC-005 requires one serialized coordinator lane
   - replace the branch after main advanced: exact compare proves the advance is disjoint and PR 995 remains mergeable
-  - ownership failed because of path overlap: the failure occurred before ownership rendering and names only the task status value
+  - use active or validating as frontmatter status: task_ownership.ACTIVE_STATUSES permits planned, implementing, blocked, review or ready; review is compatible with checkpoint validating
 changed_paths:
   - docs/agents/tasks/active/CAN-20260729-rtec-005-wave-2-preflight.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
@@ -158,12 +159,15 @@ validation:
   - command: advanced-main compare
     result: PASS
     evidence: b19d8fb41c8390c1f672fde6403203ce97590955...4ae896d9c6ad33e4193a314f47daeff9ea4ac66b contains no selected path
-  - command: Agent Task Ownership run 30430981753 job 90507923896
+  - command: Agent Task Ownership run 30431112170 job 90508327083
     result: FAIL
-    evidence: changed active task frontmatter used unsupported status active
-  - command: ordinary CI on the corrected preflight head
+    evidence: frontmatter validating is not a lifecycle status; review is the compatible lifecycle status for checkpoint validating
+  - command: CI run 30431112265
+    result: PASS
+    evidence: ordinary CI completed successfully on head 8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa
+  - command: Agent Task Ownership on the corrected review-status head
     result: NOT_RUN
     evidence: pending corrected head workflows
 blockers: []
-next_action: Verify exact-head ownership and ordinary CI after the frontmatter status correction, then write the final-gate checkpoint without changing scope.
+next_action: Verify exact-head ownership and ordinary CI after the frontmatter review-status correction, then write the final-gate checkpoint without changing scope.
 ```
