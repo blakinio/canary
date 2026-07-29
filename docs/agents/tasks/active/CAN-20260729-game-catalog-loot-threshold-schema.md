@@ -7,7 +7,7 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 base_branch: main
 created: 2026-07-29T18:11:53Z
-updated: 2026-07-29T18:36:30Z
+updated: 2026-07-29T18:46:00Z
 last_verified_commit: "e81a1daf3e32448047118bf07f22b941658128a4"
 risk: high
 related_issue: ""
@@ -116,12 +116,18 @@ Never write `passed` without verification on the stated commit.
 - Learned: diagnostic run `30480109834` did not reach CMake or runtime because its reusable build runner remained stuck installing Mono/NuGet.
 - Result: publish a neutral checkpoint to cancel the stuck concurrency group and obtain a fresh exact-head runner; the runtime exit-139 finding remains unresolved.
 
+## 2026-07-29T18:46:00Z
+
+- Learned: fresh run `30480742859` reproduced exit 139 after `proficiencies.json` and before manifest loading; schema parsing, relation validation, serialization, and publication have not begun at the crash point.
+- Changed: enabled the existing loader-duration telemetry only in the isolated CI config so the next run identifies the exact failing definition loader.
+- Result: the remaining failure is in default-datapack definition initialization, not the schema 1.2 file contract.
+
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T18:36:30Z
-head: b3a51b4a805e4ad1e7c711cd6d96f0608e6eebd5
+updated_at: 2026-07-29T18:46:00Z
+head: f64744c5ee10a719290b8b4a25ff91bd3ab8fd02
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 pr: 1012
 status: implementing
@@ -200,6 +206,9 @@ validation:
   - command: Game Catalog 30480109834
     result: NOT_RUN
     evidence: Contract passed, but the reusable build runner remained in dependency installation and never reached CMake or the diagnostic runtime step.
+  - command: Game Catalog 30480742859
+    result: FAIL
+    evidence: Contract, C++ compilation, deterministic schema 1.2 smoke, and reviewed metadata export passed; complete default-datapack initialization reproducibly exited 139 immediately after proficiencies and before manifest loading.
 blockers: []
-next_action: publish a fresh checkpoint head, require a new Game Catalog runner, and use the captured runtime log to isolate the exit-139 cause.
+next_action: publish CI loader telemetry, rerun the default datapack, and isolate the exact definition loader preceding exit 139.
 ```

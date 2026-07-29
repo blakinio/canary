@@ -140,6 +140,7 @@ jobs:
               'mysqlSock': '""',
               'metricsEnablePrometheus': 'false',
               'metricsEnableOstream': 'false',
+              'luaStartupLoadTelemetry': 'true',
           }
           for key, value in replacements.items():
               pattern = re.compile(rf'^{re.escape(key)}\s*=.*$', re.MULTILINE)
