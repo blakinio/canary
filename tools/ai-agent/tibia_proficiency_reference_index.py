@@ -13,7 +13,7 @@ from typing import Iterable, Mapping
 INDEX_FORMAT = "canary-tibia-proficiency-index-v1"
 MANIFEST_FORMAT = "canary-tibia-client-reference-manifest-v1"
 PROFICIENCY_ID_NAMESPACE = "client-reference.proficiency-id"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DEFAULT_MAX_SOURCE_BYTES = 16 * 1024 * 1024
 DEFAULT_MAX_DECOMPRESSED_BYTES = 64 * 1024 * 1024
 DEFAULT_MAX_MANIFEST_BYTES = 8 * 1024 * 1024
@@ -34,6 +34,9 @@ _PERK_FIELDS = frozenset(
         "BestiaryName",
         "DamageType",
         "ElementId",
+        "MissileId",
+        "Multiplier",
+        "Probability",
         "Range",
         "SkillId",
         "SpellId",
@@ -46,6 +49,7 @@ _PERK_INTEGER_FIELDS = (
     ("BestiaryId", "bestiaryId"),
     ("DamageType", "damageType"),
     ("ElementId", "elementId"),
+    ("MissileId", "missileId"),
     ("Range", "range"),
     ("SkillId", "skillId"),
     ("SpellId", "spellId"),
@@ -255,14 +259,19 @@ def _require_finite_number(value: object, *, path: str) -> int | float:
 def _parse_perk(value: object, *, path: str, source_ordinal: int) -> dict[str, object]:
     perk = _require_object(value, path=path)
     _reject_unknown_fields(perk, _PERK_FIELDS, path=path)
-    if "Type" not in perk or "Value" not in perk:
-        missing = [field for field in ("Type", "Value") if field not in perk]
-        raise ProficiencyReferenceError(f"{path} is missing required field(s): {', '.join(missing)}")
+    if "Type" not in perk:
+        raise ProficiencyReferenceError(f"{path} is missing required field: Type")
+    numeric_fields = ("Value", "Multiplier", "Probability")
+    if not any(field in perk for field in numeric_fields):
+        raise ProficiencyReferenceError(
+            f"{path} must contain at least one numeric effect field: {', '.join(numeric_fields)}"
+        )
     output: dict[str, object] = {
         "sourceOrdinal": source_ordinal,
         "type": _require_uint(perk["Type"], path=f"{path}.Type"),
-        "value": _require_finite_number(perk["Value"], path=f"{path}.Value"),
     }
+    if "Value" in perk:
+        output["value"] = _require_finite_number(perk["Value"], path=f"{path}.Value")
     for source_name, output_name in _PERK_INTEGER_FIELDS:
         if source_name in perk:
             output[output_name] = _require_uint(perk[source_name], path=f"{path}.{source_name}")
@@ -270,6 +279,9 @@ def _parse_perk(value: object, *, path: str, source_ordinal: int) -> dict[str, o
         output["bestiaryName"] = _require_text(
             perk["BestiaryName"], path=f"{path}.BestiaryName", non_empty=False
         )
+    for source_name, output_name in (("Multiplier", "multiplier"), ("Probability", "probability")):
+        if source_name in perk:
+            output[output_name] = _require_finite_number(perk[source_name], path=f"{path}.{source_name}")
     return output
 
 
