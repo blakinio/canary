@@ -10,19 +10,19 @@
 
 namespace game_catalog {
 
-struct ExportOptions {
-	std::filesystem::path outputPath;
-	std::filesystem::path manifestDirectory;
-	std::optional<std::string> generatedAt;
-	std::optional<std::string> canaryCommitSha;
-};
+	struct ExportOptions {
+		std::filesystem::path outputPath;
+		std::filesystem::path manifestDirectory;
+		std::optional<std::string> generatedAt;
+		std::optional<std::string> canaryCommitSha;
+	};
 
-struct ExportOptionParseResult {
-	bool requested = false;
-	std::optional<ExportOptions> options;
-	std::string error;
-};
+	struct ExportOptionParseResult {
+		bool requested = false;
+		std::optional<ExportOptions> options;
+		std::string error;
+	};
 
-[[nodiscard]] ExportOptionParseResult parseExportOptions(std::span<char*> arguments);
+	[[nodiscard]] ExportOptionParseResult parseExportOptions(std::span<char*> arguments);
 
 } // namespace game_catalog
