@@ -1,17 +1,37 @@
 {
-  "as_of": "2026-07-26",
-  "by_authority_dimension": {},
-  "by_claim_key": {},
-  "by_proof_level": {},
-  "by_state": {},
-  "evidence_ids": [],
+  "as_of": "2026-07-29",
+  "by_authority_dimension": {
+    "current-canary-behavior": [
+      "RT-ENGINE-SCHEDULER-0001"
+    ]
+  },
+  "by_claim_key": {
+    "current-canary-dispatch-schedule-cancel-thread-pool-path": [
+      "RT-ENGINE-SCHEDULER-0001"
+    ]
+  },
+  "by_proof_level": {
+    "runtime-path-proven": [
+      "RT-ENGINE-SCHEDULER-0001"
+    ]
+  },
+  "by_state": {
+    "PROVEN": [
+      "RT-ENGINE-SCHEDULER-0001"
+    ]
+  },
+  "evidence_ids": [
+    "RT-ENGINE-SCHEDULER-0001"
+  ],
   "format": "canary-real-tibia-module-evidence-index-v1",
   "module_id": "engine-scheduler",
   "owner_request_ids": [],
-  "record_count": 0,
+  "record_count": 1,
   "schema_version": 1,
   "stale_evidence_ids": [],
   "superseded_evidence_ids": [],
   "unresolved_conflict_ids": [],
-  "version_history_ids": []
+  "version_history_ids": [
+    "RTVH-ENGINE-SCHEDULER-0001"
+  ]
 }

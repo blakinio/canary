@@ -32,9 +32,9 @@
   "owner_request_refs": [],
   "proof_level": "runtime-path-proven",
   "proves": ["Current Canary has a concrete source path for channel definition loading and runtime channel registries.", "Current Canary has explicit join, leave and speak callback dispatch around channel membership.", "Current Canary has explicit private-channel owner, invitation, exclusion and close paths."],
-  "record_status": "review-needed",
+  "record_status": "accepted",
   "related_modules": ["character-lifecycle", "guilds", "parties", "protocol"],
-  "review": {"notes": ["Worker candidate only; coordinator adjudication is required before publication.", "No owner request is created because the candidate proves only the selected current Canary source path."], "pr": 1001, "reviewed_at": null, "reviewer": null, "status": "pending", "task_id": "CAN-20260729-rtec-005-chat-communication"},
+  "review": {"notes": ["Worker candidate only; coordinator adjudication is required before publication.", "No owner request is created because the candidate proves only the selected current Canary source path.", "Coordinator accepted only the bounded source-path claim and its explicit proves/does_not_prove limits; no delivery, authorization, physical gameplay or parity claim is made."], "pr": 1000, "reviewed_at": "2026-07-29T11:38:00+02:00", "reviewer": "RTEC-005 wave 2 coordinator / GPT-5.6 Thinking", "status": "accepted", "task_id": "CAN-20260729-rtec-005-wave-2-coordination"},
   "schema_version": 1,
   "sources": [{
     "author": "Canary contributors",
