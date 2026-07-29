@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/archive-tcr-009-blocked-20260728
 base_branch: main
 created: 2026-07-28T22:49:37+02:00
-updated: 2026-07-28T23:33:00+02:00
-last_verified_commit: "8a88e2f09257e620985770e5e053381df32f916d"
+updated: 2026-07-29T08:58:00+02:00
+last_verified_commit: "93a6faaf3ceb30b43ed6c3358bf8737798005cdf"
 risk: low
 related_issue: ""
 related_pr: "992"
@@ -76,15 +76,15 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 # Lifecycle closeout
 
 - Lifecycle PR `#993` was published early as draft.
-- This commit archives the blocked task, updates programme/module discovery and removes the active ownership record.
+- Closeout commit `93a6faaf3ceb30b43ed6c3358bf8737798005cdf` archived the blocked task, updated programme/module discovery, removed the active ownership record and removed both temporary workflow modifications.
 - Remaining lifecycle action is exact-final-head validation, Ready-state protected CI and merge of PR `#993`.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T23:31:00+02:00
-head: 8644fc5ae56a661c0bd38d9a4a8bcd706abffc2a
+updated_at: 2026-07-29T08:58:00+02:00
+head: 93a6faaf3ceb30b43ed6c3358bf8737798005cdf
 branch: docs/archive-tcr-009-blocked-20260728
 pr: 993
 status: blocked
@@ -93,15 +93,14 @@ context_routes:
   - otbm
   - real-tibia-parity
 owned_paths:
-  - docs/agents/tasks/active/CAN-20260728-tcr-009-client-reference-drift.md
   - docs/agents/tasks/archive/CAN-20260728-tcr-009-client-reference-drift.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
   - docs/agents/MODULE_CATALOG.md
-  - .github/workflows/tcr009-lifecycle-closeout.yml
 proven:
   - PR 992 merged the exact TCR-009 evidence request and blocker after Ready-state CI run 30399382989 succeeded.
   - Two complete exact client-reference snapshot sets do not exist in retained repository/workflow/supplied evidence.
   - TCR-009 implementation and all dependent packages remain unauthorized.
+  - Closeout commit 93a6faaf3ceb30b43ed6c3358bf8737798005cdf removed active ownership and all temporary workflow changes after corpus validation passed.
 derived:
   - The correct lifecycle disposition is blocked-external-evidence, not completed/stable.
 unknown:
@@ -119,7 +118,6 @@ changed_paths:
   - docs/agents/tasks/archive/CAN-20260728-tcr-009-client-reference-drift.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
   - docs/agents/MODULE_CATALOG.md
-  - .github/workflows/tcr009-lifecycle-closeout.yml
 validation:
   - command: feature PR 992 Ready-state protected CI
     result: PASS
@@ -127,6 +125,9 @@ validation:
   - command: fresh post-merge ownership and evidence preflight
     result: PASS
     evidence: main 8a88e2f09257e620985770e5e053381df32f916d; no competing TCR-009 owner or newly complete evidence chain
+  - command: bounded lifecycle transformer and corpus validation
+    result: PASS
+    evidence: commit 93a6faaf3ceb30b43ed6c3358bf8737798005cdf archived the task, updated programme/catalogue, removed active ownership and temporary workflows, and passed Real Tibia evidence validate/generate checks
 blockers:
   - TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
 next_action: Validate exact final head for lifecycle PR 993, transition Ready, obtain protected CI and merge.
