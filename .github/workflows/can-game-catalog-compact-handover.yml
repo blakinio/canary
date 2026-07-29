@@ -1,0 +1,133 @@
+name: CAN Game Catalog Compact Handover
+
+on:
+  push:
+    branches:
+      - chore/CAN-20260728-compact-handover-run
+
+permissions:
+  contents: read
+
+jobs:
+  compact-handover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout final feature head
+        uses: actions/checkout@v4
+        with:
+          ref: 1aad762053140b2773825d75dbfc42ce5d13a2f2
+
+      - name: Synchronize final active checkpoint
+        shell: bash
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import re
+
+          path = Path("docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md")
+          text = path.read_text(encoding="utf-8")
+          checkpoint = f'''## Context checkpoint
+
+          ```yaml
+          checkpoint_version: 1
+          updated_at: {datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')}
+          head: 1aad762053140b2773825d75dbfc42ce5d13a2f2
+          branch: feat/CAN-20260728-game-catalog-exporter
+          pr: 991
+          status: ready
+          context_routes:
+            - agent-governance
+            - cpp-runtime
+            - lua-data
+            - cross-repo
+          owned_paths:
+            - src/game/catalog/**
+            - tools/game-catalog/**
+            - tests/game_catalog/**
+            - tests/unit/game/catalog/**
+            - data-otservbr-global/catalog/**
+            - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
+          proven:
+            - Export-only mode is selected before normal CanaryServer startup and excludes database initialization, maps, listeners, schedulers, backups and database-backed shutdown work.
+            - Items and creatures are collected from final runtime registries and loot from MonsterType runtime loot blocks.
+            - Missing reviewed metadata remains unverified or unknown; historical and availability facts are not inferred from external wikis.
+            - Fixed-input exports are byte deterministic apart from explicitly controlled generated_at and include lowercase SHA-256 sidecars.
+            - Final-head CI run 30429320048 passed Fast Checks, Lua tests, Linux release/debug, Docker build, Docker quickstart and Required.
+            - Final-head Game Catalog run 30429319990 passed contract validation, C++ compilation and two export-only runtime executions without network or database endpoint syscalls.
+            - Final-head Agent Task Ownership run 30429319944, Universal E2E Stability run 30429319920 and autofix run 30429319884 passed.
+            - PR 991 squash-merged as 4ae896d9c6ad33e4193a314f47daeff9ea4ac66b before Platform PR 272.
+            - Lifecycle PR 996 archived the completed task as commit 11e92b25e90e25fb6bce038faa94b93e33997650.
+          derived:
+            - Canary exporter and Platform schema 1.0.0 consumer are compatible for the first item, creature and creature-loot slice.
+            - The bounded staging artifact is validation evidence only and does not authorize production activation.
+          unknown:
+            - Complete historical introduced_in, removed_in and availability metadata remains outside this slice.
+            - Reviewed manifests for future production content remain a separate evidence programme.
+          conflicts: []
+          first_failure:
+            marker: none
+            evidence: Final repository, exporter and cross-repository validation completed successfully.
+          rejected_hypotheses:
+            - Build a second XML or Lua parser that approximates runtime state.
+            - Infer availability or historical release metadata from external wikis.
+            - Start normal world services and stop them after export.
+            - Treat non-unique ware_id or race_id values as globally unique identifiers.
+          changed_paths:
+            - src/game/catalog/**
+            - src/main.cpp
+            - src/canary_server.hpp
+            - src/canary_server.cpp
+            - src/game/CMakeLists.txt
+            - tests/unit/game/catalog/game_catalog_test.cpp
+            - tests/unit/game/CMakeLists.txt
+            - tools/game-catalog/**
+            - tests/game_catalog/**
+            - .github/workflows/game-catalog.yml
+          validation:
+            - command: Canary exact-head final gate
+              result: PASS
+              evidence: CI run 30429320048 at 1aad762053140b2773825d75dbfc42ce5d13a2f2
+            - command: Canary Game Catalog workflow
+              result: PASS
+              evidence: run 30429319990 at 1aad762053140b2773825d75dbfc42ce5d13a2f2
+            - command: Agent Task Ownership workflow
+              result: PASS
+              evidence: run 30429319944 at 1aad762053140b2773825d75dbfc42ce5d13a2f2
+            - command: Universal E2E Stability Certification
+              result: PASS
+              evidence: run 30429319920 at 1aad762053140b2773825d75dbfc42ce5d13a2f2
+            - command: Platform cross-repository MariaDB lifecycle
+              result: PASS
+              evidence: Platform run 30430471694 using generated Canary artifact 8714331268
+            - command: Task lifecycle archival
+              result: PASS
+              evidence: PR 996 merged as 11e92b25e90e25fb6bce038faa94b93e33997650
+          blockers: []
+          next_action: Start a new explicitly authorized task before any production activation, historical metadata expansion or additional entity-type work.
+          ```
+          '''
+          updated, count = re.subn(
+              r"## Context checkpoint\n\n```yaml\n.*?\n```\n",
+              checkpoint,
+              text,
+              count=1,
+              flags=re.DOTALL,
+          )
+          if count != 1:
+              raise SystemExit(f"expected one Context checkpoint, replaced {count}")
+          path.write_text(updated, encoding="utf-8")
+          PY
+
+      - name: Validate compact checkpoint
+        run: python tools/agents/checkpoint.py --require-checkpoint docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
+
+      - name: Generate compact resume handover
+        run: python tools/agents/resume.py --task docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md | tee resume.txt
+
+      - name: Upload compact handover
+        uses: actions/upload-artifact@v4
+        with:
+          name: CAN-20260728-compact-handover
+          path: resume.txt
+          if-no-files-found: error
