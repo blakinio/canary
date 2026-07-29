@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-2-preflight-20260729
 base_branch: main
 created: 2026-07-29T09:05:00+02:00
-updated: 2026-07-29T09:05:00+02:00
-last_verified_commit: "b19d8fb41c8390c1f672fde6403203ce97590955"
+updated: 2026-07-29T09:16:00+02:00
+last_verified_commit: "8e78934bec7d8d5ffad2f46b16e289dce498af8a"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "995"
 depends_on:
   - RTEC-005 wave 1
 blocks:
@@ -65,7 +65,9 @@ Reconcile the live Real Tibia evidence programme after RTEC-005 wave 1 and selec
 
 ## Current baseline
 
-- Current `main`: `b19d8fb41c8390c1f672fde6403203ce97590955`.
+- Task-start `main`: `b19d8fb41c8390c1f672fde6403203ce97590955`.
+- Live `main` advanced to `4ae896d9c6ad33e4193a314f47daeff9ea4ac66b` through merged Game Catalog PR #991 after the preflight branch was created.
+- Exact compare `b19d8fb41c8390c1f672fde6403203ce97590955...4ae896d9c6ad33e4193a314f47daeff9ea4ac66b` contains only Game Catalog workflow/catalog/runtime/test paths and does not overlap either selected dossier, registry or source root. PR #995 remains mergeable against the advanced base.
 - Published evidence view: `as_of=2026-07-26` with 13 evidence records, 3 active owner requests and 10 version-history records.
 - Active owner requests remain:
   - `RTREQ-FEATURE-VOCATIONS-0001`;
@@ -106,11 +108,11 @@ Reconcile the live Real Tibia evidence programme after RTEC-005 wave 1 and selec
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T09:05:00+02:00
-head: b19d8fb41c8390c1f672fde6403203ce97590955
+updated_at: 2026-07-29T09:16:00+02:00
+head: 8e78934bec7d8d5ffad2f46b16e289dce498af8a
 branch: docs/rtec-005-wave-2-preflight-20260729
-pr: none
-status: implementing
+pr: 995
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -118,7 +120,9 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260729-rtec-005-wave-2-preflight.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
 proven:
-  - current main is b19d8fb41c8390c1f672fde6403203ce97590955
+  - task-start main is b19d8fb41c8390c1f672fde6403203ce97590955 and live main advanced to 4ae896d9c6ad33e4193a314f47daeff9ea4ac66b through PR 991
+  - the main advance changes only Game Catalog paths and does not overlap either selected dossier, registry or source root
+  - PR 995 is open, draft and mergeable against current main
   - the published evidence view contains 13 evidence records, 3 active owner requests and 10 version-history records at as_of 2026-07-26
   - chat-communication and engine-scheduler dossier roots are absent
   - both selected registry records and all selected current-Canary source files exist at the pinned blobs recorded above
@@ -130,15 +134,16 @@ derived:
 unknown:
   - exact evidence claims each Collector will submit
   - whether either Collector will need a new owner request
-  - pull request number and exact post-commit head for this preflight
+  - exact-head ownership and ordinary CI result for the current PR head
 conflicts: []
 first_failure:
   marker: none
-  evidence: no ownership or changed-path conflict found during connector-based preflight
+  evidence: no ownership, changed-path or advanced-base conflict found during connector-based preflight
 rejected_hypotheses:
   - reuse the merged wave 1 task or PR: archived tasks and merged PRs are not continuation branches
   - select sanctions concurrently: the open security audit reviews related trust/security behavior, so a less coupled candidate is preferred
   - let workers update the shared global index: RTEC-005 requires one serialized coordinator lane
+  - replace the branch after main advanced: exact compare proves the advance is disjoint and PR 995 remains mergeable
 changed_paths:
   - docs/agents/tasks/active/CAN-20260729-rtec-005-wave-2-preflight.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
@@ -149,9 +154,12 @@ validation:
   - command: open PR changed-file overlap review
     result: PASS
     evidence: PRs 993, 991, 815, 559 and 526 inspected
+  - command: advanced-main compare
+    result: PASS
+    evidence: b19d8fb41c8390c1f672fde6403203ce97590955...4ae896d9c6ad33e4193a314f47daeff9ea4ac66b contains no selected path
   - command: Agent Task Ownership and ordinary CI on the preflight head
     result: NOT_RUN
-    evidence: pending published PR head
+    evidence: pending current PR head workflows
 blockers: []
-next_action: Update the programme queue and handoff, open the draft preflight PR, then verify exact-head ownership and ordinary CI before readiness.
+next_action: Verify exact-head changed files, ownership and ordinary CI on PR 995, then write the final-gate checkpoint without changing scope.
 ```
