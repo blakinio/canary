@@ -54,7 +54,6 @@ python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_referen
 python -m py_compile \
   tools/ai-agent/tibia_proficiency_reference_index.py \
   tools/ai-agent/tibia_proficiency_reference_resolver.py \
-  tools/ai-agent/tibia_proficiency_reference_resolver_legacy.py \
   tools/ai-agent/test_tibia_proficiency_reference_index_schema_v2.py
 python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX_V2.schema.json > /dev/null
 ```
