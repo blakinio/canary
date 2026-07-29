@@ -7,11 +7,11 @@ agent: "chatgpt"
 branch: fix/CAN-20260729-game-catalog-loader-stability
 base_branch: main
 created: 2026-07-29T19:35:00Z
-updated: 2026-07-29T19:35:00Z
-last_verified_commit: "1e155cd8407246a154dbf81c33aa316f0752de8f"
+updated: 2026-07-29T19:40:00Z
+last_verified_commit: "97f1cf5bf92c6118563779a66d617878dbbcbbfe"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: 1015
 depends_on:
   - CAN-20260729-game-catalog-loot-threshold-schema
 blocks:
@@ -108,6 +108,13 @@ The exporter is functionally complete, but telemetry-independent definition load
 - Failed/blocked: staging is blocked until the crash is diagnosed and repeated telemetry-disabled exports pass.
 - Result: diagnostic task is implementation-ready.
 
+## 2026-07-29T19:40:00Z
+
+- Changed: opened draft PR #1015 and added a telemetry-disabled, post-mortem core/backtrace capture to the exact-artifact runtime workflow.
+- Learned: the existing release binary can remain uninstrumented during reproduction; `gdb` runs only after failure against the captured core.
+- Failed/blocked: no new run has produced the fault frame yet.
+- Result: the next PR run is a bounded diagnostic and is expected to remain red if the known crash reproduces.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -132,6 +139,7 @@ The exporter is functionally complete, but telemetry-independent definition load
 | `1e155cd8407246a154dbf81c33aa316f0752de8f` | `python3 tools/agents/task_ownership.py` | passed | 33 active task records before this claim |
 | `e85be1bf6e237448d624d28ff891362d5f67f9b6` | runtime jobs `90670860532`, `90675503517` | failed | default export exited 139 after proficiencies |
 | `e85be1bf6e237448d624d28ff891362d5f67f9b6` | Game Catalog `30481456654`, rerun `90678481552` | passed | telemetry-enabled complete export |
+| working tree after `97f1cf5bf92c6118563779a66d617878dbbcbbfe` | parse `.github/workflows/game-catalog.yml` with PyYAML | passed | diagnostic workflow YAML parses |
 
 # Failed approaches and dead ends
 
@@ -150,16 +158,16 @@ The exporter is functionally complete, but telemetry-independent definition load
 
 # Remaining work
 
-1. Publish the task branch and draft PR, then add symbolized telemetry-off/on diagnostic execution.
+1. Run the telemetry-disabled diagnostic workflow and inspect the captured backtrace before changing runtime source.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T19:35:00Z
-head: 1e155cd8407246a154dbf81c33aa316f0752de8f
+updated_at: 2026-07-29T19:40:00Z
+head: 97f1cf5bf92c6118563779a66d617878dbbcbbfe
 branch: fix/CAN-20260729-game-catalog-loader-stability
-pr: none
+pr: 1015
 status: investigating
 context_routes:
   - agent-governance
@@ -198,6 +206,7 @@ rejected_hypotheses:
 changed_paths:
   - docs/agents/tasks/active/CAN-20260729-game-catalog-loader-stability.md
   - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
+  - .github/workflows/game-catalog.yml
 validation:
   - command: python3 tools/agents/task_ownership.py
     result: PASS
@@ -205,9 +214,12 @@ validation:
   - command: failed runtime log inspection
     result: PASS
     evidence: Jobs 90670860532 and 90675503517 both end with exit 139 after proficiencies.
+  - command: parse .github/workflows/game-catalog.yml with PyYAML
+    result: PASS
+    evidence: Telemetry-disabled post-mortem workflow parses locally.
 blockers:
   - Game Catalog staging remains blocked pending telemetry-independent stability.
-next_action: Publish the task branch and draft PR, then add symbolized telemetry-off/on diagnostic execution.
+next_action: Run the telemetry-disabled diagnostic workflow and inspect the captured backtrace before changing runtime source.
 ```
 
 # Handoff

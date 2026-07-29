@@ -96,7 +96,7 @@ jobs:
       - name: Install smoke dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y strace
+          sudo apt-get install -y gdb strace
 
       - name: Prepare isolated export inputs
         shell: bash
@@ -140,7 +140,7 @@ jobs:
               'mysqlSock': '""',
               'metricsEnablePrometheus': 'false',
               'metricsEnableOstream': 'false',
-              'luaStartupLoadTelemetry': 'true',
+              'luaStartupLoadTelemetry': 'false',
           }
           for key, value in replacements.items():
               pattern = re.compile(rf'^{re.escape(key)}\s*=.*$', re.MULTILINE)
@@ -406,6 +406,10 @@ jobs:
           output=artifacts/game-catalog-smoke/default-datapack.json
           trace=artifacts/game-catalog-smoke/default-datapack.trace
           log=artifacts/game-catalog-smoke/default-datapack.log
+          backtrace=artifacts/game-catalog-smoke/default-datapack.backtrace.txt
+          core_pattern="$(pwd)/artifacts/game-catalog-smoke/core.%e.%p"
+          sudo sysctl -w "kernel.core_pattern=${core_pattern}"
+          ulimit -c unlimited
           set +e
           timeout 900s strace -f -qq \
             -e trace=connect,bind,listen,accept,accept4 \
@@ -422,6 +426,18 @@ jobs:
 
           cat "${log}"
           if [[ ${status} -ne 0 ]]; then
+            core_file="$(find artifacts/game-catalog-smoke -maxdepth 1 -type f -name 'core.canary.*' -print -quit)"
+            if [[ -n "${core_file}" ]]; then
+              gdb -q -batch \
+                -ex 'set pagination off' \
+                -ex 'thread apply all bt full' \
+                build/linux-release/bin/canary \
+                "${core_file}" \
+                2>&1 | tee "${backtrace}" || true
+              rm -f "${core_file}"
+            else
+              echo 'Default-datapack export failed without a captured core dump.' | tee "${backtrace}" >&2
+            fi
             echo "Default-datapack export exited with status ${status}." >&2
             exit "${status}"
           fi
