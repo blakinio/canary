@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/archive-tcr-009-blocked-20260728
 base_branch: main
 created: 2026-07-28T22:49:37+02:00
-updated: 2026-07-29T09:10:00+02:00
-last_verified_commit: "3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e"
+updated: 2026-07-29T09:18:00+02:00
+last_verified_commit: "7b2fd61a18e2470eee8e6d65f1ad246e5fb24788"
 risk: low
 related_issue: ""
 related_pr: "992"
@@ -57,7 +57,7 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 
 # Fresh post-merge preflight
 
-- `main` HEAD is feature merge `8a88e2f09257e620985770e5e053381df32f916d`.
+- Feature merge `8a88e2f09257e620985770e5e053381df32f916d` was the lifecycle base.
 - Feature branch was removed after merge.
 - No competing TCR-009 branch or lifecycle owner exists.
 - TCR-010, TCR-011 and OWA-003 remain dependency-gated by stable TCR-009.
@@ -71,22 +71,24 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 - [x] Task archived with `status: blocked` and exact feature/CI evidence.
 - [x] Programme queue, handoff and module discovery updated without claiming TCR-009 stable.
 - [x] Active task removed and ownership released.
-- [ ] Lifecycle exact-final-head checks, Ready-state protected CI and merge completed after this archive commit.
+- [x] Lifecycle exact-final-head checks, Ready-state protected CI and merge completed.
 
 # Lifecycle closeout
 
-- Lifecycle PR `#993` was published early as draft.
+- Lifecycle PR `#993` merged through auto-merge as `7b2fd61a18e2470eee8e6d65f1ad246e5fb24788`.
+- Exact lifecycle head `33639c39b4b45446e5ac410416e0e51c70f117d5` passed Agent Task Ownership run `30430675288`, Universal E2E Stability Certification run `30430675313`, draft-state CI run `30430675514` / CI `#6354`, and protected Ready-state CI run `30430739974` / CI `#6355`.
+- Review threads, review submissions and PR comments were empty.
 - Closeout commit `93a6faaf3ceb30b43ed6c3358bf8737798005cdf` archived the blocked task, updated programme/module discovery, removed the active ownership record and removed both temporary workflow modifications.
 - Repair commit `3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e` restored the original TCR-008..011 validation-matrix semantics after final diff review detected queue-row overreach; the temporary repair workflow change was removed from the final diff.
-- Remaining lifecycle action is exact-final-head validation, Ready-state protected CI and merge of PR `#993`.
+- The lifecycle branch was deleted after merge. No further lifecycle action remains.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T09:10:00+02:00
-head: 3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e
-branch: docs/archive-tcr-009-blocked-20260728
+updated_at: 2026-07-29T09:18:00+02:00
+head: 7b2fd61a18e2470eee8e6d65f1ad246e5fb24788
+branch: main
 pr: 993
 status: blocked
 context_routes:
@@ -103,6 +105,7 @@ proven:
   - TCR-009 implementation and all dependent packages remain unauthorized.
   - Closeout commit 93a6faaf3ceb30b43ed6c3358bf8737798005cdf removed active ownership and all temporary workflow changes after corpus validation passed.
   - Repair commit 3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e restored the validation matrix without changing queue disposition or evidence boundaries.
+  - Exact lifecycle head 33639c39b4b45446e5ac410416e0e51c70f117d5 passed protected Ready-state CI 30430739974 and PR 993 merged as 7b2fd61a18e2470eee8e6d65f1ad246e5fb24788.
 derived:
   - The correct lifecycle disposition is blocked-external-evidence, not completed/stable.
 unknown:
@@ -133,11 +136,17 @@ validation:
   - command: final diff semantic review and validation-matrix repair
     result: PASS
     evidence: commit 3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e restored exact original TCR-008..011 validation rows and passed Real Tibia evidence validate/generate checks
+  - command: lifecycle exact-final protected Ready-state CI
+    result: PASS
+    evidence: run 30430739974 / CI 6355 completed success on exact head 33639c39b4b45446e5ac410416e0e51c70f117d5
+  - command: lifecycle merge and ownership release audit
+    result: PASS
+    evidence: PR 993 merged as 7b2fd61a18e2470eee8e6d65f1ad246e5fb24788; active task and lifecycle branch are absent; archive and programme state are retained on main
 blockers:
   - TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
-next_action: Validate exact final head for lifecycle PR 993, transition Ready, obtain protected CI and merge.
+next_action: Await satisfaction of RTREQ-TCR-ITEM-DEFINITIONS-0002; do not create a new TCR-009 task until two distinct complete exact retained snapshot sets are proven.
 ```
 
 # Ownership release
 
-The active task path is removed by this lifecycle commit. Historical ownership claims remain in this archive only and do not authorize new implementation.
+The active task path is removed. Historical ownership claims remain in this archive only and do not authorize new implementation.
