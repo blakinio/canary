@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-schema-1-1
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: implementing
+status: ready
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-schema-1-1
 base_branch: main
 created: 2026-07-29T15:20:00Z
-updated: 2026-07-29T15:20:00Z
-last_verified_commit: "pending"
+updated: 2026-07-29T16:07:15Z
+last_verified_commit: "57dd84c10ba582597ba00daa38437a3c88b99c4d"
 risk: high
 related_issue: ""
 related_pr: 1006
@@ -53,17 +53,17 @@ Add Game Catalog schema 1.1.0 so the producer can emit an explicit null `verifie
 
 # Acceptance criteria
 
-- [ ] Schema 1.0.0 remains byte unchanged.
-- [ ] Schema 1.1.0 changes only the versioned semantics needed to permit a null verified-content boundary.
-- [ ] Manifest loading accepts schema 1.1.0 with a nullable verified boundary and continues to reject unsupported versions.
-- [ ] Exported schema 1.1.0 documents preserve null without a sentinel.
-- [ ] C++ and Python validation accept null only under schema 1.1.0 and reject schema/version mismatches.
-- [ ] Fixed-input exports remain deterministic.
-- [ ] Canary and Platform schema bytes and SHA-256 match exactly, and each repository's sanitized fixture validates.
-- [ ] Focused unit, validator, exporter and exact-head CI checks pass.
-- [ ] Contract, exporter documentation, module catalogue and changelog are current.
-- [ ] Consumer-first rollout keeps producer merge blocked until Platform PR #299 is merged.
-- [ ] No datapack manifest or production activation is included.
+- [x] Schema 1.0.0 remains byte unchanged.
+- [x] Schema 1.1.0 changes only the versioned semantics needed to permit a null verified-content boundary.
+- [x] Manifest loading accepts schema 1.1.0 with a nullable verified boundary and continues to reject unsupported versions.
+- [x] Exported schema 1.1.0 documents preserve null without a sentinel.
+- [x] C++ and Python validation accept null only under schema 1.1.0 and reject schema/version mismatches.
+- [x] Fixed-input exports remain deterministic.
+- [x] Canary and Platform schema bytes and SHA-256 match exactly, and each repository's sanitized fixture validates.
+- [x] Focused unit, validator, exporter and exact-head CI checks pass.
+- [x] Contract, exporter documentation, module catalogue and changelog are current.
+- [x] Platform PR #299 merged before producer finalization.
+- [x] No datapack manifest or production activation is included.
 
 # Ownership and overlap
 
@@ -89,11 +89,11 @@ Schema 1.0.0 requires a concrete `verified_content_through_release`. Repository 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T15:20:00Z
-head: fef73c5b4a43f3d64afb8770b2aef38041d6c2fc
+updated_at: 2026-07-29T16:07:15Z
+head: 57dd84c10ba582597ba00daa38437a3c88b99c4d
 branch: feat/CAN-20260729-game-catalog-schema-1-1
 pr: 1006
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -118,16 +118,18 @@ proven:
   - Schema 1.0.0 requires verified_content_through_release to be a concrete release key.
   - The exporter stores the field as a non-null string and hard-codes schema_version 1.0.0.
   - Metadata task PR #1005 cannot honestly add a production-default profile under schema 1.0.0.
-  - Platform draft PR #299 is the authorized consumer counterpart.
+  - Platform PR #299 merged consumer support as b2b2871eed0375e22d48de5dd4947fe29c2bb974.
+  - Schema 1.0.0 remains SHA-256 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b.
+  - Schema 1.1.0 is byte-identical across Canary and Platform with SHA-256 323ff6ae849759c9190f2a0c342855194ed74645816adc45051b6d914e67c7ac.
+  - Game Catalog run 30466876088 compiled the producer and passed two export-only runtime executions with deterministic snapshots and sidecars.
 derived:
   - A new schema version is required; schema 1.0.0 must remain unchanged.
   - The producer must serialize null rather than invent a release.
-unknown:
-  - Exact current-head C++ build, exporter smoke and CI results until the implementation commit runs.
+unknown: []
 conflicts: []
 first_failure:
-  marker: v1-verified-boundary-unrepresentable
-  evidence: Required concrete v1 field conflicts with the unproven datapack-wide boundary.
+  marker: none
+  evidence: Versioned producer and consumer support now represent the unknown boundary explicitly and exact-head validation passed.
 rejected_hypotheses:
   - Infer the boundary from protocol 15.25.
   - Invent a sentinel release.
@@ -162,12 +164,19 @@ validation:
     result: PASS
     evidence: 35 active task records validated locally.
   - command: focused C++ build and unit tests
-    result: NOT_RUN
-    evidence: CMake is not installed in the local execution environment; exact-head Game Catalog CI is required.
-blockers:
-  - Platform PR #299 must merge before Canary schema 1.1.0 producer support.
-  - Current-head CI has not run for the implementation commit.
-next_action: Publish the implementation commit to PR #1006 and use exact-head CI to validate compilation, tests and export-only runtime behavior.
+    result: PASS
+    evidence: Game Catalog 30466876088 compiled the Linux release exporter and passed contract, fixture, focused tests and export-only runtime smoke at 57dd84c10ba582597ba00daa38437a3c88b99c4d.
+  - command: exact-head Canary gates
+    result: PASS
+    evidence: CI 30466876132, Agent Task Ownership 30466876597 and Universal E2E Stability 30466875836 passed at 57dd84c10ba582597ba00daa38437a3c88b99c4d.
+  - command: consumer-first cross-repository gate
+    result: PASS
+    evidence: Platform PR 299 passed its exact-head gates and squash-merged as b2b2871eed0375e22d48de5dd4947fe29c2bb974 before this producer finalization.
+  - command: ci:final-gate label
+    result: PASS
+    evidence: Label applied to PR 1006 before this final checkpoint commit.
+blockers: []
+next_action: Wait for exact-final-head required checks, verify unchanged scope and review state, then squash-merge PR 1006.
 ```
 
 # Risks and compatibility
