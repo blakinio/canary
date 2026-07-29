@@ -7,8 +7,8 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:31:00Z
-last_verified_commit: "19b0e579fab176977eb2d78ae0d7f0d9dc1145dc"
+updated: 2026-07-29T13:31:53Z
+last_verified_commit: "61b320e02573cb37cb0136fd0512b338f5ed8054"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -18,8 +18,10 @@ blocks: []
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260729-game-catalog-metadata-evidence.md
+    - data-otservbr-global/catalog/**
   shared:
     - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
+  - data-otservbr-global/catalog/**
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
@@ -65,6 +67,7 @@ Create the first bounded, reviewed metadata baseline for the existing Game Catal
 - PR #991 did not add a production `data-*/catalog/**` manifest set; its runtime smoke creates isolated manifests under `artifacts/**`.
 - The v1 contract forbids inferring historical or availability facts from external wikis.
 - The current repository allowlist permits writes only to `blakinio/canary`.
+- `config.lua.dist` selects `data-otservbr-global` as the repository default datapack, so the default manifest root is `data-otservbr-global/catalog`.
 - Current main was most recently observed at `23a8148f72805676fa623c15ffa6ad20e7dc3d2f` before this branch was created.
 
 # Existing work to reuse
@@ -83,19 +86,19 @@ Create the first bounded, reviewed metadata baseline for the existing Game Catal
 - Open PRs inspected: narrow `catalog` search returned no open matching PR.
 - Active tasks inspected: narrow repository searches returned no active Game Catalog continuation record.
 - Ownership checker result: not run; no local Git checkout is available in this session.
-- Exclusive claims: this task record only until the exact target datapack and implementation paths are verified.
+- Exclusive claims: this task record and `data-otservbr-global/catalog/**`; narrow GitHub searches found no matching open PR or indexed task.
 - Shared claims: program, catalogue, contract, cross-repository registry, and architecture documentation.
 - Read-only dependencies: existing exporter, v1 schema, and workflow.
 - Overlaps: none found by narrow GitHub search; exact structured ownership remains unverified locally.
-- Resolution: run the deterministic ownership checker and update exact claims before any manifest or implementation edit.
+- Resolution: let the deterministic ownership workflow validate the new manifest claim before any manifest edit; add tool/test claims only after implementation scope is known.
 
 # Current state
 
-The archived exporter is complete. No reviewed production manifest root was found in PR #991's changed files, and the intended production datapack/profile has not yet been proven. This task is therefore in evidence and ownership preflight.
+The archived exporter is complete. No reviewed production manifest root was found in PR #991's changed files. `config.lua.dist` proves `data-otservbr-global` is the repository default datapack, making `data-otservbr-global/catalog` the default repository manifest root; the actual deployed production configuration remains unverified. This task remains in evidence and ownership preflight.
 
 # Plan
 
-1. Verify the exact target `DATA_DIRECTORY`, catalogue manifest root, and repository-backed evidence sources.
+1. Validate ownership of the repository-default `data-otservbr-global/catalog/**` root and identify repository-backed evidence sources.
 2. Run structured ownership validation and declare exact manifest/tool/test paths.
 3. Define a bounded seed set with claim-level evidence and explicit unknowns.
 4. Implement manifests and any minimum validator/test support required for fail-closed review.
@@ -107,8 +110,8 @@ The archived exporter is complete. No reviewed production manifest root was foun
 ## 2026-07-29T13:27:36Z
 
 - Changed: created the multi-task Game Catalog completeness program and this first bounded metadata task.
-- Learned: the merged exporter accepts external manifests but PR #991 supplied only isolated CI manifests, not a production `data-*/catalog/**` baseline.
-- Failed/blocked: local ownership tooling and implementation cannot run because this session has no Git checkout.
+- Learned: the merged exporter accepts external manifests but PR #991 supplied only isolated CI manifests; `config.lua.dist` selects `data-otservbr-global`, so its default catalogue root is `data-otservbr-global/catalog`.
+- Failed/blocked: local ownership tooling and implementation cannot run because this session has no Git checkout; GitHub ownership CI will validate the exact claim.
 - Result: safe repository coordination is established without metadata or production activation claims.
 
 # Decisions
@@ -117,7 +120,7 @@ The archived exporter is complete. No reviewed production manifest root was foun
 |---|---|---|
 | Split metadata, entity families, and production activation into separate tasks | Repository policy requires bounded branches/PRs; schema and production risks differ materially. | none |
 | Start with metadata evidence | Additional entity and activation work depends on trustworthy release/completeness/availability boundaries. | none |
-| Keep target datapack unknown until proven | PR #991 did not add a production manifest set and the exporter supports configurable datapacks. | none |
+| Target the repository-default datapack, not an unverified deployment | `config.lua.dist` selects `data-otservbr-global`; actual deployed configuration remains unknown. | none |
 | Preserve schema v1 in this task | Metadata population can use the existing v1 contract; new entity types require separate versioned contracts. | none |
 
 # Files and interfaces
@@ -128,7 +131,7 @@ The archived exporter is complete. No reviewed production manifest root was foun
 | `docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md` | shared | Multi-task sequence and gates | active |
 | `src/game/catalog/**` | read_only | Existing manifest loader/exporter | inspected |
 | `schemas/game-catalog/v1/**` | read_only | Existing contract shape | inspected |
-| exact `data-*/catalog/**` target | unresolved | Reviewed metadata manifests | not claimed |
+| `data-otservbr-global/catalog/**` | exclusive | Repository-default reviewed metadata manifests | claimed; validation pending |
 
 # Validation and CI
 
@@ -157,14 +160,14 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. In a synchronized checkout of this branch, run the ownership checker and verify the exact production `DATA_DIRECTORY`/catalogue root plus repository-backed evidence sources before claiming or editing manifest paths.
+1. Pass exact structured ownership for `data-otservbr-global/catalog/**`, then identify repository-backed evidence for the bounded seed set before creating manifests.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-29T13:27:36Z
-head: 19b0e579fab176977eb2d78ae0d7f0d9dc1145dc
+head: 61b320e02573cb37cb0136fd0512b338f5ed8054
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 pr: 1005
 status: investigating
@@ -182,17 +185,18 @@ proven:
   - PR 991 changed no production data-*/catalog manifest path; its workflow creates isolated CI manifests.
   - Narrow GitHub searches found no open catalog PR or issue.
   - Current authorization permits repository writes only in blakinio/canary.
+  - config.lua.dist selects data-otservbr-global as the repository default datapack and therefore data-otservbr-global/catalog as its default manifest root.
 derived:
   - Metadata evidence must be completed before trustworthy additional-entity visibility or production activation.
   - The work must be split across bounded tasks and versioned cross-repository contracts.
 unknown:
-  - The exact intended production DATA_DIRECTORY and catalogue manifest root.
+  - Whether the deployed production configuration uses the repository-default data-otservbr-global datapack/profile.
   - The reviewed repository-backed evidence set for historical and availability claims.
   - Exact consumer changes and schema versions required by each additional entity family.
 conflicts: []
 first_failure:
-  marker: target-datapack-and-ownership-unverified
-  evidence: No production manifest path exists in PR 991 and local task_ownership.py could not run without a checkout.
+  marker: manifest-ownership-and-evidence-unverified
+  evidence: data-otservbr-global/catalog is newly claimed from the repository default, but exact ownership CI and claim-level metadata evidence have not yet passed.
 rejected_hypotheses:
   - Continue the archived exporter task: PR 996 archived it as completed.
   - Treat isolated CI manifests as production metadata: the workflow creates them under artifacts for smoke testing only.
@@ -208,9 +212,9 @@ validation:
     result: BLOCKED
     evidence: No local Git checkout is available in this session.
 blockers:
-  - Exact target datapack and structured ownership must be verified before manifest edits.
+  - Structured ownership for data-otservbr-global/catalog/** must pass before manifest edits.
   - Local checkout is required for implementation and deterministic validation.
-next_action: In a synchronized checkout of this branch, run task_ownership.py and verify the exact production DATA_DIRECTORY/catalogue root plus repository-backed evidence sources before editing manifests.
+next_action: Pass exact structured ownership for data-otservbr-global/catalog/**, then identify repository-backed evidence for the bounded seed set before creating manifests.
 ```
 
 # Handoff
@@ -223,7 +227,7 @@ Read root and nested agent rules, the program record, this checkpoint, PR #991's
 
 - Do not reopen PR #991 or its archived task.
 - Do not infer historical or availability facts from external wikis.
-- Do not claim `data-otservbr-global` or another datapack as production until configuration/deployment evidence proves it.
+- Treat `data-otservbr-global` only as the repository default; do not claim the deployed production datapack until direct configuration evidence proves it.
 - Do not mutate Oteryn Platform under the current repository allowlist.
 - Do not activate production from this task.
 
@@ -243,7 +247,7 @@ Read root and nested agent rules, the program record, this checkpoint, PR #991's
 
 ## Open questions
 
-- Which exact datapack/profile is the production export target?
+- Does the deployed production configuration retain the repository-default `data-otservbr-global` datapack/profile?
 - Which repository-backed records meet the review threshold for release and availability claims?
 
 # Completion
