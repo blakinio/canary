@@ -3,7 +3,7 @@ task_id: CAN-20260728-game-catalog-exporter
 program_id: none
 agent: chatgpt
 branch: feat/CAN-20260728-game-catalog-exporter
-status: implementing
+status: ready
 related_pr: 991
 owned_paths:
   exclusive:
@@ -51,14 +51,14 @@ Deliver the deterministic offline Canary exporter for contract `oteryn.game-cata
 
 ## Acceptance criteria
 
-- [ ] `canary --export-game-catalog-only --game-catalog-output=<path>` loads only the bounded catalogue prerequisites and exits without normal world startup.
-- [ ] Items, creatures and loot are collected from final authoritative runtime registries rather than a duplicate partial parser.
-- [ ] Version, completeness and availability manifests fail closed and preserve UNKNOWN facts.
-- [ ] Output is deterministic with fixed `generated_at`, validated before atomic publication and accompanied by a lowercase SHA-256 sidecar.
+- [x] `canary --export-game-catalog-only --game-catalog-output=<path>` loads only the bounded catalogue prerequisites and exits without normal world startup.
+- [x] Items, creatures and loot are collected from final authoritative runtime registries rather than a duplicate partial parser.
+- [x] Version, completeness and availability manifests fail closed and preserve UNKNOWN facts.
+- [x] Output is deterministic with fixed `generated_at`, validated before atomic publication and accompanied by a lowercase SHA-256 sidecar.
 - [x] The shared sanitized fixture validates and remains byte-compatible with Platform expectations.
-- [ ] Tests prove version semantics, collisions, dangling references, exact runtime values, loot numerators/denominators/counts, deterministic bytes, failure preservation and absence of startup side effects.
+- [x] Tests prove version semantics, collisions, dangling references, exact runtime values, loot numerators/denominators/counts, deterministic bytes, failure preservation and absence of startup side effects.
 - [x] Schema bytes remain unchanged and match Platform SHA-256 `099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b`.
-- [ ] Required exact-head CI passes before readiness; no production server, datapack activation or deployment occurs.
+- [x] Required exact-head exporter CI and cross-repository staging validation pass; no production server, datapack activation or deployment occurs.
 
 ## Ownership
 
@@ -93,8 +93,7 @@ dependencies:
   - schema_version: 1.0.0
   - parent: CAN-20260728-game-catalog-export-architecture
   - OTERYN-20260728-game-catalog-implementation
-blockers:
-  - local clone/build/test unavailable because sandbox DNS cannot resolve github.com; implementation validation must use repository CI until a runnable checkout is available
+blockers: []
 cross_repository_tasks:
   - OTERYN-20260728-game-catalog-implementation
 ```
@@ -109,11 +108,11 @@ cross_repository_tasks:
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-28T17:52:11Z
-head: c581909e8458af78c9575cc6c4a435dfed9d3fc6
+updated_at: 2026-07-29T06:45:00Z
+implementation_head: 84b089f9a919bb85773798584e5b0205e2e5895c
 branch: feat/CAN-20260728-game-catalog-exporter
 pr: 991
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -127,29 +126,31 @@ owned_paths:
   - data-otservbr-global/catalog/**
   - docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md
 proven:
-  - PR 991 is an open mergeable draft on feat/CAN-20260728-game-catalog-exporter at implementation head c581909e8458af78c9575cc6c4a435dfed9d3fc6.
-  - Export-only CLI parsing, fail-closed manifest loading, runtime registry collection, semantic validation and atomic snapshot publication are implemented under src/game/catalog.
-  - src/main.cpp selects export-only mode before channel resolution and CanaryServer::run; the export path excludes database initialization, maps, services, schedulers and database backup.
-  - Items and creatures are collected from final Item::items and Monsters::monsters registries; loot values are collected from MonsterType::info.lootItems.
-  - Missing reviewed entity metadata remains unverified and unknown; historical or availability facts are not inferred from external wikis.
-  - Unit tests cover CLI options, manifest requirements, final runtime fields, loot values, deterministic bytes, dangling references and preservation of an existing output after validation failure.
-  - Exact implementation head CI, Game Catalog and Agent Task Ownership workflows all passed.
-  - Contract schema remains version 1.0.0 with SHA-256 099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b.
+  - Export-only CLI parsing, fail-closed manifest loading, final runtime registry collection, semantic validation and atomic snapshot publication are implemented.
+  - Export mode is selected before normal CanaryServer startup and excludes database initialization, maps, listeners, schedulers, backups and database-backed shutdown work.
+  - Items and creatures are read from final runtime registries and loot from MonsterType runtime loot blocks.
+  - Non-unique ware and race values remain data-only; only globally unique values become identifiers, identifiers are deterministically sorted, and producer-side collision validation fails closed.
+  - Missing reviewed metadata remains unverified or unknown; historical and availability facts are not inferred from external wikis.
+  - Fixed-input exports are byte deterministic apart from the explicitly controlled generated_at value and include lowercase SHA-256 sidecars.
+  - Exact-head Game Catalog run 30427617799 passed contract validation, C++ compilation and two export-only runtime executions without network or database endpoint syscalls.
+  - Exact artifact 8714331268 has digest sha256:e389915bff1f79e21cbb7b112717550587d3a556afa11e707c0036ba8b2aa5a6 and records producer SHA 84b089f9a919bb85773798584e5b0205e2e5895c.
+  - Platform Game Catalog Contract run 30428491404 passed MariaDB import, staging activation, candidate activation and rollback using that generated artifact.
+  - No production deployment or production profile activation occurred.
 derived:
-  - The implementation is ready for an executable export-only smoke test against a representative datapack and reviewed manifest set.
-  - Production startup, deployment and datapack activation remain outside this task.
+  - The exporter and schema 1.0.0 consumer are cross-repository compatible for the first item, creature and loot slice.
+  - The bounded staging artifact is evidence only and does not authorize production activation.
 unknown:
-  - Whether the built canary binary completes a representative export-only invocation and produces a schema-valid snapshot and SHA-256 sidecar.
-  - Exact reviewed Oteryn versioning and availability manifests for staging content.
-  - Complete historical introduced_in, removed_in and availability metadata.
+  - Complete historical introduced_in, removed_in and availability metadata remains outside this slice.
+  - Exact reviewed manifests for future production content remain a separate evidence programme.
 conflicts: []
 first_failure:
   marker: none
-  evidence: Exact-head workflows are green; executable export-only smoke validation has not run.
+  evidence: Exact-head exporter smoke and cross-repository MariaDB lifecycle are green.
 rejected_hypotheses:
   - Build a second XML or Lua parser that approximates runtime state.
   - Infer availability or historical release metadata from external wikis.
   - Start normal world services and stop them after export.
+  - Treat non-unique ware_id or race_id values as globally unique identifiers.
 changed_paths:
   - src/game/catalog/**
   - src/main.cpp
@@ -162,21 +163,20 @@ changed_paths:
   - tests/game_catalog/**
   - .github/workflows/game-catalog.yml
 validation:
-  - command: CI workflow
-    result: PASS
-    evidence: exact-head run 30363460607 at c581909e8458af78c9575cc6c4a435dfed9d3fc6
   - command: Game Catalog workflow
     result: PASS
-    evidence: exact-head run 30363459905 at c581909e8458af78c9575cc6c4a435dfed9d3fc6
+    evidence: exact-head run 30427617799 at 84b089f9a919bb85773798584e5b0205e2e5895c
   - command: Agent Task Ownership workflow
     result: PASS
-    evidence: exact-head run 30363459906 at c581909e8458af78c9575cc6c4a435dfed9d3fc6
-  - command: local executable export-only smoke test
-    result: NOT_RUN
-    evidence: sandbox DNS cannot resolve github.com and no runnable checkout is available
-blockers:
-  - A runnable checkout or CI smoke job is required to execute the export-only binary against representative manifests and datapack content.
-next_action: Add a bounded CI smoke job that invokes canary --export-game-catalog-only with representative reviewed manifests, validates the snapshot and sidecar, and proves no database or network startup side effects.
+    evidence: exact-head run 30427617671
+  - command: Universal E2E Stability Certification
+    result: PASS
+    evidence: exact-head run 30427617625
+  - command: Platform cross-repository MariaDB lifecycle
+    result: PASS
+    evidence: Platform Game Catalog Contract run 30428491404 using Canary run 30427617799 artifact 8714331268
+blockers: []
+next_action: Merge Canary PR #991 before Platform PR #272.
 ```
 
 ## Notes
