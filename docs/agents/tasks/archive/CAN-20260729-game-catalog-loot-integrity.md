@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-loot-integrity
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: review
+status: completed
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-integrity
 base_branch: main
 created: 2026-07-29T17:26:42Z
-updated: 2026-07-29T17:53:42Z
-last_verified_commit: "8da8ec362ea443052b5a2afc6594c008f42bf28b"
+updated: 2026-07-29T18:05:21Z
+last_verified_commit: "24ce121f487f711cc19214f59ac0fb21d80ff737"
 risk: high
 related_issue: ""
 related_pr: 1010
@@ -47,6 +47,7 @@ public_interfaces:
   - oteryn.game-catalog creature_loot endpoint and chance semantics
 cross_repo_tasks:
   - OTERYN-20260729-game-catalog-runtime-threshold
+completed: 2026-07-29T18:05:21Z
 ---
 
 # Goal
@@ -216,3 +217,11 @@ validation:
 blockers: []
 next_action: publish the final evidence checkpoint, require exact-final-head checks, audit reviews and base drift, then squash-merge PR 1010.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #1010.
+- Feature head: `4c98872f3664a19ba97e57d222a8d8a1febf7962`.
+- Merge commit: `24ce121f487f711cc19214f59ac0fb21d80ff737`.
+- Merged at: `2026-07-29T18:05:21Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
