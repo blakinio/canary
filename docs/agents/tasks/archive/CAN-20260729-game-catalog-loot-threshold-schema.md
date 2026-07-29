@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-loot-threshold-schema
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: review
+status: completed
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 base_branch: main
 created: 2026-07-29T18:11:53Z
-updated: 2026-07-29T18:52:00Z
-last_verified_commit: "e85be1bf6e237448d624d28ff891362d5f67f9b6"
+updated: 2026-07-29T19:22:35Z
+last_verified_commit: "daf6553426a57c8474a372160b2f1e3b4536b171"
 risk: high
 related_issue: ""
 related_pr: 1012
@@ -48,6 +48,7 @@ public_interfaces:
   - oteryn.game-catalog schema 1.2 creature_loot chance model
 cross_repo_tasks:
   - OTERYN-20260729-game-catalog-runtime-threshold
+completed: 2026-07-29T19:22:35Z
 ---
 
 # Goal
@@ -133,8 +134,8 @@ Never write `passed` without verification on the stated commit.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T18:52:00Z
-head: e85be1bf6e237448d624d28ff891362d5f67f9b6
+updated_at: 2026-07-29T19:22:35Z
+head: 8bc7dff7508610585e7343ffe73634f34ab02f09
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 pr: 1012
 status: ready
@@ -174,7 +175,7 @@ conflicts:
   - Default initialization exited 139 twice without loader telemetry, while two exact-artifact executions with loader telemetry passed; staging must retain a separate stability gate rather than infer the cause.
 first_failure:
   marker: none
-  evidence: Final Game Catalog run 30481456654 and exact runtime rerun both passed; prior exit-139 evidence remains preserved under conflicts and the program queue.
+  evidence: Final-head Game Catalog run 30482339983 passed; prior exit-139 evidence remains preserved under conflicts and the program queue.
 rejected_hypotheses:
   - Change schema 1.1 in place because its bytes and probability semantics are immutable.
   - Clamp configured thresholds because that loses runtime evidence.
@@ -220,21 +221,29 @@ validation:
   - command: Game Catalog 30480742859
     result: FAIL
     evidence: Contract, C++ compilation, deterministic schema 1.2 smoke, and reviewed metadata export passed; complete default-datapack initialization reproducibly exited 139 immediately after proficiencies and before manifest loading.
-  - command: Game Catalog 30481456654
+  - command: Game Catalog 30482339983
     result: PASS
-    evidence: Contract, C++ compilation, deterministic and reviewed exports, full default-datapack schema 1.2 publication, 92 preserved over-maximum thresholds, sidecars, and endpoint isolation passed on e85be1bf6e237448d624d28ff891362d5f67f9b6.
+    evidence: Contract, C++ compilation, deterministic and reviewed exports, full default-datapack schema 1.2 publication, 92 preserved over-maximum thresholds, sidecars, and endpoint isolation passed on 8bc7dff7508610585e7343ffe73634f34ab02f09.
   - command: Export-only runtime smoke rerun 90678481552
     result: PASS
     evidence: The exact same binary artifact and head repeated the complete runtime proof successfully.
-  - command: CI 30481461659
+  - command: CI 30482340085 and readiness-gate rerun 30483038437
     result: PASS
-    evidence: Repository CI passed on e85be1bf6e237448d624d28ff891362d5f67f9b6.
-  - command: Agent Task Ownership 30481456054
+    evidence: Repository CI and the branch-protection Required aggregator passed on the exact final head.
+  - command: Agent Task Ownership 30482339673
     result: PASS
     evidence: Ownership and lifecycle validation passed on the exact implementation head.
-  - command: Universal E2E Stability Certification 30481455717
+  - command: Universal E2E Stability Certification 30482339647
     result: PASS
     evidence: Repository stability certification passed on the exact implementation head.
 blockers: []
-next_action: publish the final checkpoint, require exact-final-head gates, audit reviews and base drift, then squash-merge PR 1012.
+next_action: Start the separate telemetry-independent definition-loader stability task before any staging snapshot work.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #1012.
+- Feature head: `8bc7dff7508610585e7343ffe73634f34ab02f09`.
+- Merge commit: `daf6553426a57c8474a372160b2f1e3b4536b171`.
+- Merged at: `2026-07-29T19:22:35Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
