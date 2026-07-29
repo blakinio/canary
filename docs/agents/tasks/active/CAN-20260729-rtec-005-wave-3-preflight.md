@@ -2,16 +2,16 @@
 task_id: CAN-20260729-rtec-005-wave-3-preflight
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-WAVE-3-PREFLIGHT
-status: validating
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-preflight-20260729
 base_branch: main
 created: 2026-07-29T23:15:00+02:00
-updated: 2026-07-29T23:15:00+02:00
-last_verified_commit: ""
+updated: 2026-07-29T23:18:00+02:00
+last_verified_commit: "5bec6b9aa490513dc51f8c606027122e8f4f6220"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "1016"
 depends_on:
   - RTEC-005 wave 2
 blocks:
@@ -92,17 +92,17 @@ Select one fresh bounded RTEC-005 wave of two independent absent dossier roots w
 - [x] Verify both dossier roots are absent.
 - [x] Verify no open PR overlaps the selected roots.
 - [x] Preserve the three active owner requests unchanged.
-- [ ] Open the preflight PR and pass exact-head required checks.
-- [ ] Merge and archive this task before starting the coordinator task.
+- [x] Open draft PR #1016 and apply `ci:final-gate` before this final checkpoint commit.
+- [ ] Pass exact-head required checks, merge and archive before starting the coordinator task.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T23:15:00+02:00
-head: pending-first-commit
+updated_at: 2026-07-29T23:18:00+02:00
+head: 5bec6b9aa490513dc51f8c606027122e8f4f6220
 branch: docs/rtec-005-wave-3-preflight-20260729
-pr: null
+pr: 1016
 status: ready
 context_routes:
   - agent-governance
@@ -113,10 +113,13 @@ proven:
   - no open pull request matched both selected module roots
   - current generated indexes contain 15 evidence records, 3 active owner requests and 12 version-history records at as_of 2026-07-29
   - RTEC-005 remains limited to two workers, two worker PRs and one serialized coordinator index lane
+  - PR 1016 targets blakinio/canary main from blakinio/canary branch docs/rtec-005-wave-3-preflight-20260729
+  - ci:final-gate was applied before this checkpoint commit
 derived:
   - configuration and item-instances form a safe bounded RTEC-005 wave 3 pair
   - one coordinator task must precede worker branches and alone owns later shared-index adjudication
 unknown:
+  - exact final-head workflow conclusions
   - exact evidence claims each Collector will submit
   - whether either Collector will need a new owner request
 conflicts: []
@@ -129,5 +132,5 @@ validation:
     result: PASS
     evidence: exact blobs and absent roots recorded in this task
 blockers: []
-next_action: Open the wave 3 preflight pull request, obtain exact-head validation, merge, and archive before creating the coordinator task.
+next_action: Verify exact-head required checks on this final checkpoint commit, mark PR ready, squash-merge, and archive before creating the coordinator task.
 ```
