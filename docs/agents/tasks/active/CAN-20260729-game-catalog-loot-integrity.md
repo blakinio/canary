@@ -133,19 +133,61 @@ Never write `passed` without verification on the stated commit.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T17:30:37Z
-state: in-progress
-base_commit: ac407413d64882ab0968436dccda86b6e2b9b199
+updated_at: 2026-07-29T17:34:55Z
+head: a083041e4a3ea45359bd4ba28a3332f4ea23db88
 branch: feat/CAN-20260729-game-catalog-loot-integrity
 pr: 1010
+status: validating
+context_routes:
+  - agent-governance
+  - cpp-runtime
+  - lua-data
+  - cross-repo
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260729-game-catalog-loot-integrity.md
+  - src/game/catalog/game_catalog_exporter.cpp
+  - tests/unit/game/catalog/game_catalog_test.cpp
+  - tests/game_catalog/test_default_loot_integrity.py
+  - .github/workflows/game-catalog.yml
 proven:
-  - default runtime export reports 53 dangling relations for 25 unique item IDs
-  - default runtime export reports 92 chance values above the declared denominator
+  - A baseline default runtime export reports 53 dangling relations for 25 unique item IDs.
+  - A baseline default runtime export reports 92 chance values above the declared denominator.
+  - Appearance loading assigns final runtime item IDs and names without setting the XML-specific loaded flag.
+  - The implementation head includes appearance-backed items and preserves configured loot thresholds exactly.
+derived:
+  - Removing the XML-only loaded filter should resolve all appearance-backed loot endpoints without source data rewrites.
+  - Schema 1.1 cannot publish the 92 proven runtime thresholds because its probability validator rejects numerator values above denominator.
 unknown:
-  - exact versioned representation required for modifier-dependent runtime loot thresholds
-conflicts: []
-first_failure_marker: default Game Catalog semantic validation
+  - Exact versioned representation required for modifier-dependent runtime loot thresholds.
+conflicts:
+  - Runtime compares a dynamically modified threshold, while schema 1.1 requires a bounded static probability fraction.
+first_failure:
+  marker: agent-task-checkpoint-shape
+  evidence: Agent Task Ownership run 30475914811 rejected nine missing required checkpoint fields.
+rejected_hypotheses:
+  - Drop appearance-backed relations: every relation endpoint must exist and runtime already resolves these item IDs.
+  - Clamp thresholds to the denominator: this would change configured runtime evidence and hide modifier semantics.
+  - Increase one universal denominator: this would misrepresent ordinary thresholds under the default runtime roll scale.
+changed_paths:
+  - .github/workflows/game-catalog.yml
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
+  - docs/agents/tasks/active/CAN-20260729-game-catalog-loot-integrity.md
+  - src/game/catalog/game_catalog_exporter.cpp
+  - tests/game_catalog/test_default_loot_integrity.py
+  - tests/unit/game/catalog/game_catalog_test.cpp
+validation:
+  - command: python3 -m unittest discover -s tests/game_catalog -p test_*.py -v
+    result: PASS
+    evidence: 15 focused tests passed, including the two new runtime/source evidence tests.
+  - command: python3 tools/agents/task_ownership.py
+    result: PASS
+    evidence: 34 active task records validated locally.
+  - command: Agent Task Ownership 30475914811
+    result: FAIL
+    evidence: The implementation was accepted, but the task checkpoint omitted required schema fields.
 blockers:
-  - schema 1.1 probability compatibility remains unproven
-next_action: add focused tests for appearance-backed runtime item inclusion and exact threshold preservation
+  - Exact-head C++ compilation and default-datapack runtime proof are still running.
+  - Schema 1.1 probability compatibility requires a separate synchronized producer/consumer contract.
+next_action: publish the checkpoint-shape correction, require rerun ownership success, then inspect exact-head Game Catalog compilation and default-datapack endpoint evidence.
 ```
