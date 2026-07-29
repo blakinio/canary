@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-2-preflight-20260729
 base_branch: main
 created: 2026-07-29T09:05:00+02:00
-updated: 2026-07-29T09:41:14+02:00
+updated: 2026-07-29T09:44:00+02:00
 last_verified_commit: "02d7aafa0dd9a9880b0ff82ccb950d6cb0c792ca"
 risk: medium
 related_issue: ""
@@ -63,6 +63,7 @@ Reconcile the live Real Tibia evidence programme after RTEC-005 wave 1 and selec
 - Updated the durable programme queue and handoff through PR #995.
 - PR #995 passed exact-head ownership, full Linux release/debug, Docker image/quickstart, Lua, Fast Checks and the repository `Required` gate.
 - PR #995 squash-merged to `main` as `02d7aafa0dd9a9880b0ff82ccb950d6cb0c792ca` on 2026-07-29.
+- Lifecycle PR #998 publishes this archive-only move; `ci:final-gate` was applied before the final lifecycle checkpoint commit.
 
 # Selected Collector boundaries
 
@@ -140,3 +141,7 @@ validation:
 blockers: []
 next_action: Create one RTEC-005 wave 2 coordinator task before any chat-communication or engine-scheduler worker branch.
 ```
+
+# Lifecycle publication
+
+PR #998 is limited to deleting the active record and adding this completed archive record. Exact-head ownership and final-gate CI determine lifecycle merge readiness; no further scope change is permitted after this checkpoint commit.
