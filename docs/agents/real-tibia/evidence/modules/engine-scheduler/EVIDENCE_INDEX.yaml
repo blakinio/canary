@@ -1,0 +1,17 @@
+{
+  "as_of": "2026-07-26",
+  "by_authority_dimension": {},
+  "by_claim_key": {},
+  "by_proof_level": {},
+  "by_state": {},
+  "evidence_ids": [],
+  "format": "canary-real-tibia-module-evidence-index-v1",
+  "module_id": "engine-scheduler",
+  "owner_request_ids": [],
+  "record_count": 0,
+  "schema_version": 1,
+  "stale_evidence_ids": [],
+  "superseded_evidence_ids": [],
+  "unresolved_conflict_ids": [],
+  "version_history_ids": []
+}
