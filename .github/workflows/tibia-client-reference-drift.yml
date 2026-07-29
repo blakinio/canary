@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -25,78 +25,19 @@ jobs:
       PYTHONPATH: tools/ai-agent
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install schema checker
         run: python -m pip install --disable-pip-version-check jsonschema
-      - name: Validate producer and evidence
+      - name: Run drift tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_drift.py" -v
+      - name: Compile producer
+        run: python -m py_compile tools/ai-agent/tibia_client_reference_drift.py tools/ai-agent/test_tibia_client_reference_drift.py
+      - name: Validate drift schema syntax
+        run: python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json > /dev/null
+      - name: Validate canonical evidence result
         run: |
-          python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_drift.py" -v
-          python -m py_compile tools/ai-agent/tibia_client_reference_drift.py tools/ai-agent/test_tibia_client_reference_drift.py
-          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json > /dev/null
           python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-29
           python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-29
           test "$(python -c 'import json; print(json.load(open("docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml"))["status"])')" = "consumed"
-      - name: Reconcile programme discovery
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          program = Path("docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md")
-          text = program.read_text(encoding="utf-8")
-          old = "| TCR-009 | Client Reference Drift | blocked-external-evidence | PR #992 / merge `8a88e2f0...`; request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; blocker `TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS` | TCR-002, TCR-003, TCR-004 | medium | Owner must provide two distinct complete exact retained manifest/index snapshot sets. No drift producer or stable-contract claim exists yet. |"
-          new = "| TCR-009 | Client Reference Drift | active draft (#1018) | `canary-tibia-client-reference-drift-v1`; consumed request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; retained evidence summary `6224a175...`; retained drift `be0593cb...` | TCR-002, TCR-003, TCR-004/TCR-004A | medium | Complete exact-final-head validation and merge. The producer consumes manifests/indexes only, skips StaticData record comparison across `legacy -> newer`, and grants no gameplay or mutation authority. |"
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("TCR-009 programme row not found")
-          program.write_text(text, encoding="utf-8")
-
-          catalog = Path("docs/agents/MODULE_CATALOG.md")
-          text = catalog.read_text(encoding="utf-8")
-          old = "| Tibia client-reference proficiency index | active TCR-004 (#858) | Deterministic manifest-bound read-only `canary-tibia-proficiency-index-v1` preserving IDs, names, optional versions, ordered levels, optional XP requirements and reviewed perk records with explicit duplicate findings | `tools/ai-agent/tibia_proficiency_reference_index*.py`, focused tests, `docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX.md`, schema, dedicated workflow | Reuse for exact selected proficiency-definition evidence. It does not parse appearances, write `items.xml`, register runtime data or prove persistence/protocol/gameplay. TCR-007 owns correlation through the canonical appearance index. |"
-          prof = "| Tibia client-reference proficiency index | merged TCR-004/TCR-004A (#858, #1014) | Deterministic manifest-bound read-only `canary-tibia-proficiency-index-v1`; schemaVersion 2 preserves reviewed `MissileId`, `Multiplier` and `Probability` perks without synthesizing a missing `Value`, while historical schema 1 remains consumable by TCR-007 | `tools/ai-agent/tibia_proficiency_reference_index*.py`, focused tests, `docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX*.md`, schemas, dedicated workflows | Reuse for exact selected proficiency-definition evidence. It does not parse appearances, write `items.xml`, register runtime data or prove persistence/protocol/gameplay. TCR-007 owns correlation through the canonical appearance index. |"
-          drift = "| Tibia client-reference drift | active TCR-009 (#1018) | Deterministic provenance-closed `canary-tibia-client-reference-drift-v1` over two exact retained final/bootstrap manifests plus StaticData, StaticMapData and proficiency indexes; explicit input/record findings, `legacy -> newer` schema-family boundary and dependency-scoped staleness | `tools/ai-agent/tibia_client_reference_drift.py`, focused tests, schema, `.github/workflows/tibia-client-reference-drift.yml`, `docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.md` | Reuse existing TCR indexes only. Never reparse proprietary inputs, compare StaticData records across different families, use timestamps as freshness proof, infer gameplay impact or authorize OTBM/datapack/runtime/production mutation. |"
-          if old in text:
-              text = text.replace(old, prof + "\n" + drift, 1)
-          elif drift not in text:
-              if prof not in text:
-                  raise SystemExit("proficiency catalogue row not found")
-              text = text.replace(prof, prof + "\n" + drift, 1)
-          catalog.write_text(text, encoding="utf-8")
-
-          changelog = Path("docs/agents/CHANGELOG.md")
-          text = changelog.read_text(encoding="utf-8")
-          entry = "- Adds TCR-009 `canary-tibia-client-reference-drift-v1` as a deterministic read-only comparison of two exact retained client-reference snapshot sets. The producer consumes final/bootstrap manifests and existing StaticData, StaticMapData and proficiency indexes only, verifies source bindings and generated-index hash closure, emits bounded input/record findings plus dependency-scoped staleness, and records `legacy -> newer` StaticData as an explicit schema-family boundary without unsafe cross-family record comparison. Owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002` is consumed through evidence record `RT-ITEM-DEFINITIONS-0003`; proprietary inputs/reports remain outside Git and no gameplay, map, datapack, runtime or production mutation is authorized."
-          if entry not in text:
-              marker = "## Unreleased\n"
-              if marker not in text:
-                  raise SystemExit("Unreleased changelog marker not found")
-              text = text.replace(marker, marker + "\n" + entry + "\n", 1)
-          changelog.write_text(text, encoding="utf-8")
-          PY
-          git diff --check
-      - name: Commit programme reconciliation
-        shell: bash
-        run: |
-          set -euo pipefail
-          paths=(
-            docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
-            docs/agents/MODULE_CATALOG.md
-            docs/agents/CHANGELOG.md
-          )
-          if git diff --quiet -- "${paths[@]}"; then
-            echo "Programme discovery is already reconciled."
-            exit 0
-          fi
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add "${paths[@]}"
-          git commit -m "docs(tcr): reconcile client-reference drift discovery"
-          test -n "${GITHUB_HEAD_REF:-}"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
