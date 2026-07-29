@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:36:44Z
-last_verified_commit: "666369126319bdac3ecc4ff83584011db1ce6c2f"
+updated: 2026-07-29T13:40:57Z
+last_verified_commit: "000ce71c52229c9d8e56b2ab9e90a3e139f2e303"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -57,7 +57,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | planned | Identify a bounded item, creature, and loot seed set with repository-backed release and availability evidence. |
+| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | blocked | Obtain Platform write authorization for a synchronized schema that represents an unknown verified-content boundary. |
 
 # Queue
 
@@ -83,6 +83,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 - Consumer mutations are blocked by the current repository allowlist.
 - Production activation requires direct environment evidence and remains a manual gate.
 - The repository default datapack is `data-otservbr-global`; the actual deployed production configuration and reviewed evidence boundary are not yet verified.
+- Schema v1 requires a non-null `verified_content_through_release`, but protocol `15.25` and bounded runtime presence do not prove datapack-wide content coverage; inventing that value is forbidden.
 
 # Decisions and invariants
 
@@ -119,9 +120,10 @@ Read `AGENTS.md`, `docs/agents/README.md`, this program record, the active task 
 - Do not infer historical or availability facts from external wikis.
 - Do not add all future entity types in one schema/implementation PR.
 - Do not treat a staging artifact or repository merge as production activation.
+- Do not invent a verified-content release or sentinel value to avoid the synchronized schema decision.
 
 ## Open questions
 
 - Does the deployed production configuration retain the repository default `data-otservbr-global` datapack/profile?
-- Which repository-backed records satisfy review requirements for each historical and availability claim?
+- Which versioned producer/consumer representation will preserve an unknown verified-content boundary?
 - Which schema version and rollout order will be used for each additional entity family?
