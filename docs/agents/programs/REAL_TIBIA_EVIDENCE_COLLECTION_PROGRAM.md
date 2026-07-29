@@ -4,8 +4,8 @@ name: Real Tibia Evidence Collection
 status: active
 owner: Real Tibia evidence coordination / platform tooling
 created: 2026-07-24T20:20:00+02:00
-updated: 2026-07-29T09:12:00+02:00
-last_verified_commit: "b19d8fb41c8390c1f672fde6403203ce97590955"
+updated: 2026-07-29T11:55:00+02:00
+last_verified_commit: "c1e1333e0fcddcf500c5b3d84632939da3c85466"
 primary_paths:
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
   - docs/ai-agent/REAL_TIBIA_EVIDENCE_COLLECTOR_ARCHITECTURE.md
@@ -323,7 +323,7 @@ The Coordinator performs shared-file integration after worker PRs merge.
 | RTEC-002 | Pilot dossier on one bounded low-coupling module | merged | RTEC-001 | medium | Pilot delivered by PR #910; lifecycle archived by PR #915. Runtime level-gain and promotion application remain `UNKNOWN` behind `RTREQ-FEATURE-VOCATIONS-0001`. |
 | RTEC-003 | Owner-request lifecycle integration | merged | RTEC-001/002 | medium | Lifecycle CLI delivered by PR #921; task archived by PR #926. `RTREQ-FEATURE-VOCATIONS-0001` remains `ready-for-owner-triage` and requires real owner evidence. |
 | RTEC-004 | Parallel campaign wave 1 | merged | RTEC-002/003 | medium | Weapon-proficiency PR #930, item-definitions PR #931 and coordinator PR #929 merged; lifecycle archived by PR #945. Five evidence records and `RTREQ-TCR-ITEM-DEFINITIONS-0001` were added without owner-path changes. |
-| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Wave 1 merged through worker PRs #957/#958 and coordinator PR #955. Wave 2 preflight selects independent absent `chat-communication` and `engine-scheduler` dossier roots at `main@b19d8fb41c8390c1f672fde6403203ce97590955`, retains two Collector workers, two worker PRs and one coordinator-only global-index lane, and preserves all three active owner requests. Merge and archive this preflight, then create one wave 2 coordinator task before worker branches. |
+| RTEC-005 | Remaining module waves | active | RTEC-004 evidence and concurrency review | medium | Wave 1 merged through worker PRs #957/#958 and coordinator PR #955. Wave 2 merged through worker PRs #1001/#1002, worker lifecycle PR #1003 and coordinator PR #1000, publishing `chat-communication` and `engine-scheduler` at `as_of=2026-07-29`. The corpus now contains 15 evidence records, 3 active owner requests and 12 version-history records. Start a fresh wave 3 preflight and select two absent, disjoint dossier roots under the retained two-worker/one-index-lane cap. |
 | RTEC-006 | Release/version refresh and drift operation | planned | populated dossiers and validator | medium | Add deterministic stale/version-delta selection for future Tibia/Canary changes. |
 | RTEC-007 | Coverage, confidence and unresolved-evidence dashboard | planned | stable records and owner results | medium | Generate factual dimensions without opaque parity score. |
 
@@ -337,4 +337,4 @@ The entire programme cannot claim that Canary faithfully reproduces Real Tibia m
 
 # Handoff
 
-RTEC-005 wave 1 completed and published the bounded `item-decay` and `parties` evidence through worker PRs #957/#958 and coordinator PR #955. Wave 2 preflight at `main@b19d8fb41c8390c1f672fde6403203ce97590955` selects two absent, disjoint dossier roots: `chat-communication` over `src/creatures/interactions/chat.*`, and `engine-scheduler` over `src/game/scheduling/dispatcher.*`, `src/game/scheduling/task.*` and `src/lib/thread/thread_pool.*`. Preserve `RTREQ-FEATURE-VOCATIONS-0001`, `RTREQ-TCR-ITEM-DEFINITIONS-0001` and `RTREQ-TCR-ITEM-DEFINITIONS-0002` until real owners supply stable evidence. Merge and archive the wave 2 preflight, then create one coordinator task before worker branches. Workers may not edit this programme, the shared generated index, existing owner requests, runtime, data, client, protocol, map, workflow or E2E paths; one later coordinator alone adjudicates merged worker evidence and publishes deterministic indexes.
+RTEC-005 wave 2 completed the bounded `chat-communication` and `engine-scheduler` source dossiers through worker PRs #1001/#1002 and lifecycle PR #1003. Coordinator PR #1000 independently accepted only their source-path claims, preserved all three owner requests unchanged and published deterministic module/global indexes at `as_of=2026-07-29` with 15 evidence records, 3 active owner requests and 12 version-history records. Configuration and delivery behavior for chat, and ordering, fairness, timing, concurrency and shutdown correctness for the scheduler, remain explicit nonclaims. The next action is a fresh RTEC-005 wave 3 preflight selecting two absent, disjoint module roots while retaining the two-worker, two-worker-PR and one serialized global-index lane cap.
