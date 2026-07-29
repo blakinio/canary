@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/archive-tcr-009-blocked-20260728
 base_branch: main
 created: 2026-07-28T22:49:37+02:00
-updated: 2026-07-29T08:58:00+02:00
-last_verified_commit: "93a6faaf3ceb30b43ed6c3358bf8737798005cdf"
+updated: 2026-07-29T09:10:00+02:00
+last_verified_commit: "3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e"
 risk: low
 related_issue: ""
 related_pr: "992"
@@ -77,14 +77,15 @@ Close the merged TCR-009 bounded evidence-preflight lifecycle without claiming t
 
 - Lifecycle PR `#993` was published early as draft.
 - Closeout commit `93a6faaf3ceb30b43ed6c3358bf8737798005cdf` archived the blocked task, updated programme/module discovery, removed the active ownership record and removed both temporary workflow modifications.
+- Repair commit `3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e` restored the original TCR-008..011 validation-matrix semantics after final diff review detected queue-row overreach; the temporary repair workflow change was removed from the final diff.
 - Remaining lifecycle action is exact-final-head validation, Ready-state protected CI and merge of PR `#993`.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T08:58:00+02:00
-head: 93a6faaf3ceb30b43ed6c3358bf8737798005cdf
+updated_at: 2026-07-29T09:10:00+02:00
+head: 3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e
 branch: docs/archive-tcr-009-blocked-20260728
 pr: 993
 status: blocked
@@ -101,6 +102,7 @@ proven:
   - Two complete exact client-reference snapshot sets do not exist in retained repository/workflow/supplied evidence.
   - TCR-009 implementation and all dependent packages remain unauthorized.
   - Closeout commit 93a6faaf3ceb30b43ed6c3358bf8737798005cdf removed active ownership and all temporary workflow changes after corpus validation passed.
+  - Repair commit 3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e restored the validation matrix without changing queue disposition or evidence boundaries.
 derived:
   - The correct lifecycle disposition is blocked-external-evidence, not completed/stable.
 unknown:
@@ -128,6 +130,9 @@ validation:
   - command: bounded lifecycle transformer and corpus validation
     result: PASS
     evidence: commit 93a6faaf3ceb30b43ed6c3358bf8737798005cdf archived the task, updated programme/catalogue, removed active ownership and temporary workflows, and passed Real Tibia evidence validate/generate checks
+  - command: final diff semantic review and validation-matrix repair
+    result: PASS
+    evidence: commit 3676a1aa9f080a1d2e51cdaa4030c87b0e632e0e restored exact original TCR-008..011 validation rows and passed Real Tibia evidence validate/generate checks
 blockers:
   - TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
 next_action: Validate exact final head for lifecycle PR 993, transition Ready, obtain protected CI and merge.
