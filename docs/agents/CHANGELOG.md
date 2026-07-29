@@ -4,6 +4,8 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Adds the first repository-default Game Catalog schema `1.1.0` metadata seed for item `3416` (dragon shield), creature `dragon`, and runtime loot key `dragon|3416|20`: historical bounds and completeness remain null/unverified, repository spawn and loot sources prove only `encounterable`/`obtainable`, and exact-head CI performs two bounded real-Dragon exports with schema, sidecar, determinism, and no-network/no-database syscall checks. Full `data-otservbr-global` export remains fail closed on separately tracked pre-existing loot endpoint/probability integrity findings; no profile is imported or activated.
+
 - Adds Game Catalog schema `1.1.0` support for `verified_content_through_release=null` without changing schema `1.0.0`, keeps null as unknown evidence, and documents a consumer-first rollout with Platform PR #299 while preserving deterministic offline export and the separate activation gate.
 
 - Recovers OTS-SEC-005 authenticated game-session and post-login sequence/XTEA validation from stale PR #514 onto current `main` through PR #974: the strict code-owned plan uses repository-owned disposable fixtures and literal loopback, proves the current first-game Adler32/RSA handoff, then validates authenticated control, zero-sequence, sequence-gap, sequence-replay and invalid-XTEA-padding cases with same-session expected-sequence recovery plus a fresh distinct-source control. Manifests cannot supply credentials, packet bytes, key material, commands or network targets; session races, economy/transactions, Redis/multichannel, hostile-server client behavior, sustained capacity and production targets remain separate evidence.

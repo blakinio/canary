@@ -1,0 +1,13 @@
+[
+  {
+    "key": "15.25",
+    "display_label": "15.25",
+    "major": 15,
+    "minor": 25,
+    "patch": 0,
+    "build": null,
+    "release_order": 152500,
+    "protocol_family": "oteryn-current",
+    "released_at": null
+  }
+]

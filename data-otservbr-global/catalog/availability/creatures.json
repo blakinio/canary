@@ -1,0 +1,6 @@
+{
+  "dragon": {
+    "availability": "encounterable",
+    "enabled": true
+  }
+}

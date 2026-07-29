@@ -1,0 +1,10 @@
+{
+  "3416": {
+    "canonical_key": "item:dragon-shield",
+    "introduced_in": null,
+    "removed_in": null,
+    "completeness": "unverified",
+    "source_path": "items/items.xml",
+    "image_key": null
+  }
+}

@@ -287,6 +287,19 @@ Rules:
 - only a small evidence-backed fixture set should be seeded initially;
 - complete bulk historical annotation is a separate evidence programme.
 
+The repository-default `data-otservbr-global/catalog` seed is intentionally
+bounded to dragon shield (`3416`), Dragon (`dragon`) and the resolved runtime
+loot block (`dragon|3416|20`). Its historical bounds are null and its
+completeness is `unverified`; explicit repository spawns and loot prove only
+`encounterable` and `obtainable`. `EVIDENCE.md` maps each claim to repository
+source. This seed is not a datapack-wide completeness or deployment claim.
+
+A bounded real-Dragon projection is valid for deterministic metadata
+regression. A full default-datapack export must still fail closed if unrelated
+runtime loot blocks have unresolved item endpoints or probabilities outside
+the declared denominator. Such records require a separate evidence-backed data
+integrity task; they must not be silently dropped or normalized by metadata.
+
 ## Determinism
 
 The producer must use:

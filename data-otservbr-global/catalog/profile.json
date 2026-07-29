@@ -1,0 +1,12 @@
+{
+  "contract": "oteryn.game-catalog",
+  "schema_version": "1.1.0",
+  "protocol_profile": "oteryn-current",
+  "runtime_release": "15.25",
+  "content_target_release": "15.25",
+  "verified_content_through_release": null,
+  "contains_content_through_release": null,
+  "loot_chance_denominator": 100000,
+  "datapack_commit_sha": null,
+  "producer_build_id": null
+}

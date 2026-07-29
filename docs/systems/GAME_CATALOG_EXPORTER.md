@@ -112,6 +112,16 @@ The implementation must not hardcode `data-otservbr-global` as the only allowed 
 
 `profile.json` declares the output schema version. Schema `1.0.0` requires a concrete `verified_content_through_release`. Schema `1.1.0` permits null and serializes it unchanged. Unsupported versions and a null boundary mislabeled as `1.0.0` fail closed.
 
+The first repository-default schema 1.1 seed lives under
+`data-otservbr-global/catalog`. It reviews only Dragon, dragon shield and their
+resolved loot relation. Exact claim sources are recorded in
+`data-otservbr-global/catalog/EVIDENCE.md`; historical bounds and completeness
+remain null or unverified. CI loads the real Dragon definition in a bounded
+runtime projection and exports the seed twice. This projection does not
+certify the complete datapack: unresolved item endpoints and out-of-range loot
+probabilities found by a full export remain separate fail-closed integrity
+findings before staging.
+
 ## CLI lifecycle
 
 Proposed arguments:
