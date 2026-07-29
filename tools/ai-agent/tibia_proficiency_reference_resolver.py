@@ -17,12 +17,17 @@ from tibia_proficiency_reference_common import (
 )
 from tibia_proficiency_reference_inventory import validate_canary_evidence
 
+SUPPORTED_PROFICIENCY_INDEX_SCHEMA_VERSIONS = frozenset({1, 2})
+
 
 def validate_proficiency_index(payload: Mapping[str, object], *, max_records: int) -> list[dict[str, object]]:
     if payload.get("format") != PROFICIENCY_INDEX_FORMAT:
         raise ProficiencyReferenceCorrelationError(f"proficiency index format must be {PROFICIENCY_INDEX_FORMAT}")
-    if payload.get("schemaVersion") != 1:
-        raise ProficiencyReferenceCorrelationError("proficiency index schemaVersion must be 1")
+    if payload.get("schemaVersion") not in SUPPORTED_PROFICIENCY_INDEX_SCHEMA_VERSIONS:
+        raise ProficiencyReferenceCorrelationError(
+            "proficiency index schemaVersion must be one of "
+            f"{sorted(SUPPORTED_PROFICIENCY_INDEX_SCHEMA_VERSIONS)}"
+        )
     source = payload.get("source")
     if not isinstance(source, dict):
         raise ProficiencyReferenceCorrelationError("proficiency index source must be an object")
@@ -138,9 +143,11 @@ def derive_resolver(
                 {
                     "sourceOrdinal": source_ordinal,
                     "sourceProficiencyId": source_id,
-                    "state": "conflicting"
-                    if any("duplicate" in reason or "mismatch" in reason for reason in reasons)
-                    else "unresolved-id-space",
+                    "state": (
+                        "conflicting"
+                        if any("duplicate" in reason or "mismatch" in reason for reason in reasons)
+                        else "unresolved-id-space"
+                    ),
                     "reasons": sorted(set(reasons)),
                 }
             )

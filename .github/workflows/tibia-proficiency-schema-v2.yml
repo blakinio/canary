@@ -1,0 +1,42 @@
+---
+name: Tibia Proficiency Schema v2
+
+on:
+  pull_request:
+    paths:
+      - "tools/ai-agent/tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/tibia_proficiency_reference_resolver.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_index.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_index_schema_v2.py"
+      - "tools/ai-agent/test_tibia_proficiency_reference_correlation.py"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX_SCHEMA_V2.md"
+      - "docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX_V2.schema.json"
+      - ".github/workflows/tibia-proficiency-schema-v2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: tools/ai-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run producer and compatibility tests
+        run: |
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index.py" -v
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_index_schema_v2.py" -v
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_proficiency_reference_correlation.py" -v
+      - name: Compile changed modules
+        run: |
+          python -m py_compile \
+            tools/ai-agent/tibia_proficiency_reference_index.py \
+            tools/ai-agent/tibia_proficiency_reference_resolver.py \
+            tools/ai-agent/test_tibia_proficiency_reference_index_schema_v2.py
+      - name: Validate schema syntax
+        run: python -m json.tool docs/ai-agent/TIBIA_PROFICIENCY_REFERENCE_INDEX_V2.schema.json > /dev/null
