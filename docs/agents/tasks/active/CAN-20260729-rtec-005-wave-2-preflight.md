@@ -2,13 +2,13 @@
 task_id: CAN-20260729-rtec-005-wave-2-preflight
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-WAVE-2-PREFLIGHT
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-2-preflight-20260729
 base_branch: main
 created: 2026-07-29T09:05:00+02:00
-updated: 2026-07-29T09:23:00+02:00
-last_verified_commit: "8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa"
+updated: 2026-07-29T09:28:00+02:00
+last_verified_commit: "62f7a99ade55b4c379e98766a2e95115c347481c"
 risk: medium
 related_issue: ""
 related_pr: "995"
@@ -59,7 +59,7 @@ Reconcile the live Real Tibia evidence programme after RTEC-005 wave 1 and selec
 - [x] Verify the selected paths do not overlap current open PR changed files.
 - [x] Preserve the RTEC-005 cap of two Collector workers, two worker PRs and one coordinator-only serialized global-index lane.
 - [x] Preserve every active owner request without lifecycle or content changes.
-- [ ] Publish the bounded preflight through a draft PR and pass exact-head ownership and ordinary CI gates.
+- [x] Publish the bounded preflight through a draft PR and pass exact-head ownership and ordinary CI gates.
 
 # Preflight result
 
@@ -108,11 +108,11 @@ Reconcile the live Real Tibia evidence programme after RTEC-005 wave 1 and selec
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T09:23:00+02:00
-head: 8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa
+updated_at: 2026-07-29T09:28:00+02:00
+head: 62f7a99ade55b4c379e98766a2e95115c347481c
 branch: docs/rtec-005-wave-2-preflight-20260729
 pr: 995
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -128,24 +128,25 @@ proven:
   - both selected registry records and all selected current-Canary source files exist at the pinned blobs recorded above
   - open PR changed-file sets do not overlap the selected dossier, registry or source paths
   - RTEC-005 remains limited to two workers, two worker PRs and one serialized coordinator index lane
-  - ordinary CI run 30431112265 passed on head 8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa
+  - Agent Task Ownership run 30431258132 passed on head 62f7a99ade55b4c379e98766a2e95115c347481c
+  - ordinary CI run 30431258293 passed on head 62f7a99ade55b4c379e98766a2e95115c347481c with the docs-only heavy jobs explicitly skipped
 derived:
   - chat-communication and engine-scheduler form a safe bounded wave 2 candidate pair
   - no existing owner-request transition or shared-index mutation belongs in the preflight
 unknown:
   - exact evidence claims each Collector will submit
   - whether either Collector will need a new owner request
-  - exact-head ownership result after using the frontmatter lifecycle state review
+  - exact-head final-gate result for the final checkpoint commit
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: run 30431112170 job 90508327083 proved frontmatter uses lifecycle states from task_ownership.ACTIVE_STATUSES, while validating is only a compatible checkpoint execution state
+  evidence: runs 30430981753 and 30431112170 established that frontmatter requires a lifecycle state while checkpoint status uses an execution state; review plus validating is the accepted pair
 rejected_hypotheses:
   - reuse the merged wave 1 task or PR: archived tasks and merged PRs are not continuation branches
   - select sanctions concurrently: the open security audit reviews related trust/security behavior, so a less coupled candidate is preferred
   - let workers update the shared global index: RTEC-005 requires one serialized coordinator lane
   - replace the branch after main advanced: exact compare proves the advance is disjoint and PR 995 remains mergeable
-  - use active or validating as frontmatter status: task_ownership.ACTIVE_STATUSES permits planned, implementing, blocked, review or ready; review is compatible with checkpoint validating
+  - use active or validating as frontmatter status: task_ownership.ACTIVE_STATUSES permits planned, implementing, blocked, review or ready
 changed_paths:
   - docs/agents/tasks/active/CAN-20260729-rtec-005-wave-2-preflight.md
   - docs/agents/programs/REAL_TIBIA_EVIDENCE_COLLECTION_PROGRAM.md
@@ -159,15 +160,18 @@ validation:
   - command: advanced-main compare
     result: PASS
     evidence: b19d8fb41c8390c1f672fde6403203ce97590955...4ae896d9c6ad33e4193a314f47daeff9ea4ac66b contains no selected path
-  - command: Agent Task Ownership run 30431112170 job 90508327083
-    result: FAIL
-    evidence: frontmatter validating is not a lifecycle status; review is the compatible lifecycle status for checkpoint validating
-  - command: CI run 30431112265
+  - command: Agent Task Ownership run 30431258132
     result: PASS
-    evidence: ordinary CI completed successfully on head 8c5d1f4e8dd0871f1b4619f5351a008ee85b81aa
-  - command: Agent Task Ownership on the corrected review-status head
+    evidence: changed-task checkpoint and ownership validation completed successfully on head 62f7a99ade55b4c379e98766a2e95115c347481c
+  - command: CI run 30431258293
+    result: PASS
+    evidence: Required completed successfully on head 62f7a99ade55b4c379e98766a2e95115c347481c; build, Lua and Fast jobs were skipped by docs-only scope detection
+  - command: ci:final-gate label
+    result: PASS
+    evidence: label applied to PR 995 before this final checkpoint commit
+  - command: exact-head final-gate workflows
     result: NOT_RUN
-    evidence: pending corrected head workflows
+    evidence: pending final checkpoint head
 blockers: []
-next_action: Verify exact-head ownership and ordinary CI after the frontmatter review-status correction, then write the final-gate checkpoint without changing scope.
+next_action: Verify final-gate workflows on the final checkpoint head, mark PR 995 ready and squash merge it, then archive this task in a separate lifecycle PR.
 ```
