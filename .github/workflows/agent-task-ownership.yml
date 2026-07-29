@@ -159,7 +159,7 @@ jobs:
               assert matrix.count(old) == 1, old
               matrix = matrix.replace(old, new, 1)
           repaired = prefix + matrix + suffix
-          assert repaired.count('| TCR-008 | optional/deferred-no-concrete-use-case |') == 1
+          assert repaired.count('| TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case |') == 1
           assert '| TCR-008 | required | required | required | minimap fixtures | no pathfinder duplication | no |' in repaired
           path.write_text(repaired, encoding='utf-8')
           PY
