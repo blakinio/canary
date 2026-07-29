@@ -3,7 +3,7 @@ task_id: CAN-20260728-game-catalog-export-architecture
 program_id: none
 agent: chatgpt
 branch: docs/CAN-20260728-game-catalog-export-architecture
-status: ready
+status: completed
 related_pr: 989
 owned_paths:
   exclusive:
@@ -28,6 +28,9 @@ search_first:
   - docs/agents/CROSS_REPO_CONTRACTS.md
 optional_reads:
   - docs/agents/REAL_TIBIA_EVIDENCE_SOURCES.md
+completed: 2026-07-28T07:58:09Z
+updated: 2026-07-28T07:58:09Z
+last_verified_commit: "4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e"
 ---
 
 # CAN-20260728-game-catalog-export-architecture
@@ -157,3 +160,11 @@ next_action: Wait for the ci:final-gate workflows on this exact final commit, th
 ## Notes
 
 This task changes documentation only. It does not add CLI flags, compile targets, datapack manifests, generated snapshots, runtime behavior or deployment changes.
+
+## Automated lifecycle completion
+
+- Feature PR: #989.
+- Feature head: `145379a17ea9c2c11cd76081b80334dc65680c3e`.
+- Merge commit: `4afd98e5b3d9cf0ce50aca73c697bedcd9ecbc9e`.
+- Merged at: `2026-07-28T07:58:09Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
