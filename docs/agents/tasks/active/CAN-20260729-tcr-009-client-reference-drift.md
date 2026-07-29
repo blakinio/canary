@@ -7,7 +7,7 @@ agent: chatgpt
 branch: feat/CAN-20260729-tcr-009-client-reference-drift
 base_branch: main
 created: 2026-07-29T23:36:00+02:00
-updated: 2026-07-30T00:30:00+02:00
+updated: 2026-07-30T00:36:00+02:00
 last_verified_commit: "e2890929f157e71959c8a203e3dd53d0f4c04f88"
 risk: medium
 related_issue: ""
@@ -74,14 +74,14 @@ Implement deterministic, read-only TCR-009 client-reference drift over two compl
 - [x] Fulfil and consume the owner request through the canonical lifecycle and generated indexes.
 - [x] Reconcile programme, catalogue and changelog.
 - [x] Pass the complete read-only implementation-head workflow set on current `main`.
-- [ ] Pass the exact final checkpoint head, merge and archive.
+- [ ] Pass the exact compact checkpoint head, merge and archive.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T00:30:00+02:00
-head: e2890929f157e71959c8a203e3dd53d0f4c04f88
+updated_at: 2026-07-30T00:36:00+02:00
+head: 2be75b42296a87ddafdcf050104b1da72f9246df
 branch: feat/CAN-20260729-tcr-009-client-reference-drift
 pr: 1018
 status: ready
@@ -107,22 +107,15 @@ proven:
   - RTREQ-TCR-ITEM-DEFINITIONS-0002 is consumed by accepted evidence RT-ITEM-DEFINITIONS-0003.
   - Workflow 30495080685 reconciled the programme queue, module catalogue and changelog.
   - Branch was synchronized with main commit 8e21a33325d6bd8ddbb647e7c967f940dfd54516 before the final read-only candidate.
-  - Agent Task Ownership 30495664559 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - Real Tibia Evidence Contracts 30495664561 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - Universal E2E Stability Certification 30495664573 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - Tibia Client Reference Drift 30495664579 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - AI Agent Tools 30495664574 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - Upstream Intelligence 30495664601 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - CI 30495664834 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
-  - Real Tibia Module Registry 30495664580 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - The complete workflow set passed on e2890929f157e71959c8a203e3dd53d0f4c04f88: Agent Task Ownership 30495664559, Real Tibia Evidence Contracts 30495664561, Universal E2E Stability 30495664573, Tibia Client Reference Drift 30495664579, AI Agent Tools 30495664574, Upstream Intelligence 30495664601, CI 30495664834 and Real Tibia Module Registry 30495664580.
 derived:
   - TCR-010, TCR-011 and OWA-003 can start after merge and lifecycle closure.
 unknown:
-  - Exact final checkpoint commit SHA, its forced final-gate results and merge commit.
+  - Exact compact checkpoint commit SHA, its forced final-gate results and merge commit.
 conflicts: []
 first_failure:
-  marker: ACTIVE_TASK_FRONTMATTER_STATUS
-  evidence: Agent Task Ownership 30495171598 rejected frontmatter status validating under tasks/active; frontmatter was corrected and ownership passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  marker: FINAL_CHECKPOINT_COMPACTNESS_LIMIT
+  evidence: Agent Task Ownership 30496008454 rejected 18 proven entries; workflow evidence was compacted into one item below the limit of 16 without changing implementation claims.
 rejected_hypotheses:
   - Reparse client packages inside the drift producer.
   - Compare StaticData records across legacy and newer schema families.
@@ -157,5 +150,5 @@ validation:
     result: PASS
     evidence: Ownership, evidence, module registry, upstream, dedicated drift, AI tools, Universal E2E Stability and full CI all succeeded.
 blockers: []
-next_action: apply ci:final-gate, verify every forced workflow on the checkpoint commit, inspect reviews and mergeability, mark ready, and squash-merge the exact green head.
+next_action: verify every forced workflow on the compact checkpoint commit, inspect reviews and mergeability, mark ready, and squash-merge the exact green head.
 ```
