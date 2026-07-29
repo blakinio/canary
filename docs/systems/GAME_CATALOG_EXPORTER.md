@@ -1,7 +1,7 @@
 # Game Catalog Exporter Architecture
 
 Status: Proposed  
-Contract: `oteryn.game-catalog` / schemas `1.0.0`, `1.1.0`
+Contract: `oteryn.game-catalog` / schemas `1.0.0`, `1.1.0`, `1.2.0`
 
 ## Goal
 
@@ -74,6 +74,7 @@ Proposed support files:
 ```text
 schemas/game-catalog/v1/game-catalog-snapshot.schema.json
 schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
 
 tools/game-catalog/
 ├── validate_manifest.py

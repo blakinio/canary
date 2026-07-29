@@ -18,12 +18,13 @@ class DefaultMetadataTest(unittest.TestCase):
     def test_profile_preserves_unknown_content_boundaries(self) -> None:
         profile = load_json("profile.json")
         self.assertEqual("oteryn.game-catalog", profile["contract"])
-        self.assertEqual("1.1.0", profile["schema_version"])
+        self.assertEqual("1.2.0", profile["schema_version"])
         self.assertEqual("15.25", profile["runtime_release"])
         self.assertEqual("15.25", profile["content_target_release"])
         self.assertIsNone(profile["verified_content_through_release"])
         self.assertIsNone(profile["contains_content_through_release"])
-        self.assertEqual(100000, profile["loot_chance_denominator"])
+        self.assertEqual(100000, profile["loot_roll_maximum"])
+        self.assertNotIn("loot_chance_denominator", profile)
 
         releases = load_json("releases.json")
         self.assertEqual(["15.25"], [release["key"] for release in releases])

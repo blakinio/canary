@@ -209,6 +209,24 @@ namespace game_catalog {
 					conditionData["unique"] = true;
 				}
 
+				Json lootData;
+				if (manifest.schemaVersion == "1.2.0") {
+					lootData = Json {
+						{ "chance_model", "canary_dynamic_threshold_v1" },
+						{ "chance_threshold", block.chance },
+						{ "roll_maximum", manifest.lootRollMaximum },
+					};
+				} else {
+					lootData = Json {
+						{ "chance_numerator", block.chance },
+						{ "chance_denominator", manifest.lootChanceDenominator },
+					};
+				}
+				lootData["minimum_count"] = block.countmin;
+				lootData["maximum_count"] = block.countmax;
+				lootData["container_path"] = nullable(containerPath);
+				lootData["condition_data"] = conditionData.empty() ? Json(nullptr) : conditionData;
+
 				relations.push_back(Json {
 					{ "type", "creature_loot" },
 					{ "canonical_key", canonicalKey },
@@ -219,14 +237,7 @@ namespace game_catalog {
 					{ "completeness", metadata.completeness },
 					{ "enabled", metadata.enabled },
 					{ "source_path", nullable(metadata.sourcePath) },
-					{ "data", Json {
-								  { "chance_numerator", block.chance },
-								  { "chance_denominator", manifest.lootChanceDenominator },
-								  { "minimum_count", block.countmin },
-								  { "maximum_count", block.countmax },
-								  { "container_path", nullable(containerPath) },
-								  { "condition_data", conditionData.empty() ? Json(nullptr) : conditionData },
-							  } },
+					{ "data", std::move(lootData) },
 				});
 
 				if (!block.childLoot.empty()) {
@@ -474,7 +485,7 @@ namespace game_catalog {
 		std::vector<std::string> errors;
 		const auto schemaVersion = document.value("schema_version", "");
 		if (!document.is_object() || document.value("contract", "") != "oteryn.game-catalog"
-		    || (schemaVersion != "1.0.0" && schemaVersion != "1.1.0")) {
+		    || (schemaVersion != "1.0.0" && schemaVersion != "1.1.0" && schemaVersion != "1.2.0")) {
 			errors.emplace_back("Unsupported Game Catalog contract or schema version.");
 			return errors;
 		}
@@ -621,11 +632,22 @@ namespace game_catalog {
 				errors.emplace_back("Relation has an unsafe source_path: " + key);
 			}
 			const auto &data = relation.at("data");
-			if (!data.is_object() || !data.at("chance_numerator").is_number_unsigned()
-			    || !data.at("chance_denominator").is_number_unsigned()
-			    || data.at("chance_denominator").get<std::uint64_t>() == 0
-			    || data.at("chance_numerator").get<std::uint64_t>() > data.at("chance_denominator").get<std::uint64_t>()) {
-				errors.emplace_back("Relation has an invalid probability: " + key);
+			bool validChance = data.is_object();
+			if (validChance && schemaVersion == "1.2.0") {
+				validChance = data.contains("chance_model") && data.at("chance_model") == "canary_dynamic_threshold_v1"
+					&& data.contains("chance_threshold") && data.at("chance_threshold").is_number_unsigned()
+					&& data.contains("roll_maximum") && data.at("roll_maximum").is_number_unsigned()
+					&& data.at("roll_maximum").get<std::uint64_t>() > 0
+					&& !data.contains("chance_numerator") && !data.contains("chance_denominator");
+			} else if (validChance) {
+				validChance = data.contains("chance_numerator") && data.at("chance_numerator").is_number_unsigned()
+					&& data.contains("chance_denominator") && data.at("chance_denominator").is_number_unsigned()
+					&& data.at("chance_denominator").get<std::uint64_t>() > 0
+					&& data.at("chance_numerator").get<std::uint64_t>() <= data.at("chance_denominator").get<std::uint64_t>()
+					&& !data.contains("chance_model") && !data.contains("chance_threshold") && !data.contains("roll_maximum");
+			}
+			if (!validChance) {
+				errors.emplace_back("Relation has an invalid loot chance model: " + key);
 			}
 			if (data.at("maximum_count").get<std::uint64_t>() < data.at("minimum_count").get<std::uint64_t>()) {
 				errors.emplace_back("Relation has an invalid count range: " + key);

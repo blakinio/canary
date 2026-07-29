@@ -17,6 +17,7 @@ CONTRACT_ID = "oteryn.game-catalog"
 SCHEMA_SHA256_BY_VERSION = {
     "1.0.0": "099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b",
     "1.1.0": "323ff6ae849759c9190f2a0c342855194ed74645816adc45051b6d914e67c7ac",
+    "1.2.0": "a9fa1e3c6366a90d61005796511c344ced9c39594ed676276279a5917287c6de",
 }
 MAX_DOCUMENT_BYTES = 67_108_864
 MAX_FINDINGS = 200
@@ -311,10 +312,19 @@ def validate_semantics(document: dict[str, Any]) -> list[Finding]:
         _validate_source_path(relation.get("source_path"), f"$/relations/{index}/source_path", findings)
         data = relation.get("data")
         if isinstance(data, dict):
-            numerator = data.get("chance_numerator")
-            denominator = data.get("chance_denominator")
-            if isinstance(numerator, int) and isinstance(denominator, int) and numerator > denominator:
-                findings.append(Finding("semantic.invalid_probability", f"$/relations/{index}/data/chance_numerator", "Loot chance numerator exceeds its denominator."))
+            if "chance_model" in data:
+                if (
+                    data.get("chance_model") != "canary_dynamic_threshold_v1"
+                    or not isinstance(data.get("chance_threshold"), int)
+                    or not isinstance(data.get("roll_maximum"), int)
+                    or data["roll_maximum"] <= 0
+                ):
+                    findings.append(Finding("semantic.invalid_threshold_model", f"$/relations/{index}/data", "Loot runtime threshold model is invalid."))
+            else:
+                numerator = data.get("chance_numerator")
+                denominator = data.get("chance_denominator")
+                if isinstance(numerator, int) and isinstance(denominator, int) and numerator > denominator:
+                    findings.append(Finding("semantic.invalid_probability", f"$/relations/{index}/data/chance_numerator", "Loot chance numerator exceeds its denominator."))
             minimum = data.get("minimum_count")
             maximum = data.get("maximum_count")
             if isinstance(minimum, int) and isinstance(maximum, int) and maximum < minimum:

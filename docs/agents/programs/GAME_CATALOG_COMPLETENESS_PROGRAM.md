@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T17:30:37Z
-last_verified_commit: "d8e3aeafe93d44f2949ec25f84293b943606389b"
+updated: 2026-07-29T18:11:53Z
+last_verified_commit: "e81a1daf3e32448047118bf07f22b941658128a4"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -50,18 +50,19 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 | Offline Game Catalog exporter | `src/game/catalog/**`, PR #991 | Extend final runtime registry collection; do not build a second parser or normal-server export path. |
 | Snapshot validator | `tools/game-catalog/validate_snapshot.py` | Keep schema and semantic validation fail-closed. |
 | Game Catalog workflow | `.github/workflows/game-catalog.yml` | Preserve exact-head deterministic export and no-network/no-database syscall proof. |
-| File contract | `oteryn.game-catalog` schemas `1.0.0` and `1.1.0` | Keep `1.0.0` byte unchanged; use `1.1.0` null only for unknown evidence and keep producer/consumer compatibility synchronized. |
+| File contract | `oteryn.game-catalog` schemas `1.0.0`, `1.1.0`, and consumer-first `1.2.0` | Keep `1.0.0`/`1.1.0` bytes unchanged; use `1.1.0` null only for unknown evidence; schema `1.2.0` carries the exact configured runtime threshold and roll maximum. |
 | Archived exporter task | `CAN-20260728-game-catalog-exporter`, PR #991 | Reuse its PROVEN facts; do not reopen or expand the archived task. |
 
 # Active tasks
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-loot-integrity` | `feat/CAN-20260729-game-catalog-loot-integrity` | #1010 | in-progress | Add focused tests for appearance-backed endpoint inclusion and exact threshold preservation. |
+| `CAN-20260729-game-catalog-loot-threshold-schema` | `feat/CAN-20260729-game-catalog-loot-threshold-schema` | #1012 | implementing | Inspect exact-head compilation and full default-datapack runtime evidence. |
 
 # Queue
 
-1. Complete `CAN-20260729-game-catalog-loot-integrity`: repair final-registry endpoints and explicitly resolve modifier-dependent chance representation without source rewrites.
+1. Complete `CAN-20260729-game-catalog-loot-threshold-schema`: emit the consumer-approved schema 1.2 threshold model and prove the complete default datapack.
+2. Certify telemetry-independent Game Catalog definition-loader stability before staging; preserve the two exit-139 runs and two telemetry-enabled passes as separate evidence.
 3. Add NPCs and shop offers in a new versioned producer/consumer contract task.
 4. Add spells in a separate versioned contract task.
 5. Add quests and rewards in a separate versioned contract task.
@@ -79,6 +80,8 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 | `OTERYN-20260729-game-catalog-null-boundary` / Platform #299 | Schema 1.1 storage/import and activation guard | `b2b2871eed0375e22d48de5dd4947fe29c2bb974` | Merge producer support. |
 | `CAN-20260729-game-catalog-schema-1-1` / #1006 | Schema 1.1 producer with explicit unknown verified boundary | `3ad7155dd833e105cebfd4b472800a4156ac1e90` | Publish reviewed metadata. |
 | `CAN-20260729-game-catalog-metadata-evidence` / #1005 | Bounded repository-default Dragon/dragon-shield metadata seed | `9926b69728ed2945a5c957047447b537dcec4dbe` | Resolve default-datapack loot integrity before staging. |
+| `CAN-20260729-game-catalog-loot-integrity` / #1010 | Appearance-backed endpoints fixed; zero dangling relations; 92 runtime thresholds preserved | `24ce121f487f711cc19214f59ac0fb21d80ff737` | Emit consumer-approved schema 1.2. |
+| `OTERYN-20260729-game-catalog-runtime-threshold` / Platform #310 | Consumer-first schema 1.2 import, persistence, projection, and rollback guard | `2a97d0a04f1d6ecc02f4ec52b8aba1839a0ac77b` | Pin identical producer schema and fixture. |
 
 # Dependencies and blockers
 
@@ -86,7 +89,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 - Production activation requires direct environment evidence and remains a manual gate.
 - The repository default datapack is `data-otservbr-global`; the actual deployed production configuration and reviewed evidence boundary are not yet verified.
 - Schema 1.1 preserves the unknown verified-content boundary as null; activation remains blocked.
-- A full default-datapack export currently fails closed on pre-existing unresolved loot endpoints and loot chances above `MAX_LOOTCHANCE`.
+- The endpoint blocker is resolved; default-datapack publication now depends on the active schema 1.2 producer task.
 
 # Decisions and invariants
 
