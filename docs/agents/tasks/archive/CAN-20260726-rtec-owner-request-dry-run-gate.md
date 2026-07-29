@@ -2,13 +2,14 @@
 task_id: CAN-20260726-rtec-owner-request-dry-run-gate
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-OWNER-REQUEST-DRY-RUN-GATE
-status: review
+status: completed
 agent: "GPT-5.6 Thinking"
 branch: fix/rtec-owner-request-dry-run-gate-20260726
 base_branch: main
 created: 2026-07-26T20:55:00+02:00
-updated: 2026-07-28T22:27:12+02:00
-last_verified_commit: "48bbe5a6c4900906569f65a75542d34c336d0ae5"
+updated: 2026-07-28T20:47:03Z
+completed: 2026-07-28T20:47:03Z
+last_verified_commit: "87149c6b527f43025860c20cca0a440091ee8730"
 risk: low
 related_issue: ""
 related_pr: "972"
@@ -97,3 +98,11 @@ validation:
 blockers: []
 next_action: Verify all final-gate checks on the checkpoint-only commit created by this update and squash-merge PR 972 if they pass.
 ```
+
+## Automated lifecycle completion
+
+- Feature PR: #972.
+- Feature head: `3618acc00210604391c1da086ecb960208caedfa`.
+- Merge commit: `87149c6b527f43025860c20cca0a440091ee8730`.
+- Merged at: `2026-07-28T20:47:03Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle cleanup.
