@@ -448,7 +448,7 @@ namespace game_catalog {
 
 		return Json {
 			{ "contract", "oteryn.game-catalog" },
-			{ "schema_version", "1.0.0" },
+			{ "schema_version", manifest.schemaVersion },
 			{ "snapshot", Json {
 							  { "generated_at", generatedAt },
 							  { "canary_commit_sha", canaryCommitSha },
@@ -456,7 +456,7 @@ namespace game_catalog {
 							  { "protocol_profile", manifest.protocolProfile },
 							  { "runtime_release", manifest.runtimeRelease },
 							  { "content_target_release", manifest.contentTargetRelease },
-							  { "verified_content_through_release", manifest.verifiedContentThroughRelease },
+							  { "verified_content_through_release", nullable(manifest.verifiedContentThroughRelease) },
 							  { "contains_content_through_release", nullable(manifest.containsContentThroughRelease) },
 							  { "appearances_sha256", appearancesSha256 },
 							  { "map_sha256", nullptr },
@@ -472,7 +472,9 @@ namespace game_catalog {
 
 	std::vector<std::string> validateSnapshotDocument(const Json &document) {
 		std::vector<std::string> errors;
-		if (!document.is_object() || document.value("contract", "") != "oteryn.game-catalog" || document.value("schema_version", "") != "1.0.0") {
+		const auto schemaVersion = document.value("schema_version", "");
+		if (!document.is_object() || document.value("contract", "") != "oteryn.game-catalog"
+		    || (schemaVersion != "1.0.0" && schemaVersion != "1.1.0")) {
 			errors.emplace_back("Unsupported Game Catalog contract or schema version.");
 			return errors;
 		}
@@ -485,6 +487,9 @@ namespace game_catalog {
 		}
 
 		const auto &snapshot = document.at("snapshot");
+		if (schemaVersion == "1.0.0" && snapshot.at("verified_content_through_release").is_null()) {
+			errors.emplace_back("schema 1.0.0 requires a verified content release.");
+		}
 		if (!snapshot.value("generated_at", "").empty() && !std::regex_match(snapshot.value("generated_at", ""), DateTimePattern)) {
 			errors.emplace_back("snapshot.generated_at is not RFC 3339 shaped.");
 		}

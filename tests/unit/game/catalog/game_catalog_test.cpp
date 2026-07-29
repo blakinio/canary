@@ -16,6 +16,7 @@ namespace game_catalog {
 	namespace {
 		CatalogManifest fixtureManifest() {
 			CatalogManifest manifest;
+			manifest.schemaVersion = "1.0.0";
 			manifest.protocolProfile = "oteryn-current";
 			manifest.runtimeRelease = "15.20";
 			manifest.contentTargetRelease = "15.20";
@@ -182,6 +183,29 @@ namespace game_catalog {
 		EXPECT_EQ(item->at("completeness"), "unverified");
 		EXPECT_EQ(item->at("availability"), "unknown");
 		EXPECT_EQ(item->at("canonical_key"), "item:server-2516");
+	}
+
+	TEST(GameCatalogExporter, Schema11PreservesUnknownVerifiedContentBoundary) {
+		Items items;
+		Monsters monsters;
+		populateRuntime(items, monsters);
+		auto manifest = fixtureManifest();
+		manifest.schemaVersion = "1.1.0";
+		manifest.verifiedContentThroughRelease = std::nullopt;
+
+		const auto document = buildSnapshotDocument(
+			manifest, items, monsters, "2026-07-28T00:00:00Z",
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+		);
+
+		EXPECT_EQ(document.at("schema_version"), "1.1.0");
+		EXPECT_TRUE(document.at("snapshot").at("verified_content_through_release").is_null());
+		EXPECT_TRUE(validateSnapshotDocument(document).empty());
+
+		auto mislabeled = document;
+		mislabeled["schema_version"] = "1.0.0";
+		EXPECT_FALSE(validateSnapshotDocument(mislabeled).empty());
 	}
 
 	TEST(GameCatalogExporter, NonUniqueSnapshotIdentifiersRemainDataOnlyAndCollisionsFailClosed) {

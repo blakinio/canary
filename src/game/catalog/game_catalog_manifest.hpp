@@ -25,10 +25,11 @@ namespace game_catalog {
 	};
 
 	struct CatalogManifest {
+		std::string schemaVersion;
 		std::string protocolProfile;
 		std::string runtimeRelease;
 		std::string contentTargetRelease;
-		std::string verifiedContentThroughRelease;
+		std::optional<std::string> verifiedContentThroughRelease;
 		std::uint32_t lootChanceDenominator = 0;
 		std::optional<std::string> containsContentThroughRelease;
 		std::optional<std::string> datapackCommitSha;

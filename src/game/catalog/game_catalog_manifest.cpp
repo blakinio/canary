@@ -155,15 +155,19 @@ namespace game_catalog {
 		if (requiredString(profile, "contract", profilePath) != "oteryn.game-catalog") {
 			throw std::runtime_error("Unsupported Game Catalog contract in profile manifest.");
 		}
-		if (requiredString(profile, "schema_version", profilePath) != "1.0.0") {
+		const auto schemaVersion = requiredString(profile, "schema_version", profilePath);
+		if (schemaVersion != "1.0.0" && schemaVersion != "1.1.0") {
 			throw std::runtime_error("Unsupported Game Catalog schema version in profile manifest.");
 		}
 
 		CatalogManifest manifest;
+		manifest.schemaVersion = schemaVersion;
 		manifest.protocolProfile = requiredString(profile, "protocol_profile", profilePath);
 		manifest.runtimeRelease = requiredString(profile, "runtime_release", profilePath);
 		manifest.contentTargetRelease = requiredString(profile, "content_target_release", profilePath);
-		manifest.verifiedContentThroughRelease = requiredString(profile, "verified_content_through_release", profilePath);
+		manifest.verifiedContentThroughRelease = schemaVersion == "1.0.0"
+			? std::optional<std::string>(requiredString(profile, "verified_content_through_release", profilePath))
+			: nullableString(profile, "verified_content_through_release", profilePath);
 		manifest.lootChanceDenominator = requiredPositiveUint32(profile, "loot_chance_denominator", profilePath);
 		manifest.containsContentThroughRelease = nullableString(profile, "contains_content_through_release", profilePath);
 		manifest.datapackCommitSha = nullableString(profile, "datapack_commit_sha", profilePath);

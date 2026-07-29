@@ -2,7 +2,7 @@
 task_id: CAN-20260729-game-catalog-schema-1-1
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: planned
+status: implementing
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-schema-1-1
 base_branch: main
@@ -11,7 +11,7 @@ updated: 2026-07-29T15:20:00Z
 last_verified_commit: "pending"
 risk: high
 related_issue: ""
-related_pr: null
+related_pr: 1006
 depends_on:
   - CAN-20260728-game-catalog-exporter
 blocks:
@@ -29,12 +29,11 @@ owned_paths:
     - tools/game-catalog/validate_snapshot.py
     - tests/game_catalog/test_validate_snapshot.py
     - .github/workflows/game-catalog.yml
-    - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - docs/agents/MODULE_CATALOG.md
     - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
     - docs/systems/GAME_CATALOG_EXPORTER.md
-    - CHANGELOG.md
+    - docs/agents/CHANGELOG.md
   read_only:
     - data-otservbr-global/catalog/**
 modules_touched:
@@ -60,10 +59,10 @@ Add Game Catalog schema 1.1.0 so the producer can emit an explicit null `verifie
 - [ ] Exported schema 1.1.0 documents preserve null without a sentinel.
 - [ ] C++ and Python validation accept null only under schema 1.1.0 and reject schema/version mismatches.
 - [ ] Fixed-input exports remain deterministic.
-- [ ] Canary and Platform schema/fixture bytes and SHA-256 values match exactly.
+- [ ] Canary and Platform schema bytes and SHA-256 match exactly, and each repository's sanitized fixture validates.
 - [ ] Focused unit, validator, exporter and exact-head CI checks pass.
-- [ ] Contract, exporter documentation, module catalogue, changelog and program state are current.
-- [ ] Atomic cross-repository merge remains blocked until Platform PR #299 is ready.
+- [ ] Contract, exporter documentation, module catalogue and changelog are current.
+- [ ] Consumer-first rollout keeps producer merge blocked until Platform PR #299 is merged.
 - [ ] No datapack manifest or production activation is included.
 
 # Ownership and overlap
@@ -83,18 +82,18 @@ Schema 1.0.0 requires a concrete `verified_content_through_release`. Repository 
 2. Make manifest schema version and verified boundary explicit versioned fields.
 3. Update snapshot construction and validation for nullable 1.1.0 semantics.
 4. Add C++/Python tests for 1.0 compatibility, 1.1 null acceptance and version mismatch rejection.
-5. Synchronize exact schema/fixture bytes with Platform PR #299.
-6. Run focused validation and exact-head CI; merge neither side until both are ready.
+5. Synchronize exact schema bytes with Platform PR #299 and validate both sanitized fixtures.
+6. Run focused validation and exact-head CI; merge Platform first, then Canary.
 
 # Context checkpoint
 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-29T15:20:00Z
-head: pending
+head: fef73c5b4a43f3d64afb8770b2aef38041d6c2fc
 branch: feat/CAN-20260729-game-catalog-schema-1-1
-pr: pending
-status: investigating
+pr: 1006
+status: implementing
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -110,12 +109,11 @@ owned_paths:
   - tools/game-catalog/validate_snapshot.py
   - tests/game_catalog/test_validate_snapshot.py
   - .github/workflows/game-catalog.yml
-  - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
   - docs/agents/CROSS_REPO_CONTRACTS.md
   - docs/agents/MODULE_CATALOG.md
   - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
   - docs/systems/GAME_CATALOG_EXPORTER.md
-  - CHANGELOG.md
+  - docs/agents/CHANGELOG.md
 proven:
   - Schema 1.0.0 requires verified_content_through_release to be a concrete release key.
   - The exporter stores the field as a non-null string and hard-codes schema_version 1.0.0.
@@ -125,7 +123,7 @@ derived:
   - A new schema version is required; schema 1.0.0 must remain unchanged.
   - The producer must serialize null rather than invent a release.
 unknown:
-  - Exact schema and fixture SHA-256 values until both repositories generate the same bytes.
+  - Exact current-head C++ build, exporter smoke and CI results until the implementation commit runs.
 conflicts: []
 first_failure:
   marker: v1-verified-boundary-unrepresentable
@@ -135,14 +133,41 @@ rejected_hypotheses:
   - Invent a sentinel release.
   - Mutate schema 1.0.0 in place.
 changed_paths:
+  - .github/workflows/game-catalog.yml
+  - schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json
+  - src/game/catalog/game_catalog_exporter.cpp
+  - src/game/catalog/game_catalog_manifest.cpp
+  - src/game/catalog/game_catalog_manifest.hpp
+  - tests/game_catalog/fixtures/v1.1/minimal-snapshot.json
+  - tests/game_catalog/test_validate_snapshot.py
+  - tests/unit/game/catalog/game_catalog_test.cpp
+  - tools/game-catalog/validate_snapshot.py
+  - docs/agents/CHANGELOG.md
+  - docs/agents/CROSS_REPO_CONTRACTS.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
+  - docs/systems/GAME_CATALOG_EXPORTER.md
   - docs/agents/tasks/active/CAN-20260729-game-catalog-schema-1-1.md
 validation:
   - command: overlap search
     result: PASS
     evidence: PR #1005 has complementary ownership and no other matching active task was found.
+  - command: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
+    result: PASS
+    evidence: 10 validator tests passed for schema 1.0 compatibility, schema 1.1 null handling and mismatched-version rejection.
+  - command: python tools/game-catalog/validate_snapshot.py for v1 and v1.1 fixtures
+    result: PASS
+    evidence: Schema hashes 099a8373... and 323ff6ae... plus fixture hashes ec0658bb... and 747467af... validated.
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: 35 active task records validated locally.
+  - command: focused C++ build and unit tests
+    result: NOT_RUN
+    evidence: CMake is not installed in the local execution environment; exact-head Game Catalog CI is required.
 blockers:
-  - Atomic merge is held until Platform PR #299 is ready.
-next_action: Publish the draft PR and implement schema 1.1.0 producer support without datapack activation.
+  - Platform PR #299 must merge before Canary schema 1.1.0 producer support.
+  - Current-head CI has not run for the implementation commit.
+next_action: Publish the implementation commit to PR #1006 and use exact-head CI to validate compilation, tests and export-only runtime behavior.
 ```
 
 # Risks and compatibility
