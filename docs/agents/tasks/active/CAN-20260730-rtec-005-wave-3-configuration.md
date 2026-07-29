@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-configuration-20260730
 base_branch: main
 created: 2026-07-30T00:11:00+02:00
-updated: 2026-07-30T00:24:00+02:00
-last_verified_commit: "8d97385ed91aad418683c16450eb2ca48ba41876"
+updated: 2026-07-30T00:30:00+02:00
+last_verified_commit: "d644ff5e1860c599275135e8cf05073f17de7152"
 risk: medium
 related_issue: ""
 related_pr: "1021"
@@ -61,8 +61,8 @@ It does not claim production configuration correctness, secrets handling, contro
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T00:24:00+02:00
-head: 3d87e061c153076f913780477ce5400ce54d8234
+updated_at: 2026-07-30T00:30:00+02:00
+head: d644ff5e1860c599275135e8cf05073f17de7152
 branch: docs/rtec-005-wave-3-configuration-20260730
 pr: 1021
 status: ready
@@ -94,17 +94,17 @@ proven:
 derived:
   - the worker output remains a candidate package until coordinator adjudication
 unknown:
-  - exact corrected-head check identifiers and conclusions
+  - exact normalized-head check identifiers and conclusions
   - coordinator acceptance, narrowing or rejection outcome
 conflicts: []
 first_failure:
   marker: Real Tibia Evidence Contracts / Validate evidence contracts and indexes
-  evidence: run 30495526058 rejected an empty version-history entries array and a module-index as_of date that drifted from canonical 2026-07-29; the candidate history and index date are corrected in this head
+  evidence: run 30495526058 rejected an empty version-history entries array and a module-index as_of date that drifted from canonical 2026-07-29; the candidate history and index date were corrected
 rejected_hypotheses:
   - claim production configuration or runtime feature correctness from static source inspection
   - edit shared global publication paths
   - publish the candidate in module/global evidence indexes before coordinator review
-  - rerun the failed contract without correcting its deterministic inputs
+  - rerun failed checks without correcting their deterministic inputs
 validation:
   - command: merged wave 3 preflight
     result: PASS
@@ -113,8 +113,11 @@ validation:
     result: PASS
     evidence: eight changed paths are inside the declared worker boundary and the candidate evidence index is unpublished
   - command: Real Tibia Evidence Contracts
-    result: FAIL_CORRECTED
-    evidence: run 30495526058 supplied the exact history/index diagnostics corrected by this checkpoint
+    result: FAIL
+    evidence: run 30495526058 supplied the exact history/index diagnostics corrected by later commits
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 30495773032 rejected only unsupported result literal FAIL_CORRECTED; this checkpoint normalizes it to FAIL
 blockers: []
-next_action: Verify corrected exact-head checks, mark PR 1021 ready, squash-merge, and include this task in the shared worker lifecycle archive.
+next_action: Verify normalized exact-head checks, squash-merge PR 1021, and include this task in the shared worker lifecycle archive.
 ```
