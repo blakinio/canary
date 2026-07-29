@@ -417,10 +417,10 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 | TCR-005 | required | exact cross-input | n/a | parity fixtures | World Index/Geometry/Critical Access | no, unless later claiming gameplay |
 | TCR-006 | required | exact cross-input | n/a | correlation fixtures | quest/spawn/achievement owners | module-specific |
 | TCR-007 | required | exact cross-input | n/a | correlation fixtures | proficiency owners | yes for gameplay claims |
-| TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case | no concrete parity use case found in fresh 2026-07-28 preflight | TCR-001 merged | low | Do not implement on speculation. Reopen only for a documented advisory-only use case not already covered by World Index, landmarks, Reachability, factual rendering or StaticMapData. |
-| TCR-009 | Client Reference Drift | blocked-external-evidence | PR #992 / merge `8a88e2f0...`; request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; blocker `TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS` | TCR-002, TCR-003, TCR-004 | medium | Owner must provide two distinct complete exact retained manifest/index snapshot sets. No drift producer or stable-contract claim exists yet. |
-| TCR-010 | Compact Evidence Gateway Integration | blocked-by-TCR-009 | stable TCR-005/006/007 exist; TCR-009 is not stable | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Do not start until `canary-tibia-client-reference-drift-v1` is genuinely stable/merged. Reuse QA-018. |
-| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-009-and-TCR-010 | stable TCR-005/006/007 exist; TCR-009/010 are not stable | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Do not start until all required producer/gateway contracts are stable/merged. No executor or mutation authority. |
+| TCR-008 | required | required | required | minimap fixtures | no pathfinder duplication | no |
+| TCR-009 | required | both snapshots | n/a | drift fixtures | release provenance/freshness | no |
+| TCR-010 | existing QA-018 | existing QA-018 | existing QA-018 | pointer fixtures | evidence gateway | no |
+| TCR-011 | required | exact finding refs | n/a | routing fixtures | repair/subsystem owners | downstream |
 
 # Last bounded lifecycle disposition
 
