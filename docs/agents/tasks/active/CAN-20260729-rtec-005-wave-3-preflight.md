@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-preflight-20260729
 base_branch: main
 created: 2026-07-29T23:15:00+02:00
-updated: 2026-07-29T23:24:00+02:00
-last_verified_commit: "ab47084a3cef7917cacfde093aa9c9f892d6e5d6"
+updated: 2026-07-29T23:28:00+02:00
+last_verified_commit: "65fd75b7a351151ea1b9601994187112b772fb93"
 risk: medium
 related_issue: ""
 related_pr: "1016"
@@ -82,7 +82,7 @@ Select one fresh bounded RTEC-005 wave of two independent absent dossier roots w
 
 - Both dossier roots are absent on current `main` and their registry/source paths are disjoint.
 - Retain the RTEC-005 cap of two Collector workers, at most two worker PRs and exactly one coordinator-only serialized global-index lane.
-- Create and merge one coordinator task before either Collector branch.
+- After this preflight is merged and archived, create and open one coordinator task/PR before either Collector branch; keep that coordinator PR as the serialized integration lane and merge it only after both worker lifecycles merge.
 - Workers must not edit the programme, generated global index, existing owner requests, runtime, data, client, protocol, map, workflow or E2E paths.
 - Preserve unchanged: `RTREQ-FEATURE-VOCATIONS-0001`, `RTREQ-TCR-ITEM-DEFINITIONS-0001`, `RTREQ-TCR-ITEM-DEFINITIONS-0002`.
 
@@ -92,15 +92,15 @@ Select one fresh bounded RTEC-005 wave of two independent absent dossier roots w
 - [x] Verify both dossier roots are absent.
 - [x] Verify no open PR overlaps the selected roots.
 - [x] Preserve the three active owner requests unchanged.
-- [x] Open PR #1016, apply `ci:final-gate`, and pass exact-head CI and ownership checks.
-- [ ] Merge and archive before starting the coordinator task.
+- [x] Open PR #1016 and apply `ci:final-gate`.
+- [ ] Pass exact-head CI and ownership checks, merge and archive before opening the coordinator task/PR.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T23:24:00+02:00
-head: ab47084a3cef7917cacfde093aa9c9f892d6e5d6
+updated_at: 2026-07-29T23:28:00+02:00
+head: 65fd75b7a351151ea1b9601994187112b772fb93
 branch: docs/rtec-005-wave-3-preflight-20260729
 pr: 1016
 status: ready
@@ -123,9 +123,9 @@ proven:
   - CI run 30491979028 and its Required job 90711868909 passed on head ab47084a3cef7917cacfde093aa9c9f892d6e5d6
 derived:
   - configuration and item-instances form a safe bounded RTEC-005 wave 3 pair
-  - one coordinator task must precede worker branches and alone owns later shared-index adjudication
+  - the coordinator task and PR must exist before worker branches, remain the only shared-index lane, and merge after worker lifecycles
 unknown:
-  - merge outcome after the refreshed final checkpoint commit
+  - exact final-head workflow conclusions after this ordering correction
   - exact evidence claims each Collector will submit
   - whether either Collector will need a new owner request
 conflicts: []
@@ -136,17 +136,18 @@ rejected_hypotheses:
   - reuse the merged wave 2 task or PR
   - let workers update the shared global index
   - modify existing owner requests without real owner evidence
+  - merge the coordinator before workers, which would remove the required serialized integration lane
   - bypass the Required branch-protection check after merge initially reported it pending
 validation:
   - command: connector-based registry, source-pin, dossier-absence and open-PR audit
     result: PASS
     evidence: exact blobs and absent roots recorded in this task
-  - command: repository full final gate
+  - command: previous repository full final gate
     result: PASS
     evidence: CI run 30491979028 including Required job 90711868909 at ab47084a3cef7917cacfde093aa9c9f892d6e5d6
-  - command: Agent Task Ownership
+  - command: previous Agent Task Ownership
     result: PASS
     evidence: run 30491978876 at ab47084a3cef7917cacfde093aa9c9f892d6e5d6
 blockers: []
-next_action: Verify the refreshed exact-head checks, squash-merge PR 1016, and archive before creating the coordinator task.
+next_action: Verify exact-head checks on this coordinator-ordering correction, squash-merge PR 1016, and archive before opening the coordinator task/PR.
 ```
