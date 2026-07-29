@@ -1,0 +1,13 @@
+{
+  "base64_chunk_count": 7,
+  "contract": "oteryn.game-catalog",
+  "payload_sha256": "cb462adfe988bd903df4c051d86d30faeb1af051ac62f42ef8a2c18ffa97b0b4",
+  "production_activation": false,
+  "schema_version": "1.0.0",
+  "source_artifact_digest": "sha256:e389915bff1f79e21cbb7b112717550587d3a556afa11e707c0036ba8b2aa5a6",
+  "source_artifact_id": 8714331268,
+  "source_head_sha": "84b089f9a919bb85773798584e5b0205e2e5895c",
+  "source_repository": "blakinio/canary",
+  "source_workflow_run_id": 30427617799,
+  "staging_only": true
+}
