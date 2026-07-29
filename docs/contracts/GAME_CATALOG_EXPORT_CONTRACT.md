@@ -230,6 +230,8 @@ The item collector must read the final loaded `ItemType` registry after authorit
 
 It must not implement a second partial parser and claim final runtime equivalence.
 
+An appearance-backed record with a nonzero runtime ID and nonempty name is part of that final registry even when it has no `items.xml` overlay. `ItemType::loaded` records XML enrichment; it is not a runtime-presence predicate and must not exclude a valid loot target.
+
 The first slice exports bounded fields including IDs, name, description, category, weapon type, attack, defense, armor, requirements, slots, classifications, elemental fields and safe opaque attributes.
 
 ## Creature collection
@@ -258,6 +260,8 @@ condition_data nullable
 The exporter must preserve the runtime probability representation and must not assume one universal denominator.
 
 Every source and target endpoint must exist in the same snapshot. Dangling references are blocking.
+
+Schemas 1.0 and 1.1 model a bounded rational probability and therefore cannot represent every Canary configured loot threshold. Canary compares the configured threshold after schedule/rate and dynamic-factor modifiers against the runtime loot roll; values above that roll maximum are valid configuration evidence and must not be clamped, dropped, or rewritten as percentages. A later versioned schema must carry the model identifier, configured threshold, and declared roll maximum, and must be introduced consumer first.
 
 ## Datapack metadata
 

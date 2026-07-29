@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-loot-integrity
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: implementing
+status: review
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-integrity
 base_branch: main
 created: 2026-07-29T17:26:42Z
-updated: 2026-07-29T17:38:27Z
-last_verified_commit: "28f77729f8e5fa614e1e40bc9015a3221709cda6"
+updated: 2026-07-29T17:53:42Z
+last_verified_commit: "8da8ec362ea443052b5a2afc6594c008f42bf28b"
 risk: high
 related_issue: ""
 related_pr: 1010
@@ -45,7 +45,8 @@ reuses:
   - .github/workflows/game-catalog.yml
 public_interfaces:
   - oteryn.game-catalog creature_loot endpoint and chance semantics
-cross_repo_tasks: []
+cross_repo_tasks:
+  - OTERYN-20260729-game-catalog-runtime-threshold
 ---
 
 # Goal
@@ -54,16 +55,16 @@ Resolve the repository-default Game Catalog loot-integrity blocker without dropp
 
 # Acceptance criteria
 
-- [ ] Reproduce the exact default-datapack dangling-endpoint and invalid-probability findings from a final runtime export.
-- [ ] Prove whether loot-referenced appearance items with runtime IDs and names but no `items.xml` `loaded` flag belong to the final `Items` registry contract.
-- [ ] Export every valid runtime loot target as an item entity and leave no dangling loot endpoints.
-- [ ] Prove the runtime meaning of configured loot chance, `MAX_LOOTCHANCE`, schedule/rate scaling, and the dynamic factor.
-- [ ] Preserve configured loot thresholds exactly; do not silently drop, clamp, normalize, or rewrite source loot records.
-- [ ] If schema 1.1 cannot represent the proven runtime chance semantics, record an explicit versioned producer/consumer follow-up instead of weakening validation.
-- [ ] Keep deterministic ordering, atomic publication, SHA-256 sidecars, and export-only database/network isolation.
-- [ ] Add focused regression tests and run the applicable exact-head Game Catalog and repository CI.
-- [ ] Update program, module, contract, architecture, changelog, and cross-repository impact or explicitly record no change.
-- [ ] Do not import or activate a staging or production snapshot.
+- [x] Reproduce the exact default-datapack dangling-endpoint and invalid-probability findings from a final runtime export.
+- [x] Prove whether loot-referenced appearance items with runtime IDs and names but no `items.xml` `loaded` flag belong to the final `Items` registry contract.
+- [x] Export every valid runtime loot target as an item entity and leave no dangling loot endpoints.
+- [x] Prove the runtime meaning of configured loot chance, `MAX_LOOTCHANCE`, schedule/rate scaling, and the dynamic factor.
+- [x] Preserve configured loot thresholds exactly; do not silently drop, clamp, normalize, or rewrite source loot records.
+- [x] If schema 1.1 cannot represent the proven runtime chance semantics, record an explicit versioned producer/consumer follow-up instead of weakening validation.
+- [x] Keep deterministic ordering, atomic publication, SHA-256 sidecars, and export-only database/network isolation.
+- [x] Add focused regression tests and run the applicable exact-head Game Catalog and repository CI.
+- [x] Update program, module, contract, architecture, changelog, and cross-repository impact or explicitly record no change.
+- [x] Do not import or activate a staging or production snapshot.
 - [ ] Satisfy the autonomous merge gate.
 
 # Confirmed context
@@ -112,12 +113,19 @@ The endpoint and chance findings have different causes and must remain separate.
 - Validated: local ownership accepted 34 active task records before publication.
 - Result: the bounded implementation branch is established; focused tests are next.
 
+## 2026-07-29T17:53:42Z
+
+- Changed: final-registry collection now includes valid appearance-backed items without requiring the XML-only `loaded` flag; focused tests pin exact threshold preservation and the runtime roll formula.
+- Validated: Game Catalog run `30476329935` compiled the exporter, ran two deterministic export-only executions, and scanned the complete default datapack with zero dangling endpoints, exactly 92 preserved over-maximum thresholds, no output publication, and no database/network endpoint syscalls.
+- Validated: Agent Task Ownership `30476334203`, CI `30476329685`, and Universal E2E Stability `30476334223` passed on `8da8ec362ea443052b5a2afc6594c008f42bf28b`.
+- Result: the endpoint defect is resolved. Schema 1.1 remains correctly fail closed; Platform PR #310 owns consumer-first schema 1.2 and the producer change is a separate Canary task.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
 |---|---|---|
 | Keep datapack loot source read-only | No reviewed evidence authorizes rewriting 92 thresholds or 25 item identities. | none |
-| Split endpoint repair from chance-contract evolution | One is a registry collection defect; the other may require a versioned cross-repository interface. | pending evidence |
+| Split endpoint repair from chance-contract evolution | The endpoint defect is fixed independently; schema 1.1 cannot represent the modifier-dependent threshold and Platform PR #310 implements consumer-first schema 1.2. | Platform ADR 0019 |
 | Preserve raw configured thresholds | Runtime consumes the configured values with dynamic/rate modifiers. | none |
 
 # Validation and CI
@@ -126,15 +134,15 @@ Never write `passed` without verification on the stated commit.
 
 # Remaining work
 
-1. Prove appearance-backed endpoint inclusion with a focused unit test.
-2. Prove and document chance representation compatibility or create the synchronized follow-up contract task.
+1. Publish this evidence checkpoint and require all exact-final-head checks.
+2. Audit reviews and base drift, then satisfy the autonomous merge gate.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T17:34:55Z
-head: a083041e4a3ea45359bd4ba28a3332f4ea23db88
+updated_at: 2026-07-29T17:53:42Z
+head: 8da8ec362ea443052b5a2afc6594c008f42bf28b
 branch: feat/CAN-20260729-game-catalog-loot-integrity
 pr: 1010
 status: validating
@@ -154,16 +162,17 @@ proven:
   - A baseline default runtime export reports 92 chance values above the declared denominator.
   - Appearance loading assigns final runtime item IDs and names without setting the XML-specific loaded flag.
   - The implementation head includes appearance-backed items and preserves configured loot thresholds exactly.
+  - Full default-datapack runtime proof reports zero dangling endpoints and exactly 92 preserved thresholds above the schema 1.1 denominator.
+  - Export-only execution publishes no invalid output and opens no database or network endpoint syscalls.
 derived:
   - Removing the XML-only loaded filter should resolve all appearance-backed loot endpoints without source data rewrites.
   - Schema 1.1 cannot publish the 92 proven runtime thresholds because its probability validator rejects numerator values above denominator.
-unknown:
-  - Exact versioned representation required for modifier-dependent runtime loot thresholds.
+unknown: []
 conflicts:
-  - Runtime compares a dynamically modified threshold, while schema 1.1 requires a bounded static probability fraction.
+  - Schema 1.1 cannot represent the runtime threshold model; Platform PR 310 owns the consumer-first schema 1.2 representation and Canary emission remains a separate task.
 first_failure:
-  marker: agent-task-active-status
-  evidence: Agent Task Ownership run 30476054217 rejected non-active frontmatter status in-progress; implementing permits the validating checkpoint.
+  marker: none
+  evidence: The bounded endpoint defect is resolved; the distinct chance-model incompatibility is preserved as an explicit versioned follow-up rather than weakened.
 rejected_hypotheses:
   - Drop appearance-backed relations: every relation endpoint must exist and runtime already resolves these item IDs.
   - Clamp thresholds to the denominator: this would change configured runtime evidence and hide modifier semantics.
@@ -171,8 +180,11 @@ rejected_hypotheses:
 changed_paths:
   - .github/workflows/game-catalog.yml
   - docs/agents/MODULE_CATALOG.md
+  - docs/agents/CHANGELOG.md
   - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260729-game-catalog-loot-integrity.md
+  - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
+  - docs/systems/GAME_CATALOG_EXPORTER.md
   - src/game/catalog/game_catalog_exporter.cpp
   - tests/game_catalog/test_default_loot_integrity.py
   - tests/unit/game/catalog/game_catalog_test.cpp
@@ -189,8 +201,18 @@ validation:
   - command: Agent Task Ownership 30476054217
     result: FAIL
     evidence: The corrected checkpoint passed shape validation, but frontmatter used unsupported active status in-progress.
-blockers:
-  - Exact-head C++ compilation and default-datapack runtime proof are still running.
-  - Schema 1.1 probability compatibility requires a separate synchronized producer/consumer contract.
-next_action: publish the checkpoint-shape correction, require rerun ownership success, then inspect exact-head Game Catalog compilation and default-datapack endpoint evidence.
+  - command: Agent Task Ownership 30476334203
+    result: PASS
+    evidence: Ownership and active lifecycle state passed on 8da8ec362ea443052b5a2afc6594c008f42bf28b.
+  - command: CI 30476329685
+    result: PASS
+    evidence: Repository CI passed on 8da8ec362ea443052b5a2afc6594c008f42bf28b.
+  - command: Game Catalog 30476329935
+    result: PASS
+    evidence: C++ compilation, deterministic export-only smoke, and the complete default-datapack integrity proof passed on 8da8ec362ea443052b5a2afc6594c008f42bf28b.
+  - command: Universal E2E Stability Certification 30476334223
+    result: PASS
+    evidence: The exact implementation head passed the repository stability gate.
+blockers: []
+next_action: publish the final evidence checkpoint, require exact-final-head checks, audit reviews and base drift, then squash-merge PR 1010.
 ```
