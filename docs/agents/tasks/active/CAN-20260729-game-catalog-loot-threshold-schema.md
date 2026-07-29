@@ -7,7 +7,7 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 base_branch: main
 created: 2026-07-29T18:11:53Z
-updated: 2026-07-29T18:28:30Z
+updated: 2026-07-29T18:36:30Z
 last_verified_commit: "e81a1daf3e32448047118bf07f22b941658128a4"
 risk: high
 related_issue: ""
@@ -111,12 +111,17 @@ Never write `passed` without verification on the stated commit.
 - Validated: 17 focused Python tests, task ownership, checkpoint validation, immutable 1.0/1.1 hashes, and exact 1.2 schema/fixture hashes pass locally.
 - Result: exact C++ compilation and full default-datapack runtime export remain for CI.
 
+## 2026-07-29T18:36:30Z
+
+- Learned: diagnostic run `30480109834` did not reach CMake or runtime because its reusable build runner remained stuck installing Mono/NuGet.
+- Result: publish a neutral checkpoint to cancel the stuck concurrency group and obtain a fresh exact-head runner; the runtime exit-139 finding remains unresolved.
+
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T18:28:30Z
-head: e81a1daf3e32448047118bf07f22b941658128a4
+updated_at: 2026-07-29T18:36:30Z
+head: b3a51b4a805e4ad1e7c711cd6d96f0608e6eebd5
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 pr: 1012
 status: implementing
@@ -192,6 +197,9 @@ validation:
   - command: Game Catalog 30479374835
     result: FAIL
     evidence: Contract and C++ compilation passed; default-datapack runtime export exited 139. The next workflow revision captures and prints the redirected process log before propagating failure.
+  - command: Game Catalog 30480109834
+    result: NOT_RUN
+    evidence: Contract passed, but the reusable build runner remained in dependency installation and never reached CMake or the diagnostic runtime step.
 blockers: []
-next_action: publish diagnostic log capture, rerun the exact default-datapack export, and use its last runtime marker to isolate the exit-139 cause.
+next_action: publish a fresh checkpoint head, require a new Game Catalog runner, and use the captured runtime log to isolate the exit-139 cause.
 ```
