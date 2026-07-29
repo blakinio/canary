@@ -1,0 +1,108 @@
+name: Stage Game Catalog Artifact 84b089f9
+
+on:
+  push:
+    branches:
+      - staging/game-catalog-84b089f9
+    paths:
+      - '.github/workflows/stage-game-catalog-artifact-84b089f9.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_HEAD_SHA: 84b089f9a919bb85773798584e5b0205e2e5895c
+      SOURCE_RUN_ID: '30427617799'
+      SOURCE_ARTIFACT_ID: '8714331268'
+      SOURCE_ARTIFACT_DIGEST: sha256:e389915bff1f79e21cbb7b112717550587d3a556afa11e707c0036ba8b2aa5a6
+      STAGING_ROOT: staging/game-catalog/84b089f9
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: staging/game-catalog-84b089f9
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Download exact-run artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: game-catalog-export-smoke
+          path: staging-input
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+
+      - name: Verify and materialize public staging payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          for snapshot in staging-input/game-catalog-baseline.json staging-input/game-catalog.json; do
+            sidecar="${snapshot}.sha256"
+            test -f "${snapshot}"
+            test -f "${sidecar}"
+            (cd "$(dirname "${snapshot}")" && sha256sum --check "$(basename "${sidecar}")")
+          done
+
+          SOURCE_HEAD_SHA="${SOURCE_HEAD_SHA}" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path('staging-input')
+          for name in ('game-catalog-baseline.json', 'game-catalog.json'):
+              document = json.loads((root / name).read_text(encoding='utf-8'))
+              assert document['contract'] == 'oteryn.game-catalog'
+              assert document['schema_version'] == '1.0.0'
+              assert document['snapshot']['canary_commit_sha'] == os.environ['SOURCE_HEAD_SHA']
+              assert document['snapshot']['entity_count'] == len(document['entities']) > 0
+              assert document['snapshot']['relation_count'] == len(document['relations']) > 0
+          PY
+
+          rm -rf "${STAGING_ROOT}"
+          mkdir -p "${STAGING_ROOT}"
+          (
+            cd staging-input
+            find . -type f -print | LC_ALL=C sort | zip -X -q "../${STAGING_ROOT}/payload.zip" -@
+          )
+          payload_sha256="$(sha256sum "${STAGING_ROOT}/payload.zip" | awk '{print $1}')"
+          base64 -w0 "${STAGING_ROOT}/payload.zip" > "${STAGING_ROOT}/payload.b64"
+          split -b 300000 -d -a 2 "${STAGING_ROOT}/payload.b64" "${STAGING_ROOT}/payload.b64.part-"
+          rm "${STAGING_ROOT}/payload.b64" "${STAGING_ROOT}/payload.zip"
+          chunk_count="$(find "${STAGING_ROOT}" -type f -name 'payload.b64.part-*' | wc -l | tr -d ' ')"
+
+          PAYLOAD_SHA256="${payload_sha256}" CHUNK_COUNT="${chunk_count}" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          manifest = {
+              'contract': 'oteryn.game-catalog',
+              'schema_version': '1.0.0',
+              'source_repository': 'blakinio/canary',
+              'source_head_sha': os.environ['SOURCE_HEAD_SHA'],
+              'source_workflow_run_id': int(os.environ['SOURCE_RUN_ID']),
+              'source_artifact_id': int(os.environ['SOURCE_ARTIFACT_ID']),
+              'source_artifact_digest': os.environ['SOURCE_ARTIFACT_DIGEST'],
+              'payload_sha256': os.environ['PAYLOAD_SHA256'],
+              'base64_chunk_count': int(os.environ['CHUNK_COUNT']),
+              'staging_only': True,
+              'production_activation': False,
+          }
+          root = Path(os.environ['STAGING_ROOT'])
+          (root / 'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
+
+      - name: Commit staging payload and remove workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/stage-game-catalog-artifact-84b089f9.yml
+          git add "${STAGING_ROOT}"
+          git diff --cached --check
+          git commit -m 'chore(catalog): publish staging-only artifact 84b089f9'
+          git push origin HEAD:staging/game-catalog-84b089f9
