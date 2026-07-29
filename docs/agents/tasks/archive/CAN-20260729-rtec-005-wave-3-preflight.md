@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-preflight-20260729
 base_branch: main
 created: 2026-07-29T23:15:00+02:00
-updated: 2026-07-29T23:48:00+02:00
+updated: 2026-07-29T23:50:00+02:00
 last_verified_commit: "4aebd4261467aa3a545c94eb789ba6484d32a3bc"
 risk: medium
 related_issue: ""
@@ -71,10 +71,11 @@ Runtime item factory/subtype creation, item attributes, clone/equality/transform
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T23:48:00+02:00
-head: 4aebd4261467aa3a545c94eb789ba6484d32a3bc
-branch: docs/rtec-005-wave-3-preflight-20260729
-pr: 1016
+updated_at: 2026-07-29T23:50:00+02:00
+head: 5c492086703104ef0516bd1df85d72889ae0e54b
+branch: docs/archive-rtec-005-wave-3-preflight-20260729
+pr: 1019
+source_pr: 1016
 merge_sha: 09209bae26b2bb7e14346f08677e2cd8724aa7ae
 status: completed
 context_routes:
@@ -90,19 +91,22 @@ proven:
   - all selected registry and current-Canary source blobs were pinned
   - no open PR overlapped the selected roots at preflight
   - the corpus baseline remained 15 evidence records, 3 active owner requests and 12 version-history records at as_of 2026-07-29
-  - Agent Task Ownership run 30492521053 passed on exact head 4aebd4261467aa3a545c94eb789ba6484d32a3bc
-  - CI run 30492521233 passed Linux release/debug, Docker image/quickstart, Lua, Fast Checks and Required on the exact head
+  - Agent Task Ownership run 30492521053 passed on exact source head 4aebd4261467aa3a545c94eb789ba6484d32a3bc
+  - CI run 30492521233 passed Linux release/debug, Docker image/quickstart, Lua, Fast Checks and Required on the source head
   - PR 1016 squash-merged as 09209bae26b2bb7e14346f08677e2cd8724aa7ae
+  - lifecycle PR 1019 is limited to the archive add and active-record delete
+  - ci:final-gate was applied to lifecycle PR 1019 before this final checkpoint commit
 derived:
   - one coordinator task and PR must be opened before either worker branch
   - that coordinator remains the only shared-index lane and merges after both worker lifecycles
 unknown:
+  - exact lifecycle final-head workflow conclusions
   - exact worker candidate claims until their packages are submitted
   - whether a sufficiently narrow new owner request will be needed
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: run 30491838633 identified missing checkpoint ownership fields; the corrected exact head passed run 30492521053
+  evidence: run 30491838633 identified missing checkpoint ownership fields; the corrected source head passed run 30492521053
 rejected_hypotheses:
   - let workers edit shared generated indexes or the programme
   - alter existing owner requests without real owner evidence
@@ -110,13 +114,13 @@ rejected_hypotheses:
 validation:
   - command: Agent Task Ownership
     result: PASS
-    evidence: run 30492521053
+    evidence: source run 30492521053
   - command: repository full final gate
     result: PASS
-    evidence: run 30492521233
+    evidence: source run 30492521233
   - command: squash merge
     result: PASS
     evidence: PR 1016 merged as 09209bae26b2bb7e14346f08677e2cd8724aa7ae
 blockers: []
-next_action: Merge this archive-only lifecycle move, then open the RTEC-005 wave 3 coordinator task and PR before creating either worker branch.
+next_action: Verify lifecycle PR 1019 exact-head checks, mark it ready, squash-merge it, then open the RTEC-005 wave 3 coordinator task and PR before creating either worker branch.
 ```
