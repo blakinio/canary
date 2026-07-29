@@ -1,15 +1,15 @@
-# RTEC-005 chat-communication candidate review
+# RTEC-005 chat-communication coordinator review
 
-Status: **pending coordinator adjudication**
+Status: **accepted with bounded nonclaims**
 
-## Candidate checks
+## Decision
 
-- Exact registry and source blobs are pinned.
-- The claim is limited to `chat.hpp` and `chat.cpp` at `18411a50e81d857fba8cf42bfa9b1f4c67a3904a`.
-- `current-canary` proof is capped at `runtime-path-proven`.
-- Configuration, protocol/client delivery, privacy, moderation, party/guild authorization and physical gameplay remain explicit nonclaims.
-- No owner request, programme, generated global index, runtime, data, client, map, protocol, workflow or E2E path is changed.
+- Accepted record: `RT-CHAT-COMMUNICATION-0001`.
+- Accepted proof level: `runtime-path-proven`.
+- Accepted scope: the selected exact Canary channel registry, callback, membership-gating and private-channel lifecycle source path.
+- Explicitly not accepted: configured XML/Lua correctness, protocol framing, client interpretation, end-to-end delivery, privacy, moderation, party/guild authorization, physical gameplay or whole-module parity.
+- No owner request was created.
 
-## Requested coordinator decision
+## Publication
 
-Accept, request changes or reject `RT-CHAT-COMMUNICATION-0001`. Acceptance requires advancing review metadata and regenerating the published module/global indexes in the serialized coordinator lane.
+Review metadata is assigned to coordinator task `CAN-20260729-rtec-005-wave-2-coordination` / PR #1000 and the record is published through deterministic indexes at `as_of=2026-07-29`.
