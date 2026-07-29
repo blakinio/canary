@@ -71,9 +71,6 @@ jobs:
             tools/agents/test_real_tibia_evidence_lifecycle.py \
             tools/agents/test_real_tibia_owner_request.py
 
-      - name: Generate canonical publication indexes
-        run: python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-29
-
       - name: Run focused positive and negative tests
         shell: bash
         run: |
@@ -103,16 +100,6 @@ jobs:
 
       - name: Exercise factual index output
         run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-29 > /tmp/real-tibia-evidence-index.json
-
-      - name: Upload deterministic publication indexes
-        uses: actions/upload-artifact@v4
-        with:
-          name: rtec-005-wave-2-generated-indexes
-          path: |
-            docs/agents/real-tibia/evidence/modules/*/EVIDENCE_INDEX.yaml
-            docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
-          if-no-files-found: error
-          retention-days: 14
 
       - name: Verify production request dry-run stays non-mutating
         run: |
