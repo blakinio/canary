@@ -1,27 +1,50 @@
 {
   "as_of": "2026-07-29",
   "by_authority_dimension": {
-    "current-canary-behavior": ["RT-ITEM-DEFINITIONS-0002"],
-    "visible-gameplay-behavior": ["RT-ITEM-DEFINITIONS-0001"]
+    "current-canary-behavior": [
+      "RT-ITEM-DEFINITIONS-0002"
+    ],
+    "visible-gameplay-behavior": [
+      "RT-ITEM-DEFINITIONS-0001"
+    ]
   },
   "by_claim_key": {
-    "cloud-in-a-bottle-difficulty-description-correction": ["RT-ITEM-DEFINITIONS-0001"],
-    "cloud-in-a-bottle-selected-path-scan-and-loader-boundary": ["RT-ITEM-DEFINITIONS-0002"]
+    "cloud-in-a-bottle-difficulty-description-correction": [
+      "RT-ITEM-DEFINITIONS-0001"
+    ],
+    "cloud-in-a-bottle-selected-path-scan-and-loader-boundary": [
+      "RT-ITEM-DEFINITIONS-0002"
+    ]
   },
   "by_proof_level": {
-    "definition-found": ["RT-ITEM-DEFINITIONS-0001", "RT-ITEM-DEFINITIONS-0002"]
+    "definition-found": [
+      "RT-ITEM-DEFINITIONS-0001",
+      "RT-ITEM-DEFINITIONS-0002"
+    ]
   },
   "by_state": {
-    "PROVEN": ["RT-ITEM-DEFINITIONS-0001", "RT-ITEM-DEFINITIONS-0002"]
+    "PROVEN": [
+      "RT-ITEM-DEFINITIONS-0001",
+      "RT-ITEM-DEFINITIONS-0002"
+    ]
   },
-  "evidence_ids": ["RT-ITEM-DEFINITIONS-0001", "RT-ITEM-DEFINITIONS-0002"],
+  "evidence_ids": [
+    "RT-ITEM-DEFINITIONS-0001",
+    "RT-ITEM-DEFINITIONS-0002"
+  ],
   "format": "canary-real-tibia-module-evidence-index-v1",
   "module_id": "item-definitions",
-  "owner_request_ids": ["RTREQ-TCR-ITEM-DEFINITIONS-0001", "RTREQ-TCR-ITEM-DEFINITIONS-0002"],
+  "owner_request_ids": [
+    "RTREQ-TCR-ITEM-DEFINITIONS-0001",
+    "RTREQ-TCR-ITEM-DEFINITIONS-0002"
+  ],
   "record_count": 2,
   "schema_version": 1,
   "stale_evidence_ids": [],
   "superseded_evidence_ids": [],
   "unresolved_conflict_ids": [],
-  "version_history_ids": ["RTVH-ITEM-DEFINITIONS-0001", "RTVH-ITEM-DEFINITIONS-0002"]
+  "version_history_ids": [
+    "RTVH-ITEM-DEFINITIONS-0001",
+    "RTVH-ITEM-DEFINITIONS-0002"
+  ]
 }
