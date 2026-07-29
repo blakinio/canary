@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-loot-integrity
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: in-progress
+status: implementing
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-integrity
 base_branch: main
 created: 2026-07-29T17:26:42Z
-updated: 2026-07-29T17:30:37Z
-last_verified_commit: "d8e3aeafe93d44f2949ec25f84293b943606389b"
+updated: 2026-07-29T17:38:27Z
+last_verified_commit: "28f77729f8e5fa614e1e40bc9015a3221709cda6"
 risk: high
 related_issue: ""
 related_pr: 1010
@@ -162,8 +162,8 @@ unknown:
 conflicts:
   - Runtime compares a dynamically modified threshold, while schema 1.1 requires a bounded static probability fraction.
 first_failure:
-  marker: agent-task-checkpoint-shape
-  evidence: Agent Task Ownership run 30475914811 rejected nine missing required checkpoint fields.
+  marker: agent-task-active-status
+  evidence: Agent Task Ownership run 30476054217 rejected non-active frontmatter status in-progress; implementing permits the validating checkpoint.
 rejected_hypotheses:
   - Drop appearance-backed relations: every relation endpoint must exist and runtime already resolves these item IDs.
   - Clamp thresholds to the denominator: this would change configured runtime evidence and hide modifier semantics.
@@ -186,6 +186,9 @@ validation:
   - command: Agent Task Ownership 30475914811
     result: FAIL
     evidence: The implementation was accepted, but the task checkpoint omitted required schema fields.
+  - command: Agent Task Ownership 30476054217
+    result: FAIL
+    evidence: The corrected checkpoint passed shape validation, but frontmatter used unsupported active status in-progress.
 blockers:
   - Exact-head C++ compilation and default-datapack runtime proof are still running.
   - Schema 1.1 probability compatibility requires a separate synchronized producer/consumer contract.
