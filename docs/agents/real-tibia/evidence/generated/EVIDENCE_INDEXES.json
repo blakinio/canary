@@ -1,8 +1,7 @@
 {
   "active_owner_requests": [
     "RTREQ-FEATURE-VOCATIONS-0001",
-    "RTREQ-TCR-ITEM-DEFINITIONS-0001",
-    "RTREQ-TCR-ITEM-DEFINITIONS-0002"
+    "RTREQ-TCR-ITEM-DEFINITIONS-0001"
   ],
   "as_of": "2026-07-29",
   "evidence_by_authority_dimension": {
@@ -19,6 +18,9 @@
     ],
     "historical-version": [
       "RT-VOCATIONS-0002"
+    ],
+    "implementation-candidate": [
+      "RT-ITEM-DEFINITIONS-0003"
     ],
     "official-feature-identity": [
       "RT-VOCATIONS-0001",
@@ -42,7 +44,8 @@
     ],
     "item-definitions": [
       "RT-ITEM-DEFINITIONS-0001",
-      "RT-ITEM-DEFINITIONS-0002"
+      "RT-ITEM-DEFINITIONS-0002",
+      "RT-ITEM-DEFINITIONS-0003"
     ],
     "parties": [
       "RT-PARTIES-0001",
@@ -94,6 +97,17 @@
         "RT-VOCATIONS-0004",
         "RT-VOCATIONS-0005",
         "RTVH-VOCATIONS-0002"
+      ],
+      "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce": [
+        "RT-ITEM-DEFINITIONS-0003"
+      ]
+    },
+    "official_client_build": {
+      "15.25.bd5a04": [
+        "RT-ITEM-DEFINITIONS-0003"
+      ],
+      "15.31.69f220": [
+        "RT-ITEM-DEFINITIONS-0003"
       ]
     },
     "official_tibia_release": {
@@ -136,7 +150,7 @@
     }
   },
   "format": "canary-real-tibia-generated-indexes-v1",
-  "input_sha256": "db429a8457558406e30cf2d9010938b00a93c5358f6178046d2e9972642033e3",
+  "input_sha256": "ce3349103cedc0d9cc8773415ca757eb92d3770fb5e15a79dcf20212e32282ae",
   "nonclaims": [
     "No overall parity percentage is generated.",
     "No release approval or whole-game parity claim is generated.",
@@ -180,6 +194,15 @@
       "current-canary-behavior": {
         "evidence_ids": [
           "RT-ITEM-DEFINITIONS-0002"
+        ],
+        "evidence_states": [
+          "PROVEN"
+        ],
+        "proof_level": "definition-found"
+      },
+      "implementation-candidate": {
+        "evidence_ids": [
+          "RT-ITEM-DEFINITIONS-0003"
         ],
         "evidence_states": [
           "PROVEN"
@@ -279,7 +302,7 @@
   },
   "schema_version": 1,
   "source_counts": {
-    "evidence_records": 15,
+    "evidence_records": 16,
     "owner_requests": 3,
     "version_history_records": 12
   },

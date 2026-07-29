@@ -1,0 +1,60 @@
+{
+  "applicability": {
+    "announced_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No announcement boundary is established by retained client-reference evidence."], "upper_bound": null},
+    "changed_in": [{"evidence_refs": ["RT-ITEM-DEFINITIONS-0003"], "exact": {"appearances_items_revision": null, "canary_commit": "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce", "database_schema_revision": null, "datapack_revision": null, "maintained_otclient_commit": null, "map_sha256": null, "official_client_build": "15.31.69f220", "official_tibia_release": null, "protocol_profile": null, "spawn_npc_sidecar_revision": null}, "lower_bound": null, "mode": "EXACT", "notes": ["The current retained snapshot differs from baseline in package metadata, StaticData and proficiency source identity."], "upper_bound": null}],
+    "deprecated_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No deprecation boundary is established."], "upper_bound": null},
+    "effective_from": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["Retained reference evidence does not establish a runtime effective boundary."], "upper_bound": null},
+    "effective_until": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No effective-until boundary is established."], "upper_bound": null},
+    "introduced_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["The retained snapshots do not establish feature introduction."], "upper_bound": null},
+    "observed_in": [
+      {"evidence_refs": ["RT-ITEM-DEFINITIONS-0003"], "exact": {"appearances_items_revision": null, "canary_commit": "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce", "database_schema_revision": null, "datapack_revision": null, "maintained_otclient_commit": null, "map_sha256": null, "official_client_build": "15.25.bd5a04", "official_tibia_release": null, "protocol_profile": null, "spawn_npc_sidecar_revision": null}, "lower_bound": null, "mode": "EXACT", "notes": ["Baseline retained snapshot A with complete manifest-to-index hash closure."], "upper_bound": null},
+      {"evidence_refs": ["RT-ITEM-DEFINITIONS-0003"], "exact": {"appearances_items_revision": null, "canary_commit": "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce", "database_schema_revision": null, "datapack_revision": null, "maintained_otclient_commit": null, "map_sha256": null, "official_client_build": "15.31.69f220", "official_tibia_release": null, "protocol_profile": null, "spawn_npc_sidecar_revision": null}, "lower_bound": null, "mode": "EXACT", "notes": ["Current retained snapshot B with complete manifest-to-index hash closure."], "upper_bound": null}
+    ],
+    "removed_in": {"evidence_refs": [], "exact": null, "lower_bound": null, "mode": "UNKNOWN", "notes": ["No removal boundary is established."], "upper_bound": null}
+  },
+  "authority_dimension": "implementation-candidate",
+  "claim_key": "tcr-client-reference-two-snapshot-retained-evidence",
+  "claim_statement": "Two distinct exact retained Tibia client-reference snapshot sets exist for declared builds 15.25.bd5a04 and 15.31.69f220, each with a final manifest, bootstrap manifest, StaticData index, StaticMapData index and proficiency index bound by exact SHA-256 and the merged parser revision b68fbf7bf26b57f0cf716abffb52cfa951fa66ce.",
+  "confidence": "HIGH",
+  "conflict_refs": [],
+  "current_canary_comparison": {
+    "baseline": {"appearances_items_revision": null, "canary_commit": "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce", "database_schema_revision": null, "datapack_revision": null, "maintained_otclient_commit": null, "map_sha256": null, "official_client_build": null, "official_tibia_release": null, "protocol_profile": null, "spawn_npc_sidecar_revision": null},
+    "current_behavior": null,
+    "differences": [],
+    "exact_paths": ["tools/ai-agent/tibia_client_reference_manifest.py", "tools/ai-agent/tibia_staticdata_reference_index.py", "tools/ai-agent/tibia_staticmapdata_reference_index.py", "tools/ai-agent/tibia_proficiency_reference_index.py"],
+    "exact_symbols": [],
+    "missing_proof": ["Gameplay, runtime, persistence, protocol, client and physical E2E impact of the observed reference drift.", "Appearance or asset drift, which remains under canonical appearance and asset comparison owners.", "Any authorization to mutate OTBM, datapack, runtime or production state."],
+    "state": "not-assessed"
+  },
+  "does_not_prove": ["The retained manifests and indexes do not prove gameplay correctness, runtime behavior or regression impact.", "The retained evidence does not prove OTBM item-ID equivalence, map authority or mutation safety.", "The retained evidence does not authorize release, staging or production activation."],
+  "evidence_id": "RT-ITEM-DEFINITIONS-0003",
+  "evidence_state": "PROVEN",
+  "format": "canary-real-tibia-evidence-record-v1",
+  "freshness": {"invalid_after_days": 90, "invalidation_triggers": ["Either retained snapshot manifest, bootstrap manifest or index report is replaced or removed.", "The selected source package bytes or recorded SHA-256 values change.", "The manifest, StaticData, StaticMapData, proficiency or drift parser contract changes."], "observed_or_verified_at": "2026-07-29", "policy": "owner-result-lifecycle", "warning_after_days": 30},
+  "module_id": "item-definitions",
+  "owner_request_refs": ["RTREQ-TCR-ITEM-DEFINITIONS-0002"],
+  "proof_level": "definition-found",
+  "proves": ["Snapshot A reference tcr009.snapshot-a.15.25.bd5a04 has final manifest SHA-256 6096b021ca21d911165f89bfc714f558fc7efde0a455855caed071852ccfcee1.", "Snapshot B reference tcr009.snapshot-b.15.31.69f220 has final manifest SHA-256 54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53.", "All six retained index reports bind to their bootstrap manifests, selected input paths, sizes and SHA-256 values and close through the final-manifest generated-index hashes.", "The two retained snapshot sets are eligible exact inputs to canary-tibia-client-reference-drift-v1."],
+  "record_status": "accepted",
+  "related_modules": ["otbm-tooling", "weapon-proficiency"],
+  "review": {"notes": ["Review verified archive hashes, selected input sizes, report source bindings, bootstrap manifest bindings and final generated-index closure.", "The retained evidence summary and drift report remain outside Git; only stable SHA-256 references are published.", "Proof is capped at definition-found and does not authorize gameplay or mutation conclusions."], "pr": 1018, "reviewed_at": "2026-07-29T23:45:00+02:00", "reviewer": "TCR-009 owner / ChatGPT", "status": "accepted", "task_id": "CAN-20260729-tcr-009-client-reference-drift"},
+  "schema_version": 1,
+  "sources": [{
+    "author": "TCR-009 owner",
+    "does_not_prove": ["Exact retained reference comparison does not prove gameplay, runtime, protocol, map or physical-client parity.", "The owner result does not authorize mutation or production activation."],
+    "external_artifact": {"byte_size": 20740, "filename": "tcr009-two-snapshot-retained-evidence.json", "retained_outside_git": true, "sha256": "6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431"},
+    "limitations": ["Proprietary source packages and retained generated reports remain outside Git.", "Build evidence is declared package metadata, not inferred as proven deployment identity."],
+    "locator": {"artifact_sha256": "6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431", "build": "15.25.bd5a04 -> 15.31.69f220", "commit_sha": "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce", "report_id": "external-report:sha256:6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431", "repository": "blakinio/canary", "repository_path": null, "url": null},
+    "observation_date": "2026-07-29",
+    "proof_level_reached": "definition-found",
+    "proves": ["Two distinct complete retained snapshot sets exist with exact manifest/index provenance and hash closure.", "The retained evidence is sufficient to remove TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS."],
+    "publication_date": null,
+    "role": "implementation-candidate",
+    "selected": {"files": [], "observations": ["Snapshot A and B retained manifests and six reports were independently revalidated without mutating source inputs.", "StaticData changes from legacy to newer while StaticMapData source identity is unchanged."], "sections": ["retained snapshot summary", "cross-snapshot compatibility", "manifest-to-index hash closure"], "symbols": []},
+    "source_id": "tcr009-retained-two-snapshot-owner-result",
+    "source_type": "tcr-owner-result"
+  }],
+  "superseded_by": [],
+  "supersedes": [],
+  "uncertainty": ["The gameplay or runtime impact of the 27 observed reference findings remains unresolved.", "Appearance and asset changes are outside the retained TCR-009 input set."]
+}
