@@ -206,13 +206,15 @@ Item::items final loaded registry
 
 Responsibilities:
 
-- iterate only valid registered item types;
+- iterate valid final-registry item types with a nonzero runtime ID and nonempty name;
 - collect final values after appearance and XML/custom overlays;
 - assign stable canonical keys using reviewed rules;
 - preserve namespaced numeric identifiers;
 - attach reviewed version/availability metadata;
 - produce explicit `unverified`/`unknown` states when metadata is absent;
 - avoid exporting reserved/invalid sprite placeholders as normal public items.
+
+`ItemType::loaded` indicates that an `items.xml` overlay was parsed. It is not a final-registry membership flag: appearance-backed records can be valid runtime loot endpoints without that overlay and must be exported.
 
 Canonical identity cannot rely solely on display name or current server ID. Any collision is blocking and must be resolved through reviewed manifest identity metadata.
 
@@ -246,12 +248,14 @@ Responsibilities:
 
 - create one or more deterministic relations for each runtime loot entry;
 - resolve item targets against exported item entities;
-- preserve probability numerator/denominator and count bounds;
+- preserve the configured loot threshold and count bounds without clamping or dropping source records;
 - preserve nested container information through `container_path` or a later versioned structure;
 - reject unresolved item endpoints;
 - apply relation-specific version/completeness metadata.
 
 A loot relation may have a later introduction version than both its creature and item.
+
+The default runtime compares the configured threshold after schedule/rate scaling and a dynamic factor against `getLootRandom()`. Schemas 1.0 and 1.1 expose only a bounded rational probability, so thresholds above the declared denominator remain a fail-closed publication blocker. Schema evolution must be consumer first and must identify the runtime model plus its configured threshold and roll maximum; the exporter must not reinterpret those values as a context-free percentage.
 
 ## Version model
 

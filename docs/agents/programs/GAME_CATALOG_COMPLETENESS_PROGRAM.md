@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T16:41:22Z
-last_verified_commit: "5ab9d1288875d2318d4943652caa76a9e774bcfb"
+updated: 2026-07-29T17:30:37Z
+last_verified_commit: "d8e3aeafe93d44f2949ec25f84293b943606389b"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -57,12 +57,11 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | ready | Pass the full exact-final-head gate, audit reviews and main drift, then squash-merge without another commit. |
+| `CAN-20260729-game-catalog-loot-integrity` | `feat/CAN-20260729-game-catalog-loot-integrity` | #1010 | in-progress | Add focused tests for appearance-backed endpoint inclusion and exact threshold preservation. |
 
 # Queue
 
-1. Complete `CAN-20260729-game-catalog-metadata-evidence`: bounded reviewed release/versioning/availability manifests and deterministic validation, without production activation.
-2. Repair or explicitly resolve default-datapack loot endpoint and probability integrity in a separate evidence-backed task.
+1. Complete `CAN-20260729-game-catalog-loot-integrity`: repair final-registry endpoints and explicitly resolve modifier-dependent chance representation without source rewrites.
 3. Add NPCs and shop offers in a new versioned producer/consumer contract task.
 4. Add spells in a separate versioned contract task.
 5. Add quests and rewards in a separate versioned contract task.
@@ -79,6 +78,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 | `CAN-20260728-game-catalog-exporter` / #991 | Deterministic offline item, creature, and loot exporter | `4ae896d9c6ad33e4193a314f47daeff9ea4ac66b` | Start reviewed metadata evidence. |
 | `OTERYN-20260729-game-catalog-null-boundary` / Platform #299 | Schema 1.1 storage/import and activation guard | `b2b2871eed0375e22d48de5dd4947fe29c2bb974` | Merge producer support. |
 | `CAN-20260729-game-catalog-schema-1-1` / #1006 | Schema 1.1 producer with explicit unknown verified boundary | `3ad7155dd833e105cebfd4b472800a4156ac1e90` | Publish reviewed metadata. |
+| `CAN-20260729-game-catalog-metadata-evidence` / #1005 | Bounded repository-default Dragon/dragon-shield metadata seed | `9926b69728ed2945a5c957047447b537dcec4dbe` | Resolve default-datapack loot integrity before staging. |
 
 # Dependencies and blockers
 

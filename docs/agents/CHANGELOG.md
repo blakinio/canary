@@ -4,6 +4,8 @@ Curated behavior/architecture log for discovery; not a replacement for Git histo
 
 ## Unreleased
 
+- Fixes Game Catalog item collection to include valid appearance-backed final-registry items even when they have no `items.xml` enrichment, eliminating all 53 default-datapack dangling loot relations without rewriting source data. The full runtime proof preserves exactly 92 configured loot thresholds above the schema 1.1 denominator and keeps publication fail closed; Platform PR #310 owns the consumer-first schema 1.2 threshold model before a separate Canary producer task may emit it. No snapshot is imported or activated.
+
 - Adds the first repository-default Game Catalog schema `1.1.0` metadata seed for item `3416` (dragon shield), creature `dragon`, and runtime loot key `dragon|3416|20`: historical bounds and completeness remain null/unverified, repository spawn and loot sources prove only `encounterable`/`obtainable`, and exact-head CI performs two bounded real-Dragon exports with schema, sidecar, determinism, and no-network/no-database syscall checks. Full `data-otservbr-global` export remains fail closed on separately tracked pre-existing loot endpoint/probability integrity findings; no profile is imported or activated.
 
 - Adds Game Catalog schema `1.1.0` support for `verified_content_through_release=null` without changing schema `1.0.0`, keeps null as unknown evidence, and documents a consumer-first rollout with Platform PR #299 while preserving deterministic offline export and the separate activation gate.

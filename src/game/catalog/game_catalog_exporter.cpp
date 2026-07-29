@@ -311,7 +311,7 @@ namespace game_catalog {
 		std::unordered_map<std::uint16_t, std::size_t> wareIdCounts;
 		for (std::size_t id = 0; id < items.size(); ++id) {
 			const auto &item = items.getItemType(id);
-			if (item.loaded && item.id != 0 && !item.name.empty() && item.wareId != 0) {
+			if (item.id != 0 && !item.name.empty() && item.wareId != 0) {
 				++wareIdCounts[item.wareId];
 			}
 		}
@@ -324,7 +324,7 @@ namespace game_catalog {
 
 		for (std::size_t id = 0; id < items.size(); ++id) {
 			const auto &item = items.getItemType(id);
-			if (!item.loaded || item.id == 0 || item.name.empty()) {
+			if (item.id == 0 || item.name.empty()) {
 				continue;
 			}
 			const std::string sourceKey = std::to_string(item.id);

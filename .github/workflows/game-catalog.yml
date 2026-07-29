@@ -376,6 +376,61 @@ jobs:
           assert loot['data']['chance_denominator'] == 100000
           PY
 
+      - name: Prove default-datapack endpoint integrity and preserve chance blocker
+        shell: bash
+        env:
+          CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          path = Path('config.lua')
+          config = path.read_text(encoding='utf-8')
+          pattern = re.compile(r'^dataPackDirectory\s*=.*$', re.MULTILINE)
+          if len(pattern.findall(config)) != 1:
+              raise RuntimeError('Expected exactly one dataPackDirectory setting')
+          config = pattern.sub('dataPackDirectory = "data-otservbr-global"', config, count=1)
+          path.write_text(config, encoding='utf-8', newline='\n')
+          PY
+
+          output=artifacts/game-catalog-smoke/default-datapack.json
+          trace=artifacts/game-catalog-smoke/default-datapack.trace
+          log=artifacts/game-catalog-smoke/default-datapack.log
+          set +e
+          timeout 900s strace -f -qq \
+            -e trace=connect,bind,listen,accept,accept4 \
+            -o "${trace}" \
+            build/linux-release/bin/canary \
+              --export-game-catalog-only \
+              --game-catalog-output="${output}" \
+              --game-catalog-manifest-directory=data-otservbr-global/catalog \
+              --game-catalog-generated-at=2026-07-29T00:00:00Z \
+              --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
+            >"${log}" 2>&1
+          status=$?
+          set -e
+
+          cat "${log}"
+          if [[ ${status} -eq 0 ]]; then
+            echo 'Default-datapack export unexpectedly passed before chance-contract resolution.' >&2
+            exit 1
+          fi
+          if grep -q 'dangling endpoint' "${log}"; then
+            echo 'Default-datapack export still contains dangling loot endpoints.' >&2
+            exit 1
+          fi
+          [[ $(grep -c 'Relation has an invalid probability:' "${log}") -eq 92 ]]
+          [[ ! -e "${output}" ]]
+          [[ ! -e "${output}.sha256" ]]
+          if [[ -s "${trace}" ]]; then
+            cat "${trace}" >&2
+            echo 'Default-datapack diagnostic attempted a database or network endpoint syscall.' >&2
+            exit 1
+          fi
+
       - name: Upload smoke evidence
         if: always()
         uses: actions/upload-artifact@v7
