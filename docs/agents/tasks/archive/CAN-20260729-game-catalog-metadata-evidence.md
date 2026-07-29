@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-metadata-evidence
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: ready
+status: completed
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T16:41:22Z
-last_verified_commit: "5ab9d1288875d2318d4943652caa76a9e774bcfb"
+updated: 2026-07-29T17:08:11Z
+last_verified_commit: "9926b69728ed2945a5c957047447b537dcec4dbe"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -41,6 +41,7 @@ public_interfaces:
   - oteryn.game-catalog schema 1.1.0 metadata semantics
 cross_repo_tasks:
   - OTERYN-20260729-game-catalog-null-boundary
+completed: 2026-07-29T17:08:11Z
 ---
 
 # Goal
@@ -323,3 +324,11 @@ Read root and nested agent rules, the program record, this checkpoint, PR #991's
 - Catalogue updated: yes
 - Changelog updated: yes
 - Archived at: not archived
+
+## Automated lifecycle completion
+
+- Feature PR: #1005.
+- Feature head: `c952e808c49b82d609e8531845df59710f9d28cf`.
+- Merge commit: `9926b69728ed2945a5c957047447b537dcec4dbe`.
+- Merged at: `2026-07-29T17:08:11Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
