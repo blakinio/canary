@@ -1,0 +1,272 @@
+name: Game Catalog
+
+# Exact-head executable proof for the offline exporter.
+on:
+  pull_request:
+    paths:
+      - 'schemas/game-catalog/**'
+      - 'src/game/catalog/**'
+      - 'src/main.cpp'
+      - 'src/canary_server.hpp'
+      - 'src/canary_server.cpp'
+      - 'src/game/CMakeLists.txt'
+      - 'tests/unit/game/catalog/**'
+      - 'tests/unit/game/CMakeLists.txt'
+      - 'tools/game-catalog/**'
+      - 'tests/game_catalog/**'
+      - 'data-*/catalog/**'
+      - 'docs/agents/tasks/active/CAN-20260728-game-catalog-exporter.md'
+      - '.github/workflows/game-catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-catalog-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Contract and fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile validator
+        run: python -m py_compile tools/game-catalog/validate_snapshot.py tests/game_catalog/test_validate_snapshot.py
+      - name: Run focused tests
+        run: python -m unittest discover -s tests/game_catalog -p 'test_*.py' -v
+      - name: Validate shared fixture
+        run: >-
+          python tools/game-catalog/validate_snapshot.py
+          tests/game_catalog/fixtures/minimal-snapshot.json
+          --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+          --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
+
+  build-exporter:
+    name: Build export binary
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/reusable-build-linux.yml
+    with:
+      buildtypes: '["linux-release"]'
+      run_canary_smoke: false
+      run_global_smoke: false
+      checkout_ref: ${{ github.event.pull_request.head.sha || github.sha }}
+    secrets: inherit
+
+  export-smoke:
+    name: Export-only runtime smoke
+    needs: [contract, build-exporter]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Download export binary
+        uses: actions/download-artifact@v7
+        with:
+          name: canary-linux-release
+          path: build/linux-release/bin
+
+      - name: Install smoke dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y strace
+
+      - name: Prepare isolated export inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x build/linux-release/bin/canary
+          rm -rf artifacts/game-catalog-smoke
+          mkdir -p \
+            artifacts/game-catalog-smoke/manifests \
+            artifacts/game-catalog-smoke/runtime-datapack
+
+          cp -a data-canary/lib artifacts/game-catalog-smoke/runtime-datapack/lib
+          cp -a tests/game_catalog/runtime-datapack/monster artifacts/game-catalog-smoke/runtime-datapack/monster
+          cp -a tests/game_catalog/runtime-datapack/scripts artifacts/game-catalog-smoke/runtime-datapack/scripts
+
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          config = Path('config.lua.dist').read_text(encoding='utf-8')
+          replacements = {
+              'useAnyDatapackFolder': 'true',
+              'dataPackDirectory': '"artifacts/game-catalog-smoke/runtime-datapack"',
+              'mapDownloadUrl': '""',
+              'toggleDownloadMap': 'false',
+              'toggleMapCustom': 'false',
+              'startupDatabaseOptimization': 'false',
+              'mysqlDatabaseBackup': 'false',
+              'toggleSaveInterval': 'false',
+              'ip': '"127.0.0.1"',
+              'mysqlHost': '"127.0.0.1"',
+              'mysqlUser': '"catalog-ci"',
+              'mysqlPass': '"catalog-ci"',
+              'mysqlDatabase': '"catalog_ci"',
+              'mysqlPort': '1',
+              'mysqlSock': '""',
+              'metricsEnablePrometheus': 'false',
+              'metricsEnableOstream': 'false',
+          }
+          for key, value in replacements.items():
+              pattern = re.compile(rf'^{re.escape(key)}\s*=.*$', re.MULTILINE)
+              if len(pattern.findall(config)) != 1:
+                  raise RuntimeError(f'Expected exactly one config key: {key}')
+              config = pattern.sub(f'{key} = {value}', config, count=1)
+          Path('config.lua').write_text(config, encoding='utf-8', newline='\n')
+
+          manifest_dir = Path('artifacts/game-catalog-smoke/manifests')
+          profile = {
+              'contract': 'oteryn.game-catalog',
+              'schema_version': '1.0.0',
+              'protocol_profile': 'oteryn-current',
+              'runtime_release': '0.0.1-ci',
+              'content_target_release': '0.0.1-ci',
+              'verified_content_through_release': '0.0.1-ci',
+              'contains_content_through_release': None,
+              'loot_chance_denominator': 100000,
+              'datapack_commit_sha': None,
+              'producer_build_id': 'github-actions-game-catalog-smoke',
+          }
+          releases = [{
+              'key': '0.0.1-ci',
+              'display_label': 'CI smoke 0.0.1',
+              'major': 0,
+              'minor': 0,
+              'patch': 1,
+              'build': None,
+              'release_order': 1,
+              'protocol_family': 'oteryn-current',
+              'released_at': None,
+          }]
+          (manifest_dir / 'profile.json').write_text(json.dumps(profile, indent=2) + '\n', encoding='utf-8')
+          (manifest_dir / 'releases.json').write_text(json.dumps(releases, indent=2) + '\n', encoding='utf-8')
+          PY
+
+      - name: Run export-only binary twice without database or network endpoints
+        shell: bash
+        env:
+          CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          run_export() {
+            local output="$1"
+            local generated_at="$2"
+            local trace="$3"
+            local log="$4"
+
+            timeout 900s strace -f -qq \
+              -e trace=connect,bind,listen,accept,accept4 \
+              -o "${trace}" \
+              build/linux-release/bin/canary \
+                --export-game-catalog-only \
+                --game-catalog-output="${output}" \
+                --game-catalog-manifest-directory=artifacts/game-catalog-smoke/manifests \
+                --game-catalog-generated-at="${generated_at}" \
+                --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
+              >"${log}" 2>&1
+          }
+
+          run_export \
+            artifacts/game-catalog-smoke/game-catalog-baseline.json \
+            2026-07-27T00:00:00Z \
+            artifacts/game-catalog-smoke/network-baseline.trace \
+            artifacts/game-catalog-smoke/export-baseline.log
+
+          run_export \
+            artifacts/game-catalog-smoke/game-catalog.json \
+            2026-07-28T00:00:00Z \
+            artifacts/game-catalog-smoke/network.trace \
+            artifacts/game-catalog-smoke/export.log
+
+          for log in artifacts/game-catalog-smoke/export-baseline.log artifacts/game-catalog-smoke/export.log; do
+            cat "${log}"
+            grep -q 'Game Catalog export completed:' "${log}"
+            if grep -Eq 'Database not initialized|Saving server|Shutting down thread pool|Failed to save' "${log}"; then
+              echo 'Export-only mode entered a database-backed save/shutdown path.' >&2
+              exit 1
+            fi
+          done
+
+          for trace in artifacts/game-catalog-smoke/network-baseline.trace artifacts/game-catalog-smoke/network.trace; do
+            if [[ -s "${trace}" ]]; then
+              cat "${trace}" >&2
+              echo 'Export-only mode attempted a database or network endpoint syscall.' >&2
+              exit 1
+            fi
+          done
+
+      - name: Validate runtime snapshots and sidecars
+        shell: bash
+        env:
+          CATALOG_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          for output in \
+            artifacts/game-catalog-smoke/game-catalog-baseline.json \
+            artifacts/game-catalog-smoke/game-catalog.json; do
+            sidecar="${output}.sha256"
+            python3 tools/game-catalog/validate_snapshot.py \
+              "${output}" \
+              --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json
+            (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${sidecar}")")
+            grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${sidecar}"
+          done
+
+          python3 - <<'PY'
+          import copy
+          import json
+          import os
+          from pathlib import Path
+
+          directory = Path('artifacts/game-catalog-smoke')
+          baseline = json.loads((directory / 'game-catalog-baseline.json').read_text(encoding='utf-8'))
+          candidate = json.loads((directory / 'game-catalog.json').read_text(encoding='utf-8'))
+
+          for document, generated_at in [
+              (baseline, '2026-07-27T00:00:00Z'),
+              (candidate, '2026-07-28T00:00:00Z'),
+          ]:
+              snapshot = document['snapshot']
+              assert snapshot['canary_commit_sha'] == os.environ['CATALOG_HEAD_SHA']
+              assert snapshot['generated_at'] == generated_at
+              assert snapshot['entity_count'] == len(document['entities']) > 0
+              assert snapshot['relation_count'] == len(document['relations']) > 0
+              assert {'item', 'creature'} <= {entity['type'] for entity in document['entities']}
+
+          normalized_baseline = copy.deepcopy(baseline)
+          normalized_candidate = copy.deepcopy(candidate)
+          normalized_baseline['snapshot']['generated_at'] = 'normalized'
+          normalized_candidate['snapshot']['generated_at'] = 'normalized'
+          assert normalized_baseline == normalized_candidate
+          assert (directory / 'game-catalog-baseline.json').read_bytes() != (directory / 'game-catalog.json').read_bytes()
+          PY
+
+      - name: Upload smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-catalog-export-smoke
+          path: artifacts/game-catalog-smoke/
+          if-no-files-found: error

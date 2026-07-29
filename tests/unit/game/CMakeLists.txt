@@ -10,6 +10,7 @@ target_sources(
             player_stats_test.cpp
             spawn_monster_test.cpp
             use_with_policy_test.cpp
+            catalog/game_catalog_test.cpp
             instance/instance_manager_test.cpp
             instance/instance_region_pool_test.cpp
             instance/instance_creature_ownership_policy_test.cpp

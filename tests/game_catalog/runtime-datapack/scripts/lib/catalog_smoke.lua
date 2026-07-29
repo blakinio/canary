@@ -1,0 +1,2 @@
+-- Intentionally empty. The runtime smoke datapack keeps the production
+-- datapack library loading boundary without importing persistent-state scripts.

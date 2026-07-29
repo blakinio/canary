@@ -9,10 +9,13 @@
 
 #include "canary_server.hpp"
 #include "core.hpp"
+#include "game/catalog/catalog_export_options.hpp"
 #include "game/multichannel/channel_context.hpp"
 #include "lib/di/container.hpp"
 
 #ifndef USE_PRECOMPILED_HEADERS
+	#include <cstdio>
+	#include <cstdlib>
 	#include <span>
 	#include <string_view>
 #endif
@@ -28,11 +31,27 @@ namespace {
 		}
 		return false;
 	}
+
+	[[noreturn]] void exitCatalogProcess(const int status) {
+		std::fflush(nullptr);
+		std::_Exit(status);
+	}
 }
 
 int main(int argc, char* argv[]) {
-	auto &server = inject<CanaryServer>();
 	const std::span<char*> arguments(argv, static_cast<std::size_t>(argc));
+	const auto catalogExport = game_catalog::parseExportOptions(arguments);
+	if (catalogExport.requested) {
+		if (!catalogExport.error.empty() || !catalogExport.options) {
+			g_logger().error("[GameCatalog] Invalid export arguments: {}", catalogExport.error);
+			exitCatalogProcess(EXIT_FAILURE);
+		}
+
+		auto &server = inject<CanaryServer>();
+		exitCatalogProcess(server.exportGameCatalogOnly(*catalogExport.options));
+	}
+
+	auto &server = inject<CanaryServer>();
 
 	// Resolves this process's multi-channel cluster identity (--channel-id
 	// CLI arg > CANARY_CHANNEL_ID env > single-channel fallback) before
