@@ -8,9 +8,9 @@
 - Registry blob: `d736ff891a48315aa4bd7c34a5a553ca1d31ffd3`.
 - Source blobs: `chat.cpp@152a40857f4b184e968eb51601a75634d8d37946`, `chat.hpp@09f8a727fef239b95b1bb5da20356801769732f0`.
 - Verification date: `2026-07-29`.
-- Dossier state: `candidate` (bounded source claim only).
+- Dossier state: `accepted` (bounded source claim only).
 
-This candidate covers only the exact current Canary channel registry, callback, membership and private-channel lifecycle source path. It does not claim configured data correctness, protocol/client delivery, privacy, moderation, party/guild authorization or Real Tibia parity.
+This dossier covers only the exact current Canary channel registry, callback, membership and private-channel lifecycle source path. It does not claim configured data correctness, protocol/client delivery, privacy, moderation, party/guild authorization or Real Tibia parity.
 
 ## Bounded finding
 
@@ -20,8 +20,8 @@ This candidate covers only the exact current Canary channel registry, callback, 
 
 | ID | Claim | State | Proof | Publication |
 |---|---|---|---|---|
-| `RT-CHAT-COMMUNICATION-0001` | current Canary channel registry, callback, membership and private lifecycle path | `PROVEN` | `runtime-path-proven` | `review-needed` |
+| `RT-CHAT-COMMUNICATION-0001` | current Canary channel registry, callback, membership and private lifecycle path | `PROVEN` | `runtime-path-proven` | `accepted` |
 
 ## Review boundary
 
-The candidate proves a source-level path only. Configuration content, packet encoding, client behavior, delivery, privacy, moderation, authorization and physical gameplay remain nonclaims.
+The record proves a source-level path only. Configuration content, packet encoding, client behavior, delivery, privacy, moderation, authorization and physical gameplay remain nonclaims. The accepted bounded record is published in the 2026-07-29 module/global indexes.
