@@ -5,8 +5,8 @@ name: OTBM Tibia Client Reference Programme
 status: active
 owner: OTBM analysis tooling / Real Tibia parity
 created: 2026-07-23T10:00:00+02:00
-updated: 2026-07-24T21:31:25Z
-last_verified_commit: "89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed"
+updated: 2026-07-28T23:33:00+02:00
+last_verified_commit: "8a88e2f09257e620985770e5e053381df32f916d"
 primary_paths:
   - docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
@@ -150,10 +150,10 @@ Mandatory reuse before implementation:
 | TCR-005 | OTBM House Reference Parity | merged | `canary-otbm-house-id-resolver-v1` + `canary-otbm-house-reference-parity-v1`; PR #868; merge `5641a7a...` | TCR-002/TCR-002A, TCR-003, World Index | medium | Complete. Exact reviewed house-ID resolution and read-only house reference parity are stable/merged; object-ID, runtime and gameplay parity remain unresolved. |
 | TCR-006 | Global Content Registry Correlation | merged | `canary-tibia-content-reference-resolver-v1` + `canary-tibia-content-reference-correlation-v1`; PR #880; merge `78b34355...` | TCR-002/TCR-002A | medium | Complete. Exact reviewed cross-namespace resolution and read-only content registry correlation are stable/merged; runtime/gameplay parity and mutation remain unproven. |
 | TCR-007 | Proficiency Reference Correlation | merged | `canary-tibia-proficiency-reference-resolver-v1` + `canary-tibia-proficiency-reference-correlation-v1`; PR #898; merge `89acb51d...` | TCR-004 | medium | Complete. Exact reviewed proficiency/appearance/item resolution and read-only correlation are stable/merged; runtime, persistence, protocol/client, automated behavior, Physical E2E and gameplay parity remain separate evidence dimensions. |
-| TCR-008 | Optional Minimap Reference | planned | exact official-client tile/marker selection | TCR-001 merged | low | Add only if a concrete parity use case exists; preserve advisory-only status and never alter canonical Reachability/pathfinding. |
-| TCR-009 | Client Reference Drift | planned | two complete exact reference manifests/index sets | TCR-002, TCR-003, TCR-004 | medium | Implement deterministic `canary-tibia-client-reference-drift-v1` and dependency-scoped staleness inputs. |
-| TCR-010 | Compact Evidence Gateway Integration | planned | stable TCR report formats | TCR-005, TCR-006, TCR-007, TCR-009 | low | Add reviewed JSON-pointer extracts to the existing QA-018 evidence gateway; do not reparse or reinterpret source semantics. |
-| TCR-011 | Reviewed Adoption Router | planned | stable parity/drift findings | TCR-005, TCR-006, TCR-007, TCR-009 | medium | Implement review-only routing to existing OTBM repair chains or subsystem tasks; no approval generation and no executor. |
+| TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case | no concrete parity use case found in fresh 2026-07-28 preflight | TCR-001 merged | low | Do not implement on speculation. Reopen only for a documented advisory-only use case not already covered by World Index, landmarks, Reachability, factual rendering or StaticMapData. |
+| TCR-009 | Client Reference Drift | blocked-external-evidence | PR #992 / merge `8a88e2f0...`; request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; blocker `TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS` | TCR-002, TCR-003, TCR-004 | medium | Owner must provide two distinct complete exact retained manifest/index snapshot sets. No drift producer or stable-contract claim exists yet. |
+| TCR-010 | Compact Evidence Gateway Integration | blocked-by-TCR-009 | stable TCR-005/006/007 exist; TCR-009 is not stable | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Do not start until `canary-tibia-client-reference-drift-v1` is genuinely stable/merged. Reuse QA-018. |
+| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-009-and-TCR-010 | stable TCR-005/006/007 exist; TCR-009/010 are not stable | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Do not start until all required producer/gateway contracts are stable/merged. No executor or mutation authority. |
 
 # Stable producer contract state
 
@@ -188,7 +188,7 @@ The content-reference resolver and correlation contracts are `stable/merged` as 
 
 The proficiency-reference resolver and correlation contracts are `stable/merged` as of PR #898 / merge `89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`. They consume exact TCR-004 proficiency definitions, canonical appearance proficiency/object bindings and compact Canary loader/runtime evidence through exact reviewed mappings. They keep definition, appearance, item, runtime, persistence, protocol/client, automated behavior and Physical E2E separate; they do not prove gameplay parity or authorize mutation.
 
-The following remain planned and **not stable/merged**: optional TCR-008 minimap reference, `canary-tibia-client-reference-drift-v1`, gateway integration and adoption routing.
+TCR-008 is `optional/deferred-no-concrete-use-case`. TCR-009 is `blocked-external-evidence` on `TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS` with exact owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002`. TCR-010 and TCR-011 remain dependency-blocked. `canary-tibia-client-reference-drift-v1`, gateway integration and adoption routing are **not stable/merged**.
 
 OWA-003 may later consume `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1`, `canary-tibia-content-reference-correlation-v1`, `canary-tibia-proficiency-reference-resolver-v1` and `canary-tibia-proficiency-reference-correlation-v1` only within their exact stable provenance/reference boundaries where that dependency is required. It must not infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or any still-planned minimap, drift, gateway or routing output before the owning bounded package merges.
 
@@ -422,12 +422,13 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 | TCR-010 | existing QA-018 | existing QA-018 | existing QA-018 | pointer fixtures | evidence gateway | no |
 | TCR-011 | required | exact finding refs | n/a | routing fixtures | repair/subsystem owners | downstream |
 
-# Last completed task
+# Last bounded lifecycle disposition
 
-- Task: `docs/agents/tasks/archive/CAN-20260724-tcr-007-proficiency-reference-correlation.md`
-- PR: `#898` — merged.
-- Merge commit: `89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`.
-- Scope: TCR-007 exact reviewed proficiency-reference resolver and read-only definition/appearance/item/runtime-evidence correlation only; no mutation or runtime/gameplay parity claim.
+- Task: `docs/agents/tasks/archive/CAN-20260728-tcr-009-client-reference-drift.md`.
+- Feature/preflight PR: `#992`; exact head `ada7a9e6f7d855a2d6f8c34d003b752a49251c1b`; merge `8a88e2f09257e620985770e5e053381df32f916d`.
+- Ready-state protected CI: run `30399382989`, success.
+- Lifecycle PR: `#993`.
+- Disposition: `blocked-external-evidence`; no TCR-009 producer contract was delivered or stabilized.
 
 # Blockers and unresolved references
 
@@ -437,95 +438,48 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 - New client schemas beyond the independently verified old/new staticdata families require a new bounded schema-discovery task.
 - Direct source-code reuse from the research repository is blocked by licensing review; independent implementation is the default.
 
-# Exact next action after TCR-007
+# Exact next action after TCR-009 evidence preflight
 
-TCR-007 is merged. Perform a fresh ownership/PR/reuse/input-evidence preflight before selecting another package. Start **TCR-008 — Optional Minimap Reference** only when a concrete advisory minimap parity use case and exact selected input exist. Otherwise, **TCR-009 — Client Reference Drift** is the first non-optional dependency-satisfied candidate, but implementation remains blocked until two complete exact reference manifest/index sets are selected and pinned.
+All currently executable programme work is complete. TCR-000 through TCR-007 remain stable/merged within their exact evidence boundaries. TCR-008 is optional/deferred because no concrete minimap parity use case was found.
 
-Do not invent minimap authority or baseline/current snapshots merely to advance the queue.
+TCR-009 must not resume until owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002` is satisfied with two distinct complete exact retained snapshot sets, each containing a validated manifest plus compatible StaticData, StaticMapData and proficiency indexes with exact hashes, revisions and explicit client-build evidence state. The first failure remains:
+
+```text
+TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
+```
+
+Do not start TCR-010, TCR-011 or OWA-003 before TCR-009 is genuinely implemented, validated and merged stable. Do not synthesize snapshots, reuse one snapshot as A and B, infer build identity from filenames or commit proprietary/generated client artifacts.
 
 # Handoff
 
 A continuation agent must:
 
-1. read root `AGENTS.md`, `REPOSITORY_MAP.md`, `CONTEXT_ROUTING.md`;
-2. route `otbm` + `real-tibia-parity` + `agent-governance`;
-3. read this programme and `OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md`;
-4. re-fetch current `main`, active tasks and open PRs;
-5. search `MODULE_CATALOG.md` and current OTBM/client-reference paths for an equivalent implementation;
-6. select exactly one still-planned queue item;
-7. create one active task, branch and early draft PR;
-8. keep user-supplied client files outside Git;
-9. preserve `UNKNOWN` rather than guessing client build, item ID mappings or gameplay semantics;
-10. use existing OTBM/QA/repair/E2E owners instead of creating duplicates;
-11. treat `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1`, `canary-tibia-content-reference-correlation-v1`, `canary-tibia-proficiency-reference-resolver-v1` and `canary-tibia-proficiency-reference-correlation-v1` as stable/merged only within their exact provenance/reference boundaries; do not upgrade optional minimap, drift, gateway or routing contracts to stable without their own merged packages.
+1. read root `AGENTS.md`, repository/context routing and this programme;
+2. re-fetch current `main`, active tasks, branches, PRs and retained evidence;
+3. inspect `RTREQ-TCR-ITEM-DEFINITIONS-0002` first;
+4. resume TCR-009 only if two distinct complete exact snapshot sets now satisfy the request contract;
+5. create one new bounded active task/branch/early draft PR for the drift producer;
+6. reuse TCR-001 through TCR-004 producers and QA-016 dependency-scoped freshness semantics;
+7. preserve unresolved ID spaces and never equate reference drift with gameplay regression;
+8. keep all proprietary inputs and generated reports outside Git;
+9. leave TCR-008 deferred unless a concrete non-duplicative advisory use case exists;
+10. leave TCR-010, TCR-011 and OWA-003 blocked until their exact dependencies are stable/merged.
 
 # Agent kickoff prompt
 
 ```text
-Continue the OTBM Tibia Client Reference Programme from repository state.
+Continue CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE from repository state.
 Repository writes are allowed only in blakinio/canary.
 Do not rely on previous chat history.
 
-PROGRAM: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
-RECOMMENDED_MODE: CHAT for preflight/planning/PR/CI; escalate to CODEX only when a bounded local implementation/test loop becomes necessary.
-CONTEXT_ROUTES: agent-governance, otbm, real-tibia-parity
+Fresh preflight is mandatory. Read AGENTS.md, repository/context routing, this programme, OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md and owner request RTREQ-TCR-ITEM-DEFINITIONS-0002.
 
-REQUIRED_READS:
-- AGENTS.md
-- docs/agents/REPOSITORY_MAP.md
-- docs/agents/CONTEXT_ROUTING.md
-- docs/agents/REAL_TIBIA_EVIDENCE_SOURCES.md
-- docs/agents/REAL_TIBIA_PARITY_PLAYBOOK.md
-- docs/agents/programs/REAL_TIBIA_PARITY_PROGRAM.md
-- docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
-- docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md
-- docs/ai-agent/OTS_OTBM_TOOLING_ROADMAP.md
+Current durable state:
+- TCR-000..007 stable/merged within exact evidence boundaries;
+- TCR-008 optional/deferred-no-concrete-use-case;
+- TCR-009 blocked-external-evidence on TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS;
+- TCR-010, TCR-011 and OWA-003 dependency-blocked;
+- no canary-tibia-client-reference-drift-v1 stable contract exists.
 
-SEARCH_FIRST:
-- current main and open PRs/active tasks overlapping OTBM/client-reference paths;
-- docs/agents/MODULE_CATALOG.md for existing canonical interfaces;
-- tools/ai-agent for any already-delivered equivalent of the selected TCR package;
-- docs/agents/real-tibia/registry/modules/otbm-tooling.yaml.
-
-EXTERNAL RESEARCH BASELINE:
-- beats-dh/Beats-Assets-Editor@ed827be34c279d1279ad3dde3af434b148ac05c7 is read-only research/format evidence only.
-- Do not copy its source code into Canary.
-- User-supplied Tibia client files are untrusted external inputs and must remain outside Git.
-
-NON-NEGOTIABLE REUSE:
-- no second OTBM parser/scanner/World Index;
-- no second appearances/assets canonical index;
-- no second Script Resolution engine;
-- no second pathfinder or factual renderer;
-- no second mutation/finalization pipeline;
-- no second Physical E2E platform.
-
-SAFETY:
-- never commit .otbm, .widx, items.otb, Tibia client binaries/assets or extracted proprietary archives;
-- pin exact SHA-256 for every selected external input;
-- do not infer a client build from filenames;
-- do not equate staticmapdata.object_id with OTBM/server itemId without explicit proven mapping;
-- staticmapdata is house-layout reference evidence, not a full OTBM source;
-- minimap evidence never overrides canonical World Index/Reachability mechanics evidence;
-- unresolved/ambiguous/conflicting evidence stays explicit;
-- no finding authorizes mutation by itself.
-
-TASK SELECTION:
-1. Revalidate the programme queue against current repository state.
-2. Select exactly one still-valid package.
-3. The next candidate is TCR-007 Proficiency Reference Correlation only if it remains unowned, unblocked and dependency-satisfied.
-4. Create a fresh active task, branch and early draft PR before substantial implementation.
-5. Implement only that bounded package with deterministic tests and exact provenance.
-6. Update the task checkpoint after material discoveries and before handoff.
-7. Do not silently continue into TCR-008 or another TCR package in the same PR.
-
-TCR-007 TARGET CONTRACT:
-- canary-tibia-proficiency-reference-correlation-v1;
-- consume exact stable TCR-001 manifest and TCR-004 proficiency provenance;
-- keep definition, appearance binding, Canary item binding, runtime, persistence, protocol and E2E as separate evidence dimensions;
-- reuse the canonical appearances index and existing item/runtime/persistence/protocol/E2E owners instead of duplicating validators;
-- require explicit reviewed cross-namespace joins and fail closed on ambiguous, conflicting or unavailable mappings;
-- emit read-only correlation findings only, with no items.xml/datapack/runtime/protocol mutation or gameplay conclusion.
-
-Before implementation, prove that no equivalent canonical proficiency-reference correlation consumer already exists, that no active task/PR owns TCR-007 and that each selected join has an explicit evidence owner and identifier-resolution decision. If any condition fails, stop duplication and update the programme with the reuse/ownership/resolver decision instead.
+Resume TCR-009 only when two distinct complete exact retained manifest/index snapshot sets are proven. Otherwise do not create a task or synthetic evidence. Never commit proprietary client packages or generated reports, and never create duplicate parsers, indexes, gateways, assurance engines, pathfinders or E2E runners.
 ```
