@@ -71,6 +71,9 @@ jobs:
             tools/agents/test_real_tibia_evidence_lifecycle.py \
             tools/agents/test_real_tibia_owner_request.py
 
+      - name: Generate canonical publication indexes
+        run: python tools/agents/real_tibia_evidence.py generate --as-of 2026-07-29
+
       - name: Run focused positive and negative tests
         shell: bash
         run: |
@@ -93,21 +96,31 @@ jobs:
           python tools/agents/real_tibia_registry.py generate --check
 
       - name: Validate evidence corpus
-        run: python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-26
+        run: python tools/agents/real_tibia_evidence.py validate --as-of 2026-07-29
 
       - name: Verify deterministic generated indexes
-        run: python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-26
+        run: python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-29
 
       - name: Exercise factual index output
-        run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-26 > /tmp/real-tibia-evidence-index.json
+        run: python tools/agents/real_tibia_evidence.py show-index --as-of 2026-07-29 > /tmp/real-tibia-evidence-index.json
+
+      - name: Upload deterministic publication indexes
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtec-005-wave-2-generated-indexes
+          path: |
+            docs/agents/real-tibia/evidence/modules/*/EVIDENCE_INDEX.yaml
+            docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Verify production request dry-run stays non-mutating
         run: |
           python tools/agents/real_tibia_owner_request.py transition \
             --request-id RTREQ-FEATURE-VOCATIONS-0001 \
             --expected-status ready-for-owner-triage \
-            --as-of 2026-07-26 \
-            --at 2026-07-26T12:00:00+02:00 \
+            --as-of 2026-07-29 \
+            --at 2026-07-29T12:00:00+02:00 \
             --actor ci-dry-run \
             --actor-role owner \
             --actor-task CAN-RTEC-CI-DRY-RUN \
