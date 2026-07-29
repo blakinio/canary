@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-preflight-20260729
 base_branch: main
 created: 2026-07-29T23:15:00+02:00
-updated: 2026-07-29T23:18:00+02:00
-last_verified_commit: "5bec6b9aa490513dc51f8c606027122e8f4f6220"
+updated: 2026-07-29T23:20:00+02:00
+last_verified_commit: "2d8a3baf627d3c14bfaf41343df28df6934fc127"
 risk: medium
 related_issue: ""
 related_pr: "1016"
@@ -92,21 +92,25 @@ Select one fresh bounded RTEC-005 wave of two independent absent dossier roots w
 - [x] Verify both dossier roots are absent.
 - [x] Verify no open PR overlaps the selected roots.
 - [x] Preserve the three active owner requests unchanged.
-- [x] Open draft PR #1016 and apply `ci:final-gate` before this final checkpoint commit.
+- [x] Open draft PR #1016 and apply `ci:final-gate` before the final checkpoint commits.
 - [ ] Pass exact-head required checks, merge and archive before starting the coordinator task.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T23:18:00+02:00
-head: 5bec6b9aa490513dc51f8c606027122e8f4f6220
+updated_at: 2026-07-29T23:20:00+02:00
+head: 2d8a3baf627d3c14bfaf41343df28df6934fc127
 branch: docs/rtec-005-wave-3-preflight-20260729
 pr: 1016
 status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
+owned_paths:
+  - docs/agents/tasks/active/CAN-20260729-rtec-005-wave-3-preflight.md
+changed_paths:
+  - docs/agents/tasks/active/CAN-20260729-rtec-005-wave-3-preflight.md
 proven:
   - configuration and item-instances dossier roots are absent on current main
   - both registry records and all selected source files exist at the exact blobs recorded above
@@ -114,15 +118,19 @@ proven:
   - current generated indexes contain 15 evidence records, 3 active owner requests and 12 version-history records at as_of 2026-07-29
   - RTEC-005 remains limited to two workers, two worker PRs and one serialized coordinator index lane
   - PR 1016 targets blakinio/canary main from blakinio/canary branch docs/rtec-005-wave-3-preflight-20260729
-  - ci:final-gate was applied before this checkpoint commit
+  - ci:final-gate was applied before the final checkpoint commits
+  - CI run 30491838823 passed on head 2d8a3baf627d3c14bfaf41343df28df6934fc127
 derived:
   - configuration and item-instances form a safe bounded RTEC-005 wave 3 pair
   - one coordinator task must precede worker branches and alone owns later shared-index adjudication
 unknown:
-  - exact final-head workflow conclusions
+  - exact final-head workflow conclusions after this contract-fix commit
   - exact evidence claims each Collector will submit
   - whether either Collector will need a new owner request
 conflicts: []
+first_failure:
+  marker: Agent Task Ownership / Validate changed active task checkpoints
+  evidence: run 30491838633 required checkpoint fields changed_paths, first_failure and owned_paths; this commit adds them without changing scope
 rejected_hypotheses:
   - reuse the merged wave 2 task or PR
   - let workers update the shared global index
@@ -131,6 +139,12 @@ validation:
   - command: connector-based registry, source-pin, dossier-absence and open-PR audit
     result: PASS
     evidence: exact blobs and absent roots recorded in this task
+  - command: repository full final gate
+    result: PASS
+    evidence: CI run 30491838823 at 2d8a3baf627d3c14bfaf41343df28df6934fc127
+  - command: Agent Task Ownership
+    result: FAIL
+    evidence: run 30491838633 rejected only the three now-supplied checkpoint fields
 blockers: []
-next_action: Verify exact-head required checks on this final checkpoint commit, mark PR ready, squash-merge, and archive before creating the coordinator task.
+next_action: Verify exact-head required checks on this checkpoint-contract fix, mark PR ready, squash-merge, and archive before creating the coordinator task.
 ```
