@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T18:11:53Z
-last_verified_commit: "e81a1daf3e32448047118bf07f22b941658128a4"
+updated: 2026-07-29T19:35:00Z
+last_verified_commit: "1e155cd8407246a154dbf81c33aa316f0752de8f"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -57,20 +57,19 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-loot-threshold-schema` | `feat/CAN-20260729-game-catalog-loot-threshold-schema` | #1012 | implementing | Inspect exact-head compilation and full default-datapack runtime evidence. |
+| `CAN-20260729-game-catalog-loader-stability` | `fix/CAN-20260729-game-catalog-loader-stability` | pending | investigating | Capture a symbolized telemetry-disabled crash and prove repeated exact-artifact stability. |
 
 # Queue
 
-1. Complete `CAN-20260729-game-catalog-loot-threshold-schema`: emit the consumer-approved schema 1.2 threshold model and prove the complete default datapack.
-2. Certify telemetry-independent Game Catalog definition-loader stability before staging; preserve the two exit-139 runs and two telemetry-enabled passes as separate evidence.
-3. Add NPCs and shop offers in a new versioned producer/consumer contract task.
-4. Add spells in a separate versioned contract task.
-5. Add quests and rewards in a separate versioned contract task.
-6. Add areas, spawns, raids, and map attainability in separate evidence-backed tasks.
-7. Certify compatible consumer schema/import behavior.
-8. Generate a reviewed staging snapshot and prove import, candidate activation, rollback, and visibility.
-9. Verify production revisions, storage, routing, permissions, monitoring, rollback, and operator procedure.
-10. Cross the manual production activation gate only after every blocker is closed.
+1. Certify telemetry-independent Game Catalog definition-loader stability before staging; preserve the two exit-139 runs and telemetry-enabled passes as separate evidence.
+2. Add NPCs and shop offers in a new versioned producer/consumer contract task.
+3. Add spells in a separate versioned contract task.
+4. Add quests and rewards in a separate versioned contract task.
+5. Add areas, spawns, raids, and map attainability in separate evidence-backed tasks.
+6. Certify compatible consumer schema/import behavior.
+7. Generate a reviewed staging snapshot and prove import, candidate activation, rollback, and visibility.
+8. Verify production revisions, storage, routing, permissions, monitoring, rollback, and operator procedure.
+9. Cross the manual production activation gate only after every blocker is closed.
 
 # Completed work
 
@@ -82,6 +81,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 | `CAN-20260729-game-catalog-metadata-evidence` / #1005 | Bounded repository-default Dragon/dragon-shield metadata seed | `9926b69728ed2945a5c957047447b537dcec4dbe` | Resolve default-datapack loot integrity before staging. |
 | `CAN-20260729-game-catalog-loot-integrity` / #1010 | Appearance-backed endpoints fixed; zero dangling relations; 92 runtime thresholds preserved | `24ce121f487f711cc19214f59ac0fb21d80ff737` | Emit consumer-approved schema 1.2. |
 | `OTERYN-20260729-game-catalog-runtime-threshold` / Platform #310 | Consumer-first schema 1.2 import, persistence, projection, and rollback guard | `2a97d0a04f1d6ecc02f4ec52b8aba1839a0ac77b` | Pin identical producer schema and fixture. |
+| `CAN-20260729-game-catalog-loot-threshold-schema` / #1012 | Schema 1.2 producer and complete default-datapack export proof | `daf6553426a57c8474a372160b2f1e3b4536b171` | Certify telemetry-independent definition loading. |
 
 # Dependencies and blockers
 
@@ -89,7 +89,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 - Production activation requires direct environment evidence and remains a manual gate.
 - The repository default datapack is `data-otservbr-global`; the actual deployed production configuration and reviewed evidence boundary are not yet verified.
 - Schema 1.1 preserves the unknown verified-content boundary as null; activation remains blocked.
-- The endpoint blocker is resolved; default-datapack publication now depends on the active schema 1.2 producer task.
+- Schema 1.2 publication is implemented; staging remains blocked by unresolved telemetry-independent definition-loader stability.
 
 # Decisions and invariants
 
