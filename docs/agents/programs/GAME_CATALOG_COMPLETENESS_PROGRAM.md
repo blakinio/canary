@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T17:26:42Z
-last_verified_commit: "ac407413d64882ab0968436dccda86b6e2b9b199"
+updated: 2026-07-29T17:30:37Z
+last_verified_commit: "d8e3aeafe93d44f2949ec25f84293b943606389b"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -57,7 +57,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-loot-integrity` | `feat/CAN-20260729-game-catalog-loot-integrity` | — | planned | Prove appearance-backed endpoint inclusion and runtime chance representation before implementation. |
+| `CAN-20260729-game-catalog-loot-integrity` | `feat/CAN-20260729-game-catalog-loot-integrity` | #1010 | in-progress | Add focused tests for appearance-backed endpoint inclusion and exact threshold preservation. |
 
 # Queue
 

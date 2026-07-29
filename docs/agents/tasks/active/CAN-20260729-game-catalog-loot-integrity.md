@@ -2,16 +2,16 @@
 task_id: CAN-20260729-game-catalog-loot-integrity
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: planned
+status: in-progress
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-integrity
 base_branch: main
 created: 2026-07-29T17:26:42Z
-updated: 2026-07-29T17:26:42Z
-last_verified_commit: "ac407413d64882ab0968436dccda86b6e2b9b199"
+updated: 2026-07-29T17:30:37Z
+last_verified_commit: "d8e3aeafe93d44f2949ec25f84293b943606389b"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: 1010
 depends_on:
   - CAN-20260729-game-catalog-metadata-evidence
 blocks:
@@ -106,6 +106,12 @@ The endpoint and chance findings have different causes and must remain separate.
 - Failed/blocked: full default-datapack publication remains blocked by both categories of findings.
 - Result: implementation may proceed only through focused tests and preserved runtime evidence; production remains excluded.
 
+## 2026-07-29T17:30:37Z
+
+- Changed: published the ownership/evidence checkpoint and opened draft PR #1010.
+- Validated: local ownership accepted 34 active task records before publication.
+- Result: the bounded implementation branch is established; focused tests are next.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -127,11 +133,11 @@ Never write `passed` without verification on the stated commit.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T17:26:42Z
-state: planned
+updated_at: 2026-07-29T17:30:37Z
+state: in-progress
 base_commit: ac407413d64882ab0968436dccda86b6e2b9b199
 branch: feat/CAN-20260729-game-catalog-loot-integrity
-pr: null
+pr: 1010
 proven:
   - default runtime export reports 53 dangling relations for 25 unique item IDs
   - default runtime export reports 92 chance values above the declared denominator

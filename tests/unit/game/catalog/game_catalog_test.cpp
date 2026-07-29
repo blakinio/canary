@@ -185,6 +185,59 @@ namespace game_catalog {
 		EXPECT_EQ(item->at("canonical_key"), "item:server-2516");
 	}
 
+	TEST(GameCatalogExporter, AppearanceBackedLootTargetsAreFinalRuntimeItems) {
+		Items items;
+		Monsters monsters;
+		populateRuntime(items, monsters);
+		items.getItems().resize(2518);
+		auto &appearanceItem = items.getItems()[2517];
+		appearanceItem.id = 2517;
+		appearanceItem.name = "Appearance Relic";
+		appearanceItem.pickupable = true;
+		ASSERT_FALSE(appearanceItem.loaded);
+
+		LootBlock loot;
+		loot.id = 2517;
+		loot.chance = 100;
+		loot.countmin = 1;
+		loot.countmax = 1;
+		monsters.monsters.at("dragon")->info.lootItems.push_back(loot);
+
+		const auto document = buildSnapshotDocument(
+			fixtureManifest(), items, monsters, "2026-07-28T00:00:00Z",
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+		);
+
+		EXPECT_TRUE(validateSnapshotDocument(document).empty());
+		const auto item = std::ranges::find_if(document.at("entities"), [](const auto &entity) {
+			return entity.at("canonical_key") == "item:server-2517";
+		});
+		ASSERT_NE(item, document.at("entities").end());
+		EXPECT_EQ(item->at("data").at("name"), "Appearance Relic");
+		const auto relation = std::ranges::find_if(document.at("relations"), [](const auto &candidate) {
+			return candidate.at("target") == "item:server-2517";
+		});
+		ASSERT_NE(relation, document.at("relations").end());
+	}
+
+	TEST(GameCatalogExporter, PreservesConfiguredLootThresholdAboveDenominator) {
+		Items items;
+		Monsters monsters;
+		populateRuntime(items, monsters);
+		monsters.monsters.at("dragon")->info.lootItems.front().chance = 100320;
+
+		const auto document = buildSnapshotDocument(
+			fixtureManifest(), items, monsters, "2026-07-28T00:00:00Z",
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+		);
+
+		ASSERT_EQ(document.at("relations").size(), 1);
+		EXPECT_EQ(document.at("relations").front().at("data").at("chance_numerator"), 100320);
+		EXPECT_FALSE(validateSnapshotDocument(document).empty());
+	}
+
 	TEST(GameCatalogExporter, Schema11PreservesUnknownVerifiedContentBoundary) {
 		Items items;
 		Monsters monsters;
