@@ -7,8 +7,8 @@ agent: "chatgpt"
 branch: fix/CAN-20260729-game-catalog-loader-stability
 base_branch: main
 created: 2026-07-29T19:35:00Z
-updated: 2026-07-29T19:40:00Z
-last_verified_commit: "97f1cf5bf92c6118563779a66d617878dbbcbbfe"
+updated: 2026-07-29T19:45:00Z
+last_verified_commit: "ac354e27eae99b289050ec6dd0892edc9c71cd13"
 risk: high
 related_issue: ""
 related_pr: 1015
@@ -115,6 +115,13 @@ The exporter is functionally complete, but telemetry-independent definition load
 - Failed/blocked: no new run has produced the fault frame yet.
 - Result: the next PR run is a bounded diagnostic and is expected to remain red if the known crash reproduces.
 
+## 2026-07-29T19:45:00Z
+
+- Changed: replaced the single complete export with a counted exact-artifact series of ten telemetry-disabled attempts and two telemetry-enabled controls.
+- Learned: Game Catalog `30485475053` passed one complete telemetry-disabled default export, disproving deterministic failure whenever telemetry is off.
+- Failed/blocked: the intermittent crash did not reproduce in the first post-mortem run, so no fault frame exists yet.
+- Result: each next attempt retains mode, ordinal, status, digest, log, endpoint trace, and a post-mortem backtrace on crash.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -139,12 +146,14 @@ The exporter is functionally complete, but telemetry-independent definition load
 | `1e155cd8407246a154dbf81c33aa316f0752de8f` | `python3 tools/agents/task_ownership.py` | passed | 33 active task records before this claim |
 | `e85be1bf6e237448d624d28ff891362d5f67f9b6` | runtime jobs `90670860532`, `90675503517` | failed | default export exited 139 after proficiencies |
 | `e85be1bf6e237448d624d28ff891362d5f67f9b6` | Game Catalog `30481456654`, rerun `90678481552` | passed | telemetry-enabled complete export |
-| working tree after `97f1cf5bf92c6118563779a66d617878dbbcbbfe` | parse `.github/workflows/game-catalog.yml` with PyYAML | passed | diagnostic workflow YAML parses |
+| `ac354e27eae99b289050ec6dd0892edc9c71cd13` | Game Catalog `30485475053` | passed | one complete telemetry-disabled default export passed |
+| working tree after `ac354e27eae99b289050ec6dd0892edc9c71cd13` | parse workflow YAML and runtime step with `bash -n` | passed | counted stability workflow parses |
 
 # Failed approaches and dead ends
 
 - Enabling telemetry as a permanent workflow workaround is rejected because it masks rather than explains the stability dependency.
 - Inferring that proficiencies caused the crash is rejected because its loader returned and logged success; the fault frame is not captured.
+- Treating every telemetry-disabled load as deterministically crashing is rejected by Game Catalog `30485475053`.
 - Treating two later passes as disproving the two crashes is rejected because the config condition changed.
 
 # Risks and compatibility
@@ -158,14 +167,14 @@ The exporter is functionally complete, but telemetry-independent definition load
 
 # Remaining work
 
-1. Run the telemetry-disabled diagnostic workflow and inspect the captured backtrace before changing runtime source.
+1. Run the 10-off/2-on exact-artifact series and inspect any captured backtrace before changing runtime source.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T19:40:00Z
-head: 97f1cf5bf92c6118563779a66d617878dbbcbbfe
+updated_at: 2026-07-29T19:45:00Z
+head: ac354e27eae99b289050ec6dd0892edc9c71cd13
 branch: fix/CAN-20260729-game-catalog-loader-stability
 pr: 1015
 status: investigating
@@ -187,9 +196,10 @@ proven:
   - Two complete default-datapack export jobs exited 139 after weapon proficiencies loaded.
   - Two telemetry-enabled executions of one exact artifact passed the complete default-datapack proof.
   - Later final-head and lifecycle Game Catalog runs also passed with telemetry enabled.
+  - Game Catalog 30485475053 passed one complete telemetry-disabled default export.
   - Schema 1.2 producer and consumer are merged without staging or production activation.
 derived:
-  - Telemetry changes timing or layout around the failure but is not proven to fix its cause.
+  - The failure is intermittent and correlated with, but not deterministically controlled by, loader telemetry.
   - The appearance loader is the next bounded diagnostic target after proficiencies.
 unknown:
   - Exact faulting frame and root cause of exit 139.
@@ -202,6 +212,7 @@ first_failure:
 rejected_hypotheses:
   - Weapon proficiencies are proven as the faulting loader because their success log precedes the crash.
   - Startup telemetry is an acceptable permanent correctness requirement.
+  - Every telemetry-disabled complete load crashes.
   - Later successful runs erase the earlier telemetry-disabled failures.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260729-game-catalog-loader-stability.md
@@ -217,9 +228,12 @@ validation:
   - command: parse .github/workflows/game-catalog.yml with PyYAML
     result: PASS
     evidence: Telemetry-disabled post-mortem workflow parses locally.
+  - command: Game Catalog 30485475053
+    result: PASS
+    evidence: Complete telemetry-disabled default export passed on ac354e27eae99b289050ec6dd0892edc9c71cd13.
 blockers:
   - Game Catalog staging remains blocked pending telemetry-independent stability.
-next_action: Run the telemetry-disabled diagnostic workflow and inspect the captured backtrace before changing runtime source.
+next_action: Run the 10-off/2-on exact-artifact series and inspect any captured backtrace before changing runtime source.
 ```
 
 # Handoff

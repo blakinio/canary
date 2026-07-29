@@ -403,63 +403,125 @@ jobs:
           path.write_text(config, encoding='utf-8', newline='\n')
           PY
 
-          output=artifacts/game-catalog-smoke/default-datapack.json
-          trace=artifacts/game-catalog-smoke/default-datapack.trace
-          log=artifacts/game-catalog-smoke/default-datapack.log
-          backtrace=artifacts/game-catalog-smoke/default-datapack.backtrace.txt
           core_pattern="$(pwd)/artifacts/game-catalog-smoke/core.%e.%p"
           sudo sysctl -w "kernel.core_pattern=${core_pattern}"
           ulimit -c unlimited
-          set +e
-          timeout 900s strace -f -qq \
-            -e trace=connect,bind,listen,accept,accept4 \
-            -o "${trace}" \
-            build/linux-release/bin/canary \
-              --export-game-catalog-only \
-              --game-catalog-output="${output}" \
-              --game-catalog-manifest-directory=data-otservbr-global/catalog \
-              --game-catalog-generated-at=2026-07-29T00:00:00Z \
-              --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
-            >"${log}" 2>&1
-          status=$?
-          set -e
 
-          cat "${log}"
-          if [[ ${status} -ne 0 ]]; then
-            core_file="$(find artifacts/game-catalog-smoke -maxdepth 1 -type f -name 'core.canary.*' -print -quit)"
-            if [[ -n "${core_file}" ]]; then
-              gdb -q -batch \
-                -ex 'set pagination off' \
-                -ex 'thread apply all bt full' \
-                build/linux-release/bin/canary \
-                "${core_file}" \
-                2>&1 | tee "${backtrace}" || true
-              rm -f "${core_file}"
+          set_telemetry() {
+            python3 - "$1" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          path = Path('config.lua')
+          config = path.read_text(encoding='utf-8')
+          pattern = re.compile(r'^luaStartupLoadTelemetry\s*=.*$', re.MULTILINE)
+          if len(pattern.findall(config)) != 1:
+              raise RuntimeError('Expected exactly one luaStartupLoadTelemetry setting')
+          config = pattern.sub(f'luaStartupLoadTelemetry = {sys.argv[1]}', config, count=1)
+          path.write_text(config, encoding='utf-8', newline='\n')
+          PY
+          }
+
+          results=artifacts/game-catalog-smoke/default-datapack-attempts.tsv
+          printf 'mode\tattempt\tstatus\tsha256\n' >"${results}"
+          failures=0
+
+          for mode in telemetry-off telemetry-on; do
+            if [[ "${mode}" == telemetry-off ]]; then
+              set_telemetry false
+              attempt_count=10
             else
-              echo 'Default-datapack export failed without a captured core dump.' | tee "${backtrace}" >&2
+              set_telemetry true
+              attempt_count=2
             fi
-            echo "Default-datapack export exited with status ${status}." >&2
-            exit "${status}"
-          fi
-          grep -q 'Game Catalog export completed:' "${log}"
-          if grep -q 'dangling endpoint' "${log}"; then
-            echo 'Default-datapack export still contains dangling loot endpoints.' >&2
+
+            for attempt_index in $(seq 1 "${attempt_count}"); do
+              printf -v attempt '%02d' "${attempt_index}"
+              stem="artifacts/game-catalog-smoke/default-datapack-${mode}-${attempt}"
+              output="${stem}.json"
+              trace="${stem}.trace"
+              log="${stem}.log"
+              backtrace="${stem}.backtrace.txt"
+
+              set +e
+              timeout 900s strace -f -qq \
+                -e trace=connect,bind,listen,accept,accept4 \
+                -o "${trace}" \
+                build/linux-release/bin/canary \
+                  --export-game-catalog-only \
+                  --game-catalog-output="${output}" \
+                  --game-catalog-manifest-directory=data-otservbr-global/catalog \
+                  --game-catalog-generated-at=2026-07-29T00:00:00Z \
+                  --game-catalog-canary-commit="${CATALOG_HEAD_SHA}" \
+                >"${log}" 2>&1
+              status=$?
+              set -e
+
+              cat "${log}"
+              if [[ ${status} -ne 0 ]]; then
+                printf '%s\t%s\t%s\t-\n' "${mode}" "${attempt}" "${status}" >>"${results}"
+                core_file="$(find artifacts/game-catalog-smoke -maxdepth 1 -type f -name 'core.canary.*' -print -quit)"
+                if [[ -n "${core_file}" ]]; then
+                  gdb -q -batch \
+                    -ex 'set pagination off' \
+                    -ex 'thread apply all bt full' \
+                    build/linux-release/bin/canary \
+                    "${core_file}" \
+                    2>&1 | tee "${backtrace}" || true
+                  rm -f "${core_file}"
+                else
+                  echo 'Default-datapack export failed without a captured core dump.' | tee "${backtrace}" >&2
+                fi
+                failures=$((failures + 1))
+                continue
+              fi
+
+              grep -q 'Game Catalog export completed:' "${log}"
+              if grep -Eq 'dangling endpoint|invalid loot chance model' "${log}"; then
+                printf '%s\t%s\tvalidation-failed\t-\n' "${mode}" "${attempt}" >>"${results}"
+                failures=$((failures + 1))
+                continue
+              fi
+              python3 tools/game-catalog/validate_snapshot.py \
+                "${output}" \
+                --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
+              (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${output}.sha256")")
+              grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${output}.sha256"
+              if [[ -s "${trace}" ]]; then
+                cat "${trace}" >&2
+                printf '%s\t%s\tendpoint-syscall\t-\n' "${mode}" "${attempt}" >>"${results}"
+                failures=$((failures + 1))
+                continue
+              fi
+
+              digest="$(sha256sum "${output}" | cut -d' ' -f1)"
+              printf '%s\t%s\t0\t%s\n' "${mode}" "${attempt}" "${digest}" >>"${results}"
+              if [[ "${attempt}" != 01 ]]; then
+                rm -f "${output}" "${output}.sha256"
+              fi
+            done
+          done
+
+          cat "${results}"
+          if [[ ${failures} -ne 0 ]]; then
+            echo "${failures} default-datapack stability attempt(s) failed." >&2
             exit 1
           fi
-          if grep -q 'invalid loot chance model' "${log}"; then
-            echo 'Default-datapack export contains an invalid schema 1.2 loot chance model.' >&2
+          if [[ "$(tail -n +2 "${results}" | cut -f4 | sort -u | wc -l)" -ne 1 ]]; then
+            echo 'Default-datapack stability attempts were not byte deterministic.' >&2
             exit 1
           fi
-          python3 tools/game-catalog/validate_snapshot.py \
-            "${output}" \
-            --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json
-          (cd "$(dirname "${output}")" && sha256sum --check "$(basename "${output}.sha256")")
-          grep -Eq "^[0-9a-f]{64}  $(basename "${output}")$" "${output}.sha256"
+
           python3 - <<'PY'
           import json
           from pathlib import Path
 
-          document = json.loads(Path('artifacts/game-catalog-smoke/default-datapack.json').read_text(encoding='utf-8'))
+          directory = Path('artifacts/game-catalog-smoke')
+          off = directory / 'default-datapack-telemetry-off-01.json'
+          on = directory / 'default-datapack-telemetry-on-01.json'
+          assert off.read_bytes() == on.read_bytes()
+          document = json.loads(off.read_text(encoding='utf-8'))
           assert document['schema_version'] == '1.2.0'
           assert document['snapshot']['entity_count'] == len(document['entities']) > 0
           assert document['snapshot']['relation_count'] == len(document['relations']) > 0
@@ -471,11 +533,6 @@ jobs:
           assert all('chance_numerator' not in data and 'chance_denominator' not in data for data in loot_data)
           assert sum(data['chance_threshold'] > data['roll_maximum'] for data in loot_data) == 92
           PY
-          if [[ -s "${trace}" ]]; then
-            cat "${trace}" >&2
-            echo 'Default-datapack diagnostic attempted a database or network endpoint syscall.' >&2
-            exit 1
-          fi
 
       - name: Upload smoke evidence
         if: always()
