@@ -110,19 +110,25 @@ jobs:
           python tools/agents/real_tibia_evidence.py generate --check --as-of 2026-07-29
           git diff --check
           test "$(python -c 'import json; print(json.load(open("docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml"))["status"])')" = "consumed"
-      - name: Package canonical lifecycle patch
+      - name: Package canonical lifecycle result
         shell: bash
         run: |
+          mkdir -p /tmp/tcr009-owner-result/docs/agents/real-tibia/evidence/requests/tcr
+          mkdir -p /tmp/tcr009-owner-result/docs/agents/real-tibia/evidence/generated
+          mkdir -p /tmp/tcr009-owner-result/docs/agents/real-tibia/evidence/modules/item-definitions
+          cp docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml /tmp/tcr009-owner-result/docs/agents/real-tibia/evidence/requests/tcr/
+          cp docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json /tmp/tcr009-owner-result/docs/agents/real-tibia/evidence/generated/
+          cp docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml /tmp/tcr009-owner-result/docs/agents/real-tibia/evidence/modules/item-definitions/
           git diff --binary -- \
             docs/agents/real-tibia/evidence/requests/tcr/RTREQ-TCR-ITEM-DEFINITIONS-0002.yaml \
             docs/agents/real-tibia/evidence/generated/EVIDENCE_INDEXES.json \
             docs/agents/real-tibia/evidence/modules/item-definitions/EVIDENCE_INDEX.yaml \
-            > /tmp/tcr009-owner-lifecycle.patch
-          test -s /tmp/tcr009-owner-lifecycle.patch
-      - name: Upload canonical lifecycle patch
+            > /tmp/tcr009-owner-result/tcr009-owner-lifecycle.patch
+          test -s /tmp/tcr009-owner-result/tcr009-owner-lifecycle.patch
+      - name: Upload canonical lifecycle result
         uses: actions/upload-artifact@v4
         with:
-          name: tcr009-owner-lifecycle
-          path: /tmp/tcr009-owner-lifecycle.patch
+          name: tcr009-owner-lifecycle-full
+          path: /tmp/tcr009-owner-result
           if-no-files-found: error
           retention-days: 14
