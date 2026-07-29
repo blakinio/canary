@@ -57,7 +57,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-loot-threshold-schema` | `feat/CAN-20260729-game-catalog-loot-threshold-schema` | pending | implementing | Pin consumer-approved schema 1.2 and emit exact runtime threshold records. |
+| `CAN-20260729-game-catalog-loot-threshold-schema` | `feat/CAN-20260729-game-catalog-loot-threshold-schema` | #1012 | implementing | Inspect exact-head compilation and full default-datapack runtime evidence. |
 
 # Queue
 

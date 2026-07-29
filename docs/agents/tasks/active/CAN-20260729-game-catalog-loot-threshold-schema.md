@@ -7,11 +7,11 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
 base_branch: main
 created: 2026-07-29T18:11:53Z
-updated: 2026-07-29T18:11:53Z
+updated: 2026-07-29T18:19:00Z
 last_verified_commit: "e81a1daf3e32448047118bf07f22b941658128a4"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: 1012
 depends_on:
   - CAN-20260729-game-catalog-loot-integrity
   - OTERYN-20260729-game-catalog-runtime-threshold
@@ -118,7 +118,7 @@ checkpoint_version: 1
 updated_at: 2026-07-29T18:18:00Z
 head: e81a1daf3e32448047118bf07f22b941658128a4
 branch: feat/CAN-20260729-game-catalog-loot-threshold-schema
-pr: null
+pr: 1012
 status: implementing
 context_routes:
   - agent-governance
@@ -129,9 +129,14 @@ owned_paths:
   - docs/agents/tasks/active/CAN-20260729-game-catalog-loot-threshold-schema.md
   - schemas/game-catalog/v1.2/**
   - tests/game_catalog/fixtures/v1.2/**
-  - src/game/catalog/**
+  - src/game/catalog/game_catalog_manifest.hpp
+  - src/game/catalog/game_catalog_manifest.cpp
+  - src/game/catalog/game_catalog_exporter.cpp
   - tools/game-catalog/validate_snapshot.py
-  - tests/game_catalog/**
+  - tests/game_catalog/fixtures/v1.2/**
+  - tests/game_catalog/test_validate_snapshot.py
+  - tests/game_catalog/test_default_metadata.py
+  - tests/unit/game/catalog/game_catalog_test.cpp
   - data-otservbr-global/catalog/profile.json
   - .github/workflows/game-catalog.yml
 proven:
