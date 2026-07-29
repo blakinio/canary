@@ -57,7 +57,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-loader-stability` | `fix/CAN-20260729-game-catalog-loader-stability` | #1015 | investigating | Capture a symbolized telemetry-disabled crash and prove repeated exact-artifact stability. |
+| `CAN-20260729-game-catalog-loader-stability` | `fix/CAN-20260729-game-catalog-loader-stability` | #1015 | implementing | Prove dispatcher-thread serialization with the repeated exact-artifact stability series. |
 
 # Queue
 

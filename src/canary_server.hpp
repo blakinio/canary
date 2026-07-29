@@ -75,6 +75,7 @@ private:
 	void initializeMultichannelCluster();
 	void loadModules();
 	void loadGameCatalogDefinitions();
+	int exportGameCatalogOnDispatcher(const game_catalog::ExportOptions &options);
 	void setWorldType();
 	void loadMaps() const;
 	void setupHousesRent();

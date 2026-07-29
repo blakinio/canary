@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-loader-stability
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: planned
+status: in-progress
 agent: "chatgpt"
 branch: fix/CAN-20260729-game-catalog-loader-stability
 base_branch: main
 created: 2026-07-29T19:35:00Z
-updated: 2026-07-29T19:45:00Z
-last_verified_commit: "ac354e27eae99b289050ec6dd0892edc9c71cd13"
+updated: 2026-07-29T20:05:00Z
+last_verified_commit: "421e7957f41f8f3a5d84e7aaaea3fe3e87eb7b92"
 risk: high
 related_issue: ""
 related_pr: 1015
@@ -19,6 +19,7 @@ blocks:
 owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260729-game-catalog-loader-stability.md
+    - src/canary_server.hpp
     - src/game/catalog/catalog_runtime.cpp
   shared:
     - src/game/game.cpp
@@ -48,8 +49,8 @@ Find and remove the cause of the default-datapack export-only definition-loader 
 
 # Acceptance criteria
 
-- [ ] Reproduce or tightly bound the two exit-139 failures using the exact default datapack, one compiled artifact, and explicit telemetry-disabled/enabled attempts.
-- [ ] Capture a symbolized fault location or equivalent sanitizer evidence before selecting a runtime fix; do not infer the cause from logging alone.
+- [x] Reproduce or tightly bound the two exit-139 failures using the exact default datapack, one compiled artifact, and explicit telemetry-disabled/enabled attempts.
+- [x] Capture a symbolized fault location or equivalent sanitizer evidence before selecting a runtime fix; do not infer the cause from logging alone.
 - [ ] Fix the smallest proven root cause without making startup telemetry a correctness requirement.
 - [ ] Run at least ten sequential telemetry-disabled exports and two telemetry-enabled controls from the same final binary artifact with every attempt visible.
 - [ ] Prove all successful attempts publish byte-identical controlled snapshots and valid lowercase SHA-256 sidecars.
@@ -122,6 +123,13 @@ The exporter is functionally complete, but telemetry-independent definition load
 - Failed/blocked: the intermittent crash did not reproduce in the first post-mortem run, so no fault frame exists yet.
 - Result: each next attempt retains mode, ordinal, status, digest, log, endpoint trace, and a post-mortem backtrace on crash.
 
+## 2026-07-29T20:05:00Z
+
+- Changed: reproduced five failures in ten telemetry-disabled attempts and implemented dispatcher-thread serialization for the complete export task.
+- Learned: crash frames land in LuaJIT while another thread executes `GlobalEvents::think -> LuaScriptInterface::callFunction`; export-only loading was using the same Lua state from the process main thread.
+- Failed/blocked: the serialization fix is not compiled or runtime-validated yet.
+- Result: appearance loading and schema serialization are rejected as root causes; the exact-artifact series now tests the proven concurrency boundary.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -135,6 +143,7 @@ The exporter is functionally complete, but telemetry-independent definition load
 | Path/interface/config/schema | Ownership mode | Purpose | Status |
 |---|---|---|---|
 | `src/game/catalog/catalog_runtime.cpp` | exclusive | isolate and repair export-only definition loading | investigating |
+| `src/canary_server.hpp` | exclusive | declare the dispatcher-thread export implementation | implementing |
 | `src/game/game.cpp` | shared | edit only if symbolized evidence identifies appearance loading | read-only pending evidence |
 | `.github/workflows/game-catalog.yml` | shared | exact-artifact diagnostic and repeated stability proof | planned |
 | `luaStartupLoadTelemetry` | read-only interface | telemetry-off/on experimental control | unchanged |
@@ -148,12 +157,16 @@ The exporter is functionally complete, but telemetry-independent definition load
 | `e85be1bf6e237448d624d28ff891362d5f67f9b6` | Game Catalog `30481456654`, rerun `90678481552` | passed | telemetry-enabled complete export |
 | `ac354e27eae99b289050ec6dd0892edc9c71cd13` | Game Catalog `30485475053` | passed | one complete telemetry-disabled default export passed |
 | working tree after `ac354e27eae99b289050ec6dd0892edc9c71cd13` | parse workflow YAML and runtime step with `bash -n` | passed | counted stability workflow parses |
+| `421e7957f41f8f3a5d84e7aaaea3fe3e87eb7b92` | Game Catalog `30486191705` | failed as diagnostic | 5/10 telemetry-off attempts failed; 2/2 telemetry-on controls passed |
+| working tree after `421e7957f41f8f3a5d84e7aaaea3fe3e87eb7b92` | 17 focused Python tests, checkpoint/ownership, workflow shell, clang-format | passed | source fix is ready for exact CI compilation |
 
 # Failed approaches and dead ends
 
 - Enabling telemetry as a permanent workflow workaround is rejected because it masks rather than explains the stability dependency.
 - Inferring that proficiencies caused the crash is rejected because its loader returned and logged success; the fault frame is not captured.
 - Treating every telemetry-disabled load as deterministically crashing is rejected by Game Catalog `30485475053`.
+- Appearance protobuf loading is the root cause is rejected by fault frames in LuaJIT and concurrent `GlobalEvents::think`.
+- Snapshot serialization is the root cause is rejected because failed attempts crash during definition loading before manifest/export construction.
 - Treating two later passes as disproving the two crashes is rejected because the config condition changed.
 
 # Risks and compatibility
@@ -167,14 +180,14 @@ The exporter is functionally complete, but telemetry-independent definition load
 
 # Remaining work
 
-1. Run the 10-off/2-on exact-artifact series and inspect any captured backtrace before changing runtime source.
+1. Compile the dispatcher-thread serialization fix and rerun the 10-off/2-on exact-artifact series.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T19:45:00Z
-head: ac354e27eae99b289050ec6dd0892edc9c71cd13
+updated_at: 2026-07-29T20:05:00Z
+head: 421e7957f41f8f3a5d84e7aaaea3fe3e87eb7b92
 branch: fix/CAN-20260729-game-catalog-loader-stability
 pr: 1015
 status: investigating
@@ -197,24 +210,28 @@ proven:
   - Two telemetry-enabled executions of one exact artifact passed the complete default-datapack proof.
   - Later final-head and lifecycle Game Catalog runs also passed with telemetry enabled.
   - Game Catalog 30485475053 passed one complete telemetry-disabled default export.
+  - Game Catalog 30486191705 reproduced 5 failures in 10 telemetry-disabled attempts while both telemetry-enabled controls passed.
+  - Symbolized crashes occur in LuaJIT while a concurrent dispatcher thread executes GlobalEvents::think through LuaScriptInterface::callFunction.
   - Schema 1.2 producer and consumer are merged without staging or production activation.
 derived:
-  - The failure is intermittent and correlated with, but not deterministically controlled by, loader telemetry.
-  - The appearance loader is the next bounded diagnostic target after proficiencies.
+  - Export-only definition loading races the already-running dispatcher for one Lua state because it runs directly on the process main thread.
+  - Running the complete export task as one dispatcher serial event preserves normal Lua thread ownership and prevents registered events from executing mid-load.
 unknown:
-  - Exact faulting frame and root cause of exit 139.
-  - Whether the trigger is timing, stack or heap layout, object lifetime, or another undefined behavior.
+  - Whether dispatcher-thread serialization passes the full repeated exact-artifact proof on every required platform.
 conflicts:
   - Telemetry-disabled complete loads failed twice while telemetry-enabled complete loads passed.
 first_failure:
-  marker: telemetry-independent complete default-datapack definition load
-  evidence: Runtime jobs 90670860532 and 90675503517 exited 139 after proficiencies.
+  marker: dispatcher-thread serialization is not yet compiled or runtime-validated
+  evidence: Source fix follows diagnostic Game Catalog 30486191705.
 rejected_hypotheses:
   - Weapon proficiencies are proven as the faulting loader because their success log precedes the crash.
   - Startup telemetry is an acceptable permanent correctness requirement.
   - Every telemetry-disabled complete load crashes.
+  - Appearance protobuf or snapshot serialization is the proven crash source.
   - Later successful runs erase the earlier telemetry-disabled failures.
 changed_paths:
+  - src/canary_server.hpp
+  - src/game/catalog/catalog_runtime.cpp
   - docs/agents/tasks/active/CAN-20260729-game-catalog-loader-stability.md
   - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
   - .github/workflows/game-catalog.yml
@@ -231,9 +248,15 @@ validation:
   - command: Game Catalog 30485475053
     result: PASS
     evidence: Complete telemetry-disabled default export passed on ac354e27eae99b289050ec6dd0892edc9c71cd13.
+  - command: Game Catalog 30486191705
+    result: FAIL
+    evidence: Expected diagnostic failure; 5/10 telemetry-off attempts crashed with LuaJIT/concurrent GlobalEvents frames and 2/2 telemetry-on controls passed.
+  - command: focused local validation
+    result: PASS
+    evidence: 17 Game Catalog Python tests, task ownership/checkpoint, workflow shell parsing, clang-format, and diff check pass.
 blockers:
   - Game Catalog staging remains blocked pending telemetry-independent stability.
-next_action: Run the 10-off/2-on exact-artifact series and inspect any captured backtrace before changing runtime source.
+next_action: Compile the dispatcher-thread serialization fix and rerun the 10-off/2-on exact-artifact series.
 ```
 
 # Handoff

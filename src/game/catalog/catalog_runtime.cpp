@@ -25,6 +25,7 @@
 	#include <cstdlib>
 	#include <ctime>
 	#include <fstream>
+	#include <future>
 	#include <stdexcept>
 #endif
 
@@ -158,6 +159,18 @@ void CanaryServer::loadGameCatalogDefinitions() {
 }
 
 int CanaryServer::exportGameCatalogOnly(const game_catalog::ExportOptions &options) {
+	auto completion = std::make_shared<std::promise<int>>();
+	auto result = completion->get_future();
+	g_dispatcher().addEvent(
+		[this, options, completion] {
+			completion->set_value(exportGameCatalogOnDispatcher(options));
+		},
+		__FUNCTION__
+	);
+	return result.get();
+}
+
+int CanaryServer::exportGameCatalogOnDispatcher(const game_catalog::ExportOptions &options) {
 	const auto stopExportRuntime = [] {
 		g_dispatcher().shutdown();
 	};
