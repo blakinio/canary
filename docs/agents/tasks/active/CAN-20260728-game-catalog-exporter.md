@@ -109,7 +109,7 @@ cross_repository_tasks:
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-29T06:45:00Z
-implementation_head: 84b089f9a919bb85773798584e5b0205e2e5895c
+head: 5da019f29e9683419da337b7e5a618cd7a1b9038
 branch: feat/CAN-20260728-game-catalog-exporter
 pr: 991
 status: ready
