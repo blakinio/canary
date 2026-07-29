@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T19:35:00Z
-last_verified_commit: "1e155cd8407246a154dbf81c33aa316f0752de8f"
+updated: 2026-07-29T20:30:00Z
+last_verified_commit: "3ffd9557078a12e8e285d20b3af98a56dbc86c58"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -57,7 +57,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-loader-stability` | `fix/CAN-20260729-game-catalog-loader-stability` | #1015 | implementing | Prove dispatcher-thread serialization with the repeated exact-artifact stability series. |
+| `CAN-20260729-game-catalog-loader-stability` | `fix/CAN-20260729-game-catalog-loader-stability` | #1015 | review | Run the exact-final-head gate, audit reviews/base drift, and merge. |
 
 # Queue
 
@@ -89,7 +89,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 - Production activation requires direct environment evidence and remains a manual gate.
 - The repository default datapack is `data-otservbr-global`; the actual deployed production configuration and reviewed evidence boundary are not yet verified.
 - Schema 1.1 preserves the unknown verified-content boundary as null; activation remains blocked.
-- Schema 1.2 publication is implemented; staging remains blocked by unresolved telemetry-independent definition-loader stability.
+- Schema 1.2 publication and dispatcher-thread loader stabilization are implemented; staging remains blocked until PR #1015 passes its exact-final-head merge gate and a separate staging task is authorized.
 
 # Decisions and invariants
 
