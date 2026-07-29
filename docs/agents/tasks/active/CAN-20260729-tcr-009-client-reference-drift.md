@@ -2,13 +2,13 @@
 task_id: CAN-20260729-tcr-009-client-reference-drift
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: TCR-009
-status: implementing
+status: ready
 agent: chatgpt
 branch: feat/CAN-20260729-tcr-009-client-reference-drift
 base_branch: main
 created: 2026-07-29T23:36:00+02:00
-updated: 2026-07-30T00:14:00+02:00
-last_verified_commit: "2e1dd11b6691b3a2520f3944f047f0dec4cb33ed"
+updated: 2026-07-30T00:30:00+02:00
+last_verified_commit: "e2890929f157e71959c8a203e3dd53d0f4c04f88"
 risk: medium
 related_issue: ""
 related_pr: "1018"
@@ -73,17 +73,18 @@ Implement deterministic, read-only TCR-009 client-reference drift over two compl
 - [x] Add focused malformed, determinism, compatibility, boundedness and retained-evidence smoke coverage.
 - [x] Fulfil and consume the owner request through the canonical lifecycle and generated indexes.
 - [x] Reconcile programme, catalogue and changelog.
-- [ ] Pass exact-final-head CI, merge and archive.
+- [x] Pass the complete read-only implementation-head workflow set on current `main`.
+- [ ] Pass the exact final checkpoint head, merge and archive.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T00:14:00+02:00
-head: 2e1dd11b6691b3a2520f3944f047f0dec4cb33ed
+updated_at: 2026-07-30T00:30:00+02:00
+head: e2890929f157e71959c8a203e3dd53d0f4c04f88
 branch: feat/CAN-20260729-tcr-009-client-reference-drift
 pr: 1018
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -101,19 +102,27 @@ proven:
   - Snapshot B manifest SHA-256 is 54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53.
   - Retained evidence summary SHA-256 is 6224a175fab73931627c1ea36545e4b5f1bc4c29068fa337049130ee777a3431.
   - Retained drift smoke produced 27 findings and SHA-256 be0593cb260cc717b2d8e9e1a19a565f958e85935fde4ac09ce8fb5bbb853b31.
-  - Nine focused deterministic and fail-closed producer tests pass.
-  - Synthetic producer output validates against the published Draft 2020-12 schema.
+  - Nine focused deterministic and fail-closed producer tests pass and synthetic output validates against the published Draft 2020-12 schema.
   - Workflow 30494786511 used the canonical owner-request tool and committed the exact consumed request plus generated evidence indexes.
   - RTREQ-TCR-ITEM-DEFINITIONS-0002 is consumed by accepted evidence RT-ITEM-DEFINITIONS-0003.
   - Workflow 30495080685 reconciled the programme queue, module catalogue and changelog.
+  - Branch was synchronized with main commit 8e21a33325d6bd8ddbb647e7c967f940dfd54516 before the final read-only candidate.
+  - Agent Task Ownership 30495664559 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - Real Tibia Evidence Contracts 30495664561 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - Universal E2E Stability Certification 30495664573 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - Tibia Client Reference Drift 30495664579 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - AI Agent Tools 30495664574 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - Upstream Intelligence 30495664601 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - CI 30495664834 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
+  - Real Tibia Module Registry 30495664580 passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
 derived:
-  - TCR-010, TCR-011 and OWA-003 can be started after TCR-009 merge and lifecycle closure.
+  - TCR-010, TCR-011 and OWA-003 can start after merge and lifecycle closure.
 unknown:
-  - Exact final checkpoint commit SHA, its final-head workflow results and merge commit.
+  - Exact final checkpoint commit SHA, its forced final-gate results and merge commit.
 conflicts: []
 first_failure:
   marker: ACTIVE_TASK_FRONTMATTER_STATUS
-  evidence: Agent Task Ownership 30495171598 rejected frontmatter status validating under tasks/active; frontmatter returned to implementing while checkpoint remains validating.
+  evidence: Agent Task Ownership 30495171598 rejected frontmatter status validating under tasks/active; frontmatter was corrected and ownership passed on e2890929f157e71959c8a203e3dd53d0f4c04f88.
 rejected_hypotheses:
   - Reparse client packages inside the drift producer.
   - Compare StaticData records across legacy and newer schema families.
@@ -141,12 +150,12 @@ validation:
   - command: Draft 2020-12 validation of synthetic drift output
     result: PASS
     evidence: The published schema accepts the producer output.
-  - command: Tibia Client Reference Drift 30494786511
+  - command: canonical owner-request lifecycle
     result: PASS
-    evidence: Producer, schema, canonical owner lifecycle, evidence validation and generated-index commit all passed.
-  - command: Tibia Client Reference Drift 30495080685
+    evidence: The official lifecycle moved RTREQ-TCR-ITEM-DEFINITIONS-0002 through owner acceptance, planning, active result publication and consumption into RT-ITEM-DEFINITIONS-0003.
+  - command: complete workflow set on e2890929f157e71959c8a203e3dd53d0f4c04f88
     result: PASS
-    evidence: Producer/evidence validation and programme discovery reconciliation passed.
+    evidence: Ownership, evidence, module registry, upstream, dedicated drift, AI tools, Universal E2E Stability and full CI all succeeded.
 blockers: []
-next_action: verify the corrected checkpoint and full read-only workflow set, then publish the final ready checkpoint and force the exact final gate.
+next_action: apply ci:final-gate, verify every forced workflow on the checkpoint commit, inspect reviews and mergeability, mark ready, and squash-merge the exact green head.
 ```
