@@ -2,16 +2,16 @@
 task_id: CAN-20260729-rtec-005-chat-communication
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-005-W2-CHAT-COMMUNICATION
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-005-chat-communication-20260729
 base_branch: main
 created: 2026-07-29T10:10:00+02:00
-updated: 2026-07-29T10:10:00+02:00
-last_verified_commit: "18411a50e81d857fba8cf42bfa9b1f4c67a3904a"
+updated: 2026-07-29T10:18:00+02:00
+last_verified_commit: "0fed8d71610bc9ac754b78d5202485ef222af78c"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "1001"
 depends_on:
   - PR-1000-RTEC-005-WAVE-2-COORDINATOR
 blocks:
@@ -44,10 +44,10 @@ Deliver one bounded prepublication evidence package for the exact current Canary
 # Acceptance criteria
 
 - [x] Pin the canonical registry and exact `chat.hpp`/`chat.cpp` source blobs.
-- [ ] Add `RT-CHAT-COMMUNICATION-0001`, bounded dossier documents, version history and pending structured review.
-- [ ] Keep the candidate `review-needed` and the published module index empty at `as_of=2026-07-26`.
-- [ ] Create no owner request because the missing dimensions are not sufficiently narrowed.
-- [ ] Make no global-index, programme, runtime, data, client, protocol, map, workflow or E2E edit.
+- [x] Add `RT-CHAT-COMMUNICATION-0001`, bounded dossier documents, version history and pending structured review.
+- [x] Keep the candidate `review-needed` and the published module index empty at `as_of=2026-07-26`.
+- [x] Create no owner request because the missing dimensions are not sufficiently narrowed.
+- [x] Make no global-index, programme, runtime, data, client, protocol, map, workflow or E2E edit.
 - [ ] Pass Evidence Contracts, Agent Task Ownership and ordinary CI on the exact candidate head.
 - [ ] Pass ready-state final gate, squash-merge and archive the worker task.
 
@@ -55,11 +55,11 @@ Deliver one bounded prepublication evidence package for the exact current Canary
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T10:10:00+02:00
-head: 18411a50e81d857fba8cf42bfa9b1f4c67a3904a
+updated_at: 2026-07-29T10:18:00+02:00
+head: 0fed8d71610bc9ac754b78d5202485ef222af78c
 branch: feat/rtec-005-chat-communication-20260729
-pr: none
-status: implementing
+pr: 1001
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -68,28 +68,32 @@ owned_paths:
   - docs/agents/real-tibia/evidence/modules/chat-communication/**
 proven:
   - coordinator PR 1000 exists before this branch
-  - registry blob is d736ff891a48315aa4bd7c34a5a553ca1d31ffd3
-  - chat.cpp blob is 152a40857f4b184e968eb51601a75634d8d37946
-  - chat.hpp blob is 09f8a727fef239b95b1bb5da20356801769732f0
-  - worker paths do not overlap the engine-scheduler worker
+  - exact registry and source blobs are pinned
+  - RT-CHAT-COMMUNICATION-0001 is limited to the selected current Canary source path at runtime-path-proven
+  - candidate review remains pending and module index remains unpublished at as_of 2026-07-26
+  - no owner request or shared path was changed
 derived:
-  - the selected source can support only a bounded current-canary runtime-path claim
+  - coordinator adjudication is required before publication
 unknown:
   - configured channel data and Lua callback correctness
   - protocol/client delivery, privacy, moderation and physical gameplay behavior
 conflicts: []
 first_failure:
   marker: none
-  evidence: worker created from the exact wave baseline
+  evidence: candidate package assembled within worker ownership
 rejected_hypotheses:
   - claim protocol or security correctness from source registration
   - edit the shared generated index from the worker
 changed_paths:
   - docs/agents/tasks/active/CAN-20260729-rtec-005-chat-communication.md
+  - docs/agents/real-tibia/evidence/modules/chat-communication/**
 validation:
-  - command: ownership precondition
+  - command: worker package boundary review
     result: PASS
-    evidence: PR 1000 exists and selected paths are disjoint
+    evidence: PR 1001 changes only its task and chat-communication dossier
+  - command: exact-head Evidence Contracts, Agent Task Ownership and ordinary CI
+    result: NOT_RUN
+    evidence: pending current head workflows
 blockers: []
-next_action: Open the draft worker PR and add the bounded candidate dossier.
+next_action: Pass exact-head validation, apply the final gate, mark PR 1001 ready and merge it without broadening scope.
 ```
