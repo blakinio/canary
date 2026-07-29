@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-metadata-evidence
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: planned
+status: blocked
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:36:44Z
-last_verified_commit: "666369126319bdac3ecc4ff83584011db1ce6c2f"
+updated: 2026-07-29T13:40:57Z
+last_verified_commit: "000ce71c52229c9d8e56b2ab9e90a3e139f2e303"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -67,6 +67,9 @@ Create the first bounded, reviewed metadata baseline for the existing Game Catal
 - The v1 contract forbids inferring historical or availability facts from external wikis.
 - The current repository allowlist permits writes only to `blakinio/canary`.
 - `config.lua.dist` selects `data-otservbr-global` as the repository default datapack, so the default manifest root is `data-otservbr-global/catalog`.
+- `src/core.hpp` proves protocol/runtime client version `15.25`, but `docs/agents/REAL_TIBIA_EVIDENCE_SOURCES.md` explicitly states that protocol `15.25` does not prove complete content coverage.
+- The v1 schema requires `snapshot.verified_content_through_release` to be a non-null release key, while the contract requires missing evidence to remain unknown.
+- Repository source proves a bounded runtime seed: item `3416` dragon shield, creature `Dragon`, its spawn entries, and the dragon-to-dragon-shield loot relation. It does not prove either entity's historical `introduced_in` release or a complete datapack-wide verified-content boundary.
 - Current main was most recently observed at `23a8148f72805676fa623c15ffa6ad20e7dc3d2f` before this branch was created.
 
 # Existing work to reuse
@@ -84,23 +87,23 @@ Create the first bounded, reviewed metadata baseline for the existing Game Catal
 - Program record: new `CAN-PROGRAM-GAME-CATALOG-COMPLETENESS`.
 - Open PRs inspected: narrow `catalog` search returned no open matching PR.
 - Active tasks inspected: narrow repository searches returned no active Game Catalog continuation record.
-- Ownership checker result: not run; no local Git checkout is available in this session.
+- Ownership checker result: local `python tools/agents/task_ownership.py` passed with 35 active task records; Agent Task Ownership run `30456714386` also passed.
 - Exclusive claims: this task record and `data-otservbr-global/catalog/**`; narrow GitHub searches found no matching open PR or indexed task.
 - Shared claims: program, catalogue, contract, cross-repository registry, and architecture documentation.
 - Read-only dependencies: existing exporter, v1 schema, and workflow.
-- Overlaps: none found by narrow GitHub search; exact structured ownership remains unverified locally.
-- Resolution: let the deterministic ownership workflow validate the new manifest claim before any manifest edit; add tool/test claims only after implementation scope is known.
+- Overlaps: none found by narrow GitHub search or deterministic ownership validation.
+- Resolution: ownership is clear; metadata implementation is blocked by the v1 verified-content-boundary representation conflict and consumer write authorization.
 
 # Current state
 
-The archived exporter is complete. No reviewed production manifest root was found in PR #991's changed files. `config.lua.dist` proves `data-otservbr-global` is the repository default datapack, making `data-otservbr-global/catalog` the default repository manifest root; the actual deployed production configuration remains unverified. This task remains in evidence and ownership preflight.
+The archived exporter is complete and ownership of the repository-default manifest root is proven. A bounded dragon/dragon-shield runtime, spawn, and loot seed is repository-backed, but its historical introduction release remains unknown. Schema v1 cannot represent an unknown snapshot-wide `verified_content_through_release`, and protocol `15.25` cannot be reused as content-completeness evidence. Implementing the required profile now would invent a fact. A synchronized producer/consumer schema decision is required before manifests can be added.
 
 # Plan
 
-1. Validate ownership of the repository-default `data-otservbr-global/catalog/**` root and identify repository-backed evidence sources.
-2. Run structured ownership validation and declare exact manifest/tool/test paths.
-3. Define a bounded seed set with claim-level evidence and explicit unknowns.
-4. Implement manifests and any minimum validator/test support required for fail-closed review.
+1. Obtain explicit write authorization for `blakinio/Oteryn-Platform`.
+2. Create a separate versioned cross-repository contract task that can represent an unknown verified-content boundary without weakening fail-closed behavior.
+3. Resume this metadata task with the bounded dragon, dragon-shield, and loot seed while leaving `introduced_in` and `removed_in` null.
+4. Implement manifests and minimum validator/test support.
 5. Run deterministic focused export validation and current-head CI.
 6. Update the program, contracts, catalogue, checkpoint, and merge/archive lifecycle.
 
@@ -113,6 +116,13 @@ The archived exporter is complete. No reviewed production manifest root was foun
 - Failed/blocked: local ownership tooling and implementation cannot run because this session has no Git checkout; GitHub ownership CI will validate the exact claim.
 - Result: safe repository coordination is established without metadata or production activation claims.
 
+## 2026-07-29T13:40:57Z
+
+- Changed: no runtime or manifest files; inspected the synchronized branch and repository-backed item, creature, spawn, loot, protocol, schema, and evidence contracts.
+- Learned: item `3416`, creature `Dragon`, its spawn entries, and dragon-shield loot are valid bounded runtime/availability evidence, but no reviewed historical introduction or datapack-wide verified-content boundary is present.
+- Failed/blocked: schema v1 requires a concrete `verified_content_through_release`, while repository policy requires that this unknown remain unknown.
+- Result: metadata implementation is blocked pending a synchronized versioned producer/consumer contract and explicit Platform write authorization.
+
 # Decisions
 
 | Decision | Reason/evidence | ADR |
@@ -120,7 +130,7 @@ The archived exporter is complete. No reviewed production manifest root was foun
 | Split metadata, entity families, and production activation into separate tasks | Repository policy requires bounded branches/PRs; schema and production risks differ materially. | none |
 | Start with metadata evidence | Additional entity and activation work depends on trustworthy release/completeness/availability boundaries. | none |
 | Target the repository-default datapack, not an unverified deployment | `config.lua.dist` selects `data-otservbr-global`; actual deployed configuration remains unknown. | none |
-| Preserve schema v1 in this task | Metadata population can use the existing v1 contract; new entity types require separate versioned contracts. | none |
+| Do not invent a v1 verified-content boundary or sentinel release | The schema requires a concrete release, but neither protocol 15.25 nor current datapack presence proves completeness. | required cross-repository schema decision |
 
 # Files and interfaces
 
@@ -130,7 +140,7 @@ The archived exporter is complete. No reviewed production manifest root was foun
 | `docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md` | shared | Multi-task sequence and gates | active |
 | `src/game/catalog/**` | read_only | Existing manifest loader/exporter | inspected |
 | `schemas/game-catalog/v1/**` | read_only | Existing contract shape | inspected |
-| `data-otservbr-global/catalog/**` | exclusive | Repository-default reviewed metadata manifests | claimed; validation pending |
+| `data-otservbr-global/catalog/**` | exclusive | Repository-default reviewed metadata manifests | ownership proven; implementation blocked |
 
 # Validation and CI
 
@@ -148,29 +158,31 @@ Never write `passed` without verification on the stated commit.
 - Reopening archived task `CAN-20260728-game-catalog-exporter` is invalid because its lifecycle is complete.
 - Treating CI-generated manifests as production metadata is invalid; they are isolated smoke inputs.
 - Using external wiki claims as manifest truth is forbidden by the contract.
+- Treating protocol `15.25` as `verified_content_through_release=15.25` is invalid; the repository evidence policy explicitly separates protocol and content coverage.
+- Inventing a `0.0.0` or other sentinel release is invalid without a versioned producer/consumer contract.
 
 # Risks and compatibility
 
 - Runtime: incorrect manifest selection could export the wrong content profile.
 - Data/migration: bulk historical annotation without reviewed evidence would create false facts.
 - Security: production paths, credentials, and dumps are excluded.
-- Backward compatibility: this task preserves schema `1.0.0`; unsupported future schema versions must fail closed.
-- Cross-repo rollout: Platform remains read-only and may require a separate task only if v1 semantics change.
+- Backward compatibility: schema `1.0.0` cannot honestly represent the current unknown boundary; any correction must be versioned and older consumers must fail closed.
+- Cross-repo rollout: the necessary schema correction requires a synchronized Platform task, but Platform is read-only under current authorization.
 - Rollback: no activation occurs; generated snapshots remain immutable files and prior active consumer state must remain unchanged.
 
 # Remaining work
 
-1. Identify a bounded item, creature, and loot seed set whose release and availability claims are provable from repository-backed evidence, then record the exact manifest entries before implementation.
+1. Obtain explicit repository-write authorization for `blakinio/Oteryn-Platform` so a synchronized versioned contract can represent an unknown `verified_content_through_release` before manifest implementation.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T13:36:44Z
-head: 666369126319bdac3ecc4ff83584011db1ce6c2f
+updated_at: 2026-07-29T13:40:57Z
+head: 000ce71c52229c9d8e56b2ab9e90a3e139f2e303
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 pr: 1005
-status: investigating
+status: blocked
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -187,21 +199,28 @@ proven:
   - Narrow GitHub searches found no open catalog PR or issue.
   - Current authorization permits repository writes only in blakinio/canary.
   - config.lua.dist selects data-otservbr-global as the repository default datapack and therefore data-otservbr-global/catalog as its default manifest root.
+  - src/core.hpp proves protocol version 15.25, while the evidence policy states that protocol version does not prove content coverage.
+  - Item 3416, creature Dragon, Dragon spawn entries and the dragon-shield loot relation are present in repository source.
+  - Schema v1 requires verified_content_through_release to be a concrete release key.
 derived:
   - Metadata evidence must be completed before trustworthy additional-entity visibility or production activation.
   - The work must be split across bounded tasks and versioned cross-repository contracts.
+  - A versioned producer/consumer schema decision is required before an honest metadata profile can represent the unknown verified-content boundary.
 unknown:
   - Whether the deployed production configuration uses the repository-default data-otservbr-global datapack/profile.
-  - The reviewed repository-backed evidence set for historical and availability claims.
+  - Historical introduced_in and removed_in releases for the bounded dragon and dragon-shield seed.
   - Exact consumer changes and schema versions required by each additional entity family.
-conflicts: []
+conflicts:
+  - Schema v1 requires a non-null verified_content_through_release, but repository policy requires the unproven datapack-wide boundary to remain unknown.
 first_failure:
-  marker: repository-backed-metadata-evidence-unverified
-  evidence: Ownership and CI pass, but no claim-level reviewed seed set has been selected or implemented.
+  marker: verified-content-boundary-unrepresentable
+  evidence: Protocol 15.25 and bounded runtime presence do not prove datapack-wide content coverage, while schema v1 forbids null.
 rejected_hypotheses:
   - Continue the archived exporter task: PR 996 archived it as completed.
   - Treat isolated CI manifests as production metadata: the workflow creates them under artifacts for smoke testing only.
   - Infer metadata from external wikis: the v1 contract forbids it.
+  - Use protocol 15.25 as the verified content boundary: REAL_TIBIA_EVIDENCE_SOURCES.md explicitly rejects that inference.
+  - Invent an unreviewed sentinel release: it would add producer/consumer semantics outside schema v1.
 changed_paths:
   - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260729-game-catalog-metadata-evidence.md
@@ -215,9 +234,13 @@ validation:
   - command: CI run 30456714463
     result: PASS
     evidence: Exact-head documentation and fast checks passed at 666369126319bdac3ecc4ff83584011db1ce6c2f.
+  - command: python tools/agents/task_ownership.py
+    result: PASS
+    evidence: Local synchronized checkout validated 35 active task records at 000ce71c52229c9d8e56b2ab9e90a3e139f2e303.
 blockers:
-  - Local checkout is required for implementation and deterministic validation.
-next_action: Identify a bounded item, creature and loot seed set whose release and availability claims are provable from repository-backed evidence, then record the exact manifest entries before implementation.
+  - Current authorization forbids the Platform consumer mutation required for a synchronized schema correction.
+  - Schema v1 cannot represent the unknown verified-content boundary without inventing a fact.
+next_action: Obtain explicit repository-write authorization for blakinio/Oteryn-Platform so a synchronized versioned contract can represent an unknown verified_content_through_release before manifest implementation.
 ```
 
 # Handoff
