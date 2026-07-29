@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-item-instances-20260730
 base_branch: main
 created: 2026-07-30T00:12:00+02:00
-updated: 2026-07-30T00:20:00+02:00
-last_verified_commit: "84a7c250b999a100727e02ed09de38f4f01bc863"
+updated: 2026-07-30T00:25:00+02:00
+last_verified_commit: "c5e6760cb73cc3a65f2ea9e51934086be98895c6"
 risk: medium
 related_issue: ""
 related_pr: "1022"
@@ -54,9 +54,9 @@ It does not claim static `ItemType` correctness, containers, movement orchestrat
 
 - [x] Worker branch and active task created after coordinator PR #1020.
 - [x] Draft worker PR #1022 opened.
-- [x] Added MODULE, behavior model, decisions, empty module index/history, candidate record and pending review.
+- [x] Added MODULE, behavior model, decisions, empty publication index, candidate version history, candidate record and pending review.
 - [x] Kept record `review-needed` and review `pending` for coordinator adjudication.
-- [x] Applied `ci:final-gate` before this final checkpoint commit.
+- [x] Applied `ci:final-gate` before final checkpoint commits.
 - [ ] Pass exact-head ownership, Evidence Contracts, Module Registry and final CI.
 - [ ] Squash-merge, then archive through the shared worker lifecycle PR.
 
@@ -64,8 +64,8 @@ It does not claim static `ItemType` correctness, containers, movement orchestrat
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T00:20:00+02:00
-head: 84a7c250b999a100727e02ed09de38f4f01bc863
+updated_at: 2026-07-30T00:25:00+02:00
+head: 787002c05e37a03abd32e2ea5d5d795128491c29
 branch: docs/rtec-005-wave-3-item-instances-20260730
 pr: 1022
 status: ready
@@ -90,29 +90,31 @@ proven:
   - item-instances dossier root was absent at preflight
   - PR 1022 contains only the owned task and item-instances dossier root
   - RT-ITEM-INSTANCES-0001 remains review-needed with pending coordinator review
-  - module evidence index and version history remain empty before coordinator publication
+  - module evidence index remains empty before coordinator publication
+  - candidate version history records only the exact current-Canary observation baseline
   - worker did not modify shared programme, generated index or owner-request paths
-  - ci:final-gate was applied before this checkpoint commit
+  - ci:final-gate was applied before the final checkpoint commits
 derived:
   - the worker output remains a candidate package until coordinator adjudication
 unknown:
-  - exact final-head check identifiers and conclusions
+  - exact corrected-head check identifiers and conclusions
   - coordinator acceptance, narrowing or rejection outcome
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no worker validation failure has occurred before the final gate
+  marker: Real Tibia Evidence Contracts / candidate corpus shape
+  evidence: the configuration sibling run 30495526058 established that a new candidate dossier requires a non-empty exact-baseline version history and canonical 2026-07-29 module-index date; this worker applies the same deterministic correction before relying on its own final gate
 rejected_hypotheses:
   - claim static ItemType correctness, serialization completeness or ownership safety from selected paths
   - edit shared global publication paths
-  - publish the candidate in module/global indexes before coordinator review
+  - publish the candidate in module/global evidence indexes before coordinator review
+  - wait for an identical deterministic failure before correcting the sibling package
 validation:
   - command: merged wave 3 preflight
     result: PASS
     evidence: PRs 1016 and 1019
   - command: candidate package path and state audit
     result: PASS
-    evidence: eight changed paths are inside the declared worker boundary and the candidate is unpublished
+    evidence: eight changed paths are inside the declared worker boundary and the candidate evidence index is unpublished
 blockers: []
-next_action: Verify exact-head checks, mark PR 1022 ready, squash-merge, and include this task in the shared worker lifecycle archive.
+next_action: Verify corrected exact-head checks, mark PR 1022 ready, squash-merge, and include this task in the shared worker lifecycle archive.
 ```
