@@ -1,0 +1,32 @@
+---
+name: Tibia Client Reference Drift
+
+on:
+  pull_request:
+    paths:
+      - "tools/ai-agent/tibia_client_reference_drift.py"
+      - "tools/ai-agent/test_tibia_client_reference_drift.py"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.md"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json"
+      - ".github/workflows/tibia-client-reference-drift.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: tools/ai-agent
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run drift tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_drift.py" -v
+      - name: Compile producer
+        run: python -m py_compile tools/ai-agent/tibia_client_reference_drift.py tools/ai-agent/test_tibia_client_reference_drift.py
+      - name: Validate schema syntax
+        run: python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_DRIFT.schema.json > /dev/null
