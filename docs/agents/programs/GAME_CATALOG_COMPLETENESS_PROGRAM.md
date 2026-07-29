@@ -4,8 +4,8 @@ name: Oteryn Game Catalog completeness and activation
 status: active
 owner: chatgpt
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:31:53Z
-last_verified_commit: "61b320e02573cb37cb0136fd0512b338f5ed8054"
+updated: 2026-07-29T13:36:44Z
+last_verified_commit: "666369126319bdac3ecc4ff83584011db1ce6c2f"
 primary_paths:
   - src/game/catalog/**
   - schemas/game-catalog/**
@@ -57,7 +57,7 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 
 | Task ID | Branch | PR | State | Exact next action |
 |---|---|---:|---|---|
-| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | investigating | Validate the `data-otservbr-global/catalog/**` ownership claim and identify repository-backed evidence sources before adding manifests. |
+| `CAN-20260729-game-catalog-metadata-evidence` | `feat/CAN-20260729-game-catalog-metadata-evidence` | #1005 | planned | Identify a bounded item, creature, and loot seed set with repository-backed release and availability evidence. |
 
 # Queue
 
