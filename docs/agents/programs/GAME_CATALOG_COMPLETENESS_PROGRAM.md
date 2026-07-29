@@ -62,14 +62,15 @@ Deliver a complete, evidence-backed Oteryn Game Catalog path from reviewed Canar
 # Queue
 
 1. Complete `CAN-20260729-game-catalog-loot-threshold-schema`: emit the consumer-approved schema 1.2 threshold model and prove the complete default datapack.
-2. Add NPCs and shop offers in a new versioned producer/consumer contract task.
-3. Add spells in a separate versioned contract task.
-4. Add quests and rewards in a separate versioned contract task.
-5. Add areas, spawns, raids, and map attainability in separate evidence-backed tasks.
-6. Certify compatible consumer schema/import behavior.
-7. Generate a reviewed staging snapshot and prove import, candidate activation, rollback, and visibility.
-8. Verify production revisions, storage, routing, permissions, monitoring, rollback, and operator procedure.
-9. Cross the manual production activation gate only after every blocker is closed.
+2. Certify telemetry-independent Game Catalog definition-loader stability before staging; preserve the two exit-139 runs and two telemetry-enabled passes as separate evidence.
+3. Add NPCs and shop offers in a new versioned producer/consumer contract task.
+4. Add spells in a separate versioned contract task.
+5. Add quests and rewards in a separate versioned contract task.
+6. Add areas, spawns, raids, and map attainability in separate evidence-backed tasks.
+7. Certify compatible consumer schema/import behavior.
+8. Generate a reviewed staging snapshot and prove import, candidate activation, rollback, and visibility.
+9. Verify production revisions, storage, routing, permissions, monitoring, rollback, and operator procedure.
+10. Cross the manual production activation gate only after every blocker is closed.
 
 # Completed work
 
