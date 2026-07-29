@@ -2,13 +2,13 @@
 task_id: CAN-20260729-game-catalog-schema-1-1
 program_id: CAN-PROGRAM-GAME-CATALOG-COMPLETENESS
 coordination_id: "OTS-20260728-game-catalog-v1"
-status: ready
+status: completed
 agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-schema-1-1
 base_branch: main
 created: 2026-07-29T15:20:00Z
-updated: 2026-07-29T16:07:15Z
-last_verified_commit: "57dd84c10ba582597ba00daa38437a3c88b99c4d"
+updated: 2026-07-29T16:18:03Z
+last_verified_commit: "3ad7155dd833e105cebfd4b472800a4156ac1e90"
 risk: high
 related_issue: ""
 related_pr: 1006
@@ -45,6 +45,7 @@ public_interfaces:
   - oteryn.game-catalog schema 1.1.0
 cross_repo_tasks:
   - OTERYN-20260729-game-catalog-null-boundary
+completed: 2026-07-29T16:18:03Z
 ---
 
 # Goal
@@ -185,3 +186,11 @@ next_action: Wait for exact-final-head required checks, verify unchanged scope a
 - New consumers must retain stored 1.0.0 rollback compatibility.
 - Null means unknown, never complete or verified.
 - No production import, activation, secrets, database access or network calls are part of this task.
+
+## Automated lifecycle completion
+
+- Feature PR: #1006.
+- Feature head: `20ab2db1d0041f86fc7978730c6cc289eb7ea763`.
+- Merge commit: `3ad7155dd833e105cebfd4b472800a4156ac1e90`.
+- Merged at: `2026-07-29T16:18:03Z`.
+- This record was moved from `tasks/active` by the post-merge lifecycle automation.
