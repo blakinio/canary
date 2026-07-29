@@ -7,11 +7,11 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:27:36Z
-last_verified_commit: "23a8148f72805676fa623c15ffa6ad20e7dc3d2f"
+updated: 2026-07-29T13:31:00Z
+last_verified_commit: "19b0e579fab176977eb2d78ae0d7f0d9dc1145dc"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: 1005
 depends_on:
   - CAN-20260728-game-catalog-exporter
 blocks: []
@@ -164,9 +164,9 @@ Never write `passed` without verification on the stated commit.
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-29T13:27:36Z
-head: UNKNOWN
+head: 19b0e579fab176977eb2d78ae0d7f0d9dc1145dc
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
-pr: none
+pr: 1005
 status: investigating
 context_routes:
   - agent-governance
@@ -249,7 +249,7 @@ Read root and nested agent rules, the program record, this checkpoint, PR #991's
 # Completion
 
 - Final status: investigating
-- PR: pending
+- PR: #1005
 - Merge commit: none
 - Program record updated: yes
 - Catalogue updated: not required yet
