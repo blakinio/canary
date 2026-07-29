@@ -7,8 +7,8 @@ agent: "chatgpt"
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 base_branch: main
 created: 2026-07-29T13:27:36Z
-updated: 2026-07-29T13:31:53Z
-last_verified_commit: "61b320e02573cb37cb0136fd0512b338f5ed8054"
+updated: 2026-07-29T13:32:56Z
+last_verified_commit: "483a9fae64b3d113bd143d946fc72537f3a1a5ee"
 risk: high
 related_issue: ""
 related_pr: 1005
@@ -21,7 +21,6 @@ owned_paths:
     - data-otservbr-global/catalog/**
   shared:
     - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
-  - data-otservbr-global/catalog/**
     - docs/agents/MODULE_CATALOG.md
     - docs/agents/CROSS_REPO_CONTRACTS.md
     - docs/contracts/GAME_CATALOG_EXPORT_CONTRACT.md
@@ -166,8 +165,8 @@ Never write `passed` without verification on the stated commit.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-29T13:27:36Z
-head: 61b320e02573cb37cb0136fd0512b338f5ed8054
+updated_at: 2026-07-29T13:32:56Z
+head: 483a9fae64b3d113bd143d946fc72537f3a1a5ee
 branch: feat/CAN-20260729-game-catalog-metadata-evidence
 pr: 1005
 status: investigating
@@ -179,6 +178,7 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260729-game-catalog-metadata-evidence.md
   - docs/agents/programs/GAME_CATALOG_COMPLETENESS_PROGRAM.md
+  - data-otservbr-global/catalog/**
 proven:
   - PR 991 merged the deterministic offline Game Catalog exporter and its task is archived.
   - The exporter defaults manifests to <DATA_DIRECTORY>/catalog and preserves missing annotations as unverified or unknown.
