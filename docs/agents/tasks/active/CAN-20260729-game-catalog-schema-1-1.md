@@ -85,7 +85,7 @@ Schema 1.0.0 requires a concrete `verified_content_through_release`. Repository 
 5. Synchronize exact schema bytes with Platform PR #299 and validate both sanitized fixtures.
 6. Run focused validation and exact-head CI; merge Platform first, then Canary.
 
-# Context checkpoint
+## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
