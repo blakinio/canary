@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: docs/rtec-005-wave-3-coordination-20260730
 base_branch: main
 created: 2026-07-30T00:07:00+02:00
-updated: 2026-07-30T00:07:00+02:00
-last_verified_commit: ""
+updated: 2026-07-30T00:09:00+02:00
+last_verified_commit: "1926b3426de4e453efae23c08761dd359d95da52"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "1020"
 depends_on:
   - CAN-20260729-rtec-005-wave-3-preflight
 blocks:
@@ -64,7 +64,7 @@ Coordinate RTEC-005 wave 3 for the independent `configuration` and `item-instanc
 
 # Coordination contract
 
-- This task and its draft pull request must exist before either Collector branch.
+- This task and its draft pull request exist before either Collector branch.
 - At most two Collector workers and two worker PRs may be active.
 - Workers own only their new dossier roots and active task files; they must not edit this task, the programme, generated global index, existing owner requests, runtime, data, client, protocol, map, workflow or E2E paths.
 - The coordinator PR remains open while worker packages and lifecycle moves merge.
@@ -84,7 +84,7 @@ Candidate proof may cover current-Canary runtime item factory/subtype creation, 
 # Acceptance criteria
 
 - [x] Open the coordinator branch and active task before worker branches.
-- [ ] Open a draft coordinator PR before worker branches.
+- [x] Open draft coordinator PR #1020 before worker branches.
 - [ ] Merge both bounded worker packages and their lifecycle moves.
 - [ ] Independently adjudicate both candidate records and reviews.
 - [ ] Keep all three existing owner requests unchanged unless real owner evidence arrives.
@@ -97,10 +97,10 @@ Candidate proof may cover current-Canary runtime item factory/subtype creation, 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T00:07:00+02:00
-head: pending-first-commit
+updated_at: 2026-07-30T00:09:00+02:00
+head: 1926b3426de4e453efae23c08761dd359d95da52
 branch: docs/rtec-005-wave-3-coordination-20260730
-pr: null
+pr: 1020
 status: active
 context_routes:
   - agent-governance
@@ -116,7 +116,7 @@ proven:
   - wave 3 preflight lifecycle PR 1019 merged as 8e21a33325d6bd8ddbb647e7c967f940dfd54516
   - configuration and item-instances are the preflight-approved absent and disjoint roots
   - corpus baseline is 15 evidence records, 3 active owner requests and 12 version-history records at as_of 2026-07-29
-  - this coordinator task was created before either worker branch
+  - this coordinator task and draft PR 1020 existed before either worker branch
 derived:
   - this branch must remain the sole global-index and programme writer for wave 3
   - worker records must remain candidates until independent coordinator adjudication
@@ -136,6 +136,9 @@ validation:
   - command: preflight source and lifecycle exact-head gates
     result: PASS
     evidence: PRs 1016 and 1019 merged after successful ownership/full CI
+  - command: coordinator branch and draft PR ordering
+    result: PASS
+    evidence: PR 1020 opened from coordinator branch before worker branch creation
 blockers: []
-next_action: Open the draft coordinator PR, then create the two bounded worker branches and packages.
+next_action: Create the two bounded worker branches and candidate dossier packages.
 ```
