@@ -147,13 +147,13 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: active bounded first slice; downstream evidence-gated.**
+**Priority: OWA-003A stable/merged; downstream evidence-gated.**
 
 ## Goal
 
 Use stable exact Tibia Client Reference outputs to invalidate or refresh only the QA/certification dimensions that explicitly depend on them.
 
-## OWA-003A delivered boundary in PR #1031
+## OWA-003A stable boundary — PR #1031 / merge `b3a8f74fce051580af520bd21d977ef6ac039d97`
 
 The first slice consumes one exact stable `canary-tibia-reference-adoption-routing-v1` report, one exact existing `canary-otbm-release-provenance-v1` report and one reviewer-authored hash-pinned mapping. It emits `canary-otbm-tcr-qa-freshness-impact-v1` only when every TCR route/target is covered and the mapped component set for each dimension exactly equals QA-016 `changedDependencies`.
 
@@ -177,7 +177,7 @@ verified OWA-003A freshness impact
   -> refreshed QA-006 certification state
 ```
 
-OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners.
+OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. The next action is a separate read-only retained-evidence preflight before any downstream implementation.
 
 ## Hard boundaries
 

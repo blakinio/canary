@@ -74,9 +74,9 @@ Add the smallest deterministic read-only OWA-003A composition that verifies an e
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-30T12:58:00+02:00
-head: b3a8f74fce051580af520bd21d977ef6ac039d97
+head: 2c3d7320fab1c0336681d1d559dcff402dbfd081
 branch: docs/CAN-20260730-owa-003a-archive
-pr: none
+pr: 1032
 status: ready
 context_routes:
   - agent-governance
@@ -97,7 +97,7 @@ proven:
 derived:
   - A fresh downstream evidence preflight is required before another OWA-003 package may start.
 unknown:
-  - Exact lifecycle PR number, lifecycle head and lifecycle workflow results are not yet available.
+  - Exact post-sync lifecycle head and its pull-request workflow results must be verified from live repository state.
 conflicts: []
 first_failure:
   marker: none
@@ -116,5 +116,5 @@ validation:
     result: PASS
     evidence: runs 30535854198, 30535691287, 30535691325, 30535691270, 30535691282, 30535691308, 30535691409, 30535691475, 30535691271 and 30535691457 on fe2610f91317c0e7437661595188ffbb7ef0c4b3.
 blockers: []
-next_action: Delete the active task record, mark OWA-003A stable/merged in programme discovery and open the documentation-only lifecycle PR.
+next_action: Verify the live post-sync lifecycle head, six-path documentation-only diff and required PR 1032 checks, then squash-merge if unchanged.
 ```
