@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   adoption-router:
@@ -48,83 +48,3 @@ jobs:
           python -m json.tool docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING.schema.json >/dev/null
       - name: Validate CLI
         run: python tools/ai-agent/tibia_reference_adoption_router_tool.py --help >/dev/null
-
-  sync-shared-docs:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: adoption-router
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Reconcile exact TCR-011 shared documentation
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path: str, old: str, new: str) -> None:
-              target = Path(path)
-              text = target.read_text(encoding="utf-8")
-              if old in text:
-                  if text.count(old) != 1:
-                      raise SystemExit(f"expected one match in {path}, found {text.count(old)}")
-                  target.write_text(text.replace(old, new), encoding="utf-8")
-                  return
-              if new in text:
-                  return
-              raise SystemExit(f"neither old nor reconciled text found in {path}")
-
-          program = "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
-          replace_once(
-              program,
-              "| TCR-011 | Reviewed Adoption Router | ready | TCR-005/006/007/009/010 are stable/merged | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Start one bounded read-only routing task. Classify exact reviewed findings to existing owners/capabilities; no executor, approval generation or mutation authority. |",
-              "| TCR-011 | Reviewed Adoption Router | active/in-review | `canary-tibia-reference-adoption-routing-request-v1` + `canary-tibia-reference-adoption-routing-v1`; draft PR #1029 | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Complete exact-head validation and merge. Exact reviewed extract routing only; no parser, target-state inference, approval generation, writer execution, deployment, E2E or gameplay authority. |",
-          )
-          replace_once(
-              program,
-              "TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 and TCR-010 are stable/merged. TCR-011 is dependency-ready and remains the only required TCR package before OWA-003.",
-              "TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 and TCR-010 are stable/merged. TCR-011 is active in PR #1029 and remains non-stable until exact-final-head merge; OWA-003 remains blocked.",
-          )
-          replace_once(
-              program,
-              "## TCR-011 — Adoption Router\n\nPlanned public format:\n\n```text\ncanary-tibia-reference-adoption-routing-v1\n```\n\nAcceptance:\n\n- deterministic owner/capability classification;\n- map changes route only to existing supported repair/materialization capabilities;\n- unsupported map changes remain unsupported rather than expanding writers implicitly;\n- non-OTBM findings route to their module owners;\n- no approval generation, writer execution, deployment or gameplay claim.",
-              "## TCR-011 — Adoption Router\n\nIn-review public formats in PR #1029:\n\n```text\ncanary-tibia-reference-adoption-routing-request-v1\ncanary-tibia-reference-adoption-routing-v1\n```\n\nAcceptance:\n\n- require one exact executed TCR-010 report plus one reviewer-authored hash-pinned request;\n- preserve exact binding, kind, extract ID, source ID, JSON Pointer and extract value SHA-256;\n- deterministic fixed owner/capability classification with complete one-time extract coverage;\n- map changes route only to existing OTBM-QA-003 Repair Recommendation, never directly to a writer/materializer;\n- unsupported and blocked outcomes remain explicit rather than expanding writers or inventing target state;\n- non-OTBM findings route only to existing module/TCR owners;\n- no parser, approval generation, mutation request, writer execution, deployment, E2E or gameplay claim.",
-          )
-          replace_once(
-              program,
-              "- TCR-010 feature PR `#1027` merged as `34a2a3750f20c318ecc07aa7407ca0b9a9311834` after readiness/final-gate run `30522402785` passed.",
-              "- TCR-010 feature PR `#1027` merged as `34a2a3750f20c318ecc07aa7407ca0b9a9311834` after readiness/final-gate run `30522402785` passed.\n- TCR-011 is active in draft PR `#1029` and remains non-stable until exact-final-head merge.",
-          )
-          replace_once(
-              program,
-              "# Exact next action after TCR-010 merge\n\nStart one bounded TCR-011 Reviewed Adoption Router task. Preserve exact finding references, deterministic existing-owner/capability classification and unsupported outcomes. Do not execute writers, generate approval, deploy, claim gameplay parity or start OWA-003 before TCR-011 is stable/merged.\n\n# Handoff\n\nContinue from `main` merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834` and the archived TCR-010 checkpoint. Reuse TCR-005/006/007/009/010 stable contracts and existing repair/subsystem owners; do not add a second router, executor or mutation path.",
-              "# Exact next action during TCR-011 review\n\nComplete PR #1029 through exact-final-head validation and squash merge, then archive its task and mark OWA-003 dependency-ready. Preserve exact extract references and unsupported/blocked outcomes; do not execute writers, generate approval, deploy or claim gameplay parity.\n\n# Handoff\n\nContinue from active task `CAN-20260730-tcr-011-adoption-router` and draft PR #1029. Reuse the executed TCR-010 report boundary, QA-003 as the sole map-repair capability classifier and existing subsystem owners; do not add a second parser, router, executor, approval or mutation path.",
-          )
-
-          catalog = "docs/agents/MODULE_CATALOG.md"
-          replace_once(
-              catalog,
-              "| OTBM Tibia client reference architecture | active programme; TCR-000..010 stable/merged, TCR-008 optional/deferred, TCR-011 ready | Exact manifest, StaticData, StaticMapData, proficiency, resolver/parity/correlation, drift and reviewed QA-018 gateway contracts plus the adoption-router queue | `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`, `docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md`, `tools/ai-agent/tibia_*reference*.py`, `tools/ai-agent/tibia_client_reference_evidence_gateway*.py` | Reuse stable TCR producers and QA-018. Start TCR-011 as a separate deterministic read-only router; no parser, executor, approval generation, mutation, E2E or gameplay authority. OWA-003 remains blocked until TCR-011 is stable/merged. |",
-              "| OTBM Tibia client reference architecture | active programme; TCR-000..010 stable/merged, TCR-008 optional/deferred, TCR-011 active (#1029) | Exact manifest, StaticData, StaticMapData, proficiency, resolver/parity/correlation, drift, reviewed QA-018 gateway and exact adoption-routing request/report contracts | `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`, `docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTER.md`, `tools/ai-agent/tibia_*reference*.py`, `tools/ai-agent/tibia_client_reference_evidence_gateway*.py`, `tools/ai-agent/tibia_reference_adoption_router*.py` | Reuse stable TCR producers and QA-018. TCR-011 consumes one exact executed gateway report plus a reviewer-authored hash-pinned request, routes map work only through QA-003 and preserves unsupported/blocked outcomes; no parser, target-state inference, approval, writer execution, deployment, E2E or gameplay authority. OWA-003 remains blocked until merge. |",
-          )
-
-          changelog = "docs/agents/CHANGELOG.md"
-          replace_once(
-              changelog,
-              "## Unreleased\n\n- Adds TCR-010",
-              "## Unreleased\n\n- Adds TCR-011 `canary-tibia-reference-adoption-routing-request-v1` and `canary-tibia-reference-adoption-routing-v1` as deterministic read-only classification of every exact executed TCR-010 extract to a fixed existing owner/capability or explicit unsupported/blocked outcome. Requests pin gateway file/report/bundle hashes plus binding, kind, extract/source IDs, JSON Pointer and value SHA-256; map work routes only through QA-003 rather than directly to writers/materializers. The router infers no desired state, expands no writer, generates no approval or mutation request, executes nothing, deploys nothing and claims no gameplay parity.\n\n- Adds TCR-010",
-          )
-          PY
-      - name: Commit shared-document reconciliation
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md docs/agents/MODULE_CATALOG.md docs/agents/CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "Shared documentation already reconciled."
-          else
-            git commit -m "docs(tcr): reconcile adoption router programme"
-            git push origin "HEAD:${GITHUB_HEAD_REF}"
-          fi
