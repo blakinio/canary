@@ -2,13 +2,13 @@
 task_id: CAN-20260730-owa-003a-tcr-qa-freshness
 program_id: CAN-PROGRAM-OTBM-WORLD-ASSURANCE-OPERATIONS
 coordination_id: OWA-003A
-status: implementing
+status: ready
 agent: chatgpt
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 base_branch: main
 created: 2026-07-30T12:05:00+02:00
-updated: 2026-07-30T12:40:00+02:00
-last_verified_commit: "8e1e2edeb197ac1cdd1c1e7e4c3632bf5bbaaa72"
+updated: 2026-07-30T12:42:00+02:00
+last_verified_commit: "66ec0681b071605981b9bf3cf52edf6c7c08a611"
 risk: medium
 related_issue: ""
 related_pr: "1031"
@@ -77,8 +77,8 @@ OWA-003A consumes stable reports only. It never opens TCR client inputs, parses 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T12:40:00+02:00
-head: 8e1e2edeb197ac1cdd1c1e7e4c3632bf5bbaaa72
+updated_at: 2026-07-30T12:42:00+02:00
+head: 66ec0681b071605981b9bf3cf52edf6c7c08a611
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 pr: 1031
 status: ready
@@ -114,8 +114,8 @@ unknown:
   - Exact final-head workflow results and merge SHA are not yet available.
 conflicts: []
 first_failure:
-  marker: checkpoint-status-and-validation-vocabulary
-  evidence: ownership runs 30535239301 and 30535396647 rejected non-canonical task checkpoint vocabulary; corrected without changing package behavior.
+  marker: task-checkpoint-vocabulary-and-status-consistency
+  evidence: ownership runs 30535239301, 30535396647 and 30535505821 identified only task-record vocabulary/status consistency; corrected without changing package behavior.
 rejected_hypotheses:
   - TCR drift can be converted directly into QA-002 or QA-007 evidence: rejected because those contracts require canonical map-change and executed result inputs owned elsewhere.
   - OWA should rediscover dependencies from TCR names or identifiers: rejected because QA-008 and OWA both require explicit reviewed dependency mappings.
@@ -141,9 +141,9 @@ validation:
   - command: focused OTBM TCR QA Freshness workflow
     result: PASS
     evidence: run 30534847199 on e1474d39d51c14bc1d2d016e35c7a7de970be4bd.
-  - command: task checkpoint vocabulary correction
+  - command: task-record normalization
     result: PASS
-    evidence: ownership runs 30535239301 and 30535396647 identified only non-canonical task-record values; both are now canonical.
+    evidence: prior ownership runs identified only non-canonical task values; frontmatter and checkpoint now both use ready.
 blockers: []
 next_action: Run the full exact-final-head workflow set on the next connector-authored SHA, audit reviews/diff/mergeability, then mark ready and squash-merge only if unchanged and fully green.
 ```
