@@ -12,7 +12,7 @@ last_verified_commit: "3cc30856257fa7e6b3470801807413bb5dad20cc"
 risk: high
 related_issue: ""
 related_pr: "1035"
-lifecycle_pr: ""
+lifecycle_pr: "1036"
 depends_on:
   - TCR-009 stable retained exact snapshot A/B and drift identities
   - TCR-010 stable evidence gateway contracts
@@ -137,7 +137,7 @@ checkpoint_version: 1
 updated_at: 2026-07-30T23:26:00+02:00
 head: 3cc30856257fa7e6b3470801807413bb5dad20cc
 branch: docs/CAN-20260730-owa-003c-archive
-pr: null
+pr: 1036
 status: blocked-lifecycle-closing
 context_routes:
   - agent-governance

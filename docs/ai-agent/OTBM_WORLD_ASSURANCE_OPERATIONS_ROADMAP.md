@@ -147,7 +147,7 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: OWA-003A stable/merged; OWA-003B lifecycle-closed; OWA-003C exact-evidence recovery blocked external evidence.**
+**Priority: OWA-003A stable/merged; OWA-003B lifecycle-closed; OWA-003C recovery/lifecycle closed, blocked external evidence.**
 
 ## Goal
 
@@ -188,14 +188,14 @@ OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT
 
 The merged producer contract, schemas and synthetic test fixtures are not an executed operational impact. Re-entry requires one durable impact reference with file/report/manifest/routing/provenance/BOM and review/invocation identities. QA-008/002/007/006 compatibility remains unevaluated until that first exact input exists.
 
-## OWA-003C terminal recovery disposition — PR #1035
+## OWA-003C terminal recovery disposition — PR #1035 / lifecycle #1036
 
 ```text
 BLOCKED_EXTERNAL_EVIDENCE
 OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN
 ```
 
-TCR-009 proves prior exact snapshot A/B and drift identities, but generated payloads remained outside Git. OWA-003C found no executable report chain in final or diagnostic Actions artifacts. Official-launcher rematerialization was repeatedly Cloudflare-blocked before bytes were accepted, and the public client mirror contains no exact `15.31.69f220` tag. Hashes and summaries cannot be reconstructed into source reports.
+TCR-009 proves prior exact snapshot A/B and drift identities, but generated payloads remained outside Git. Lifecycle PR #1036 archives the blocked recovery task without converting the blocker into completion. OWA-003C found no executable report chain in final or diagnostic Actions artifacts. Official-launcher rematerialization was repeatedly Cloudflare-blocked before bytes were accepted, and the public client mirror contains no exact `15.31.69f220` tag. Hashes and summaries cannot be reconstructed into source reports.
 
 Re-entry requires exact snapshot-B bytes reproducing accepted final manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 final/bootstrap manifests, six indexes and drift report. Canonical TCR-010/011, QA-016 and OWA-003A must then execute before any downstream stage.
 
