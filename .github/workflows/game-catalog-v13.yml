@@ -1,0 +1,65 @@
+name: Game Catalog 1.3 Producer
+
+on:
+  pull_request:
+    paths:
+      - 'schemas/game-catalog/v1.3/**'
+      - 'tests/game_catalog/fixtures/v1.3/**'
+      - 'tools/game-catalog/**'
+      - 'src/game/catalog/**'
+      - 'src/creatures/npcs/**'
+      - 'src/lua/functions/creatures/npc/**'
+      - 'tests/unit/game/catalog/**'
+      - 'tests/game_catalog/runtime-datapack/npc/**'
+      - 'docs/agents/tasks/active/CAN-20260730-game-catalog-schema-1-3-producer.md'
+      - '.github/workflows/game-catalog-v13.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-catalog-v13-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Exact contract and fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile validator
+        run: python -m py_compile tools/game-catalog/validate_snapshot.py
+      - name: Verify exact Platform-pinned bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum schemas/game-catalog/v1.3/game-catalog-snapshot.schema.json | cut -d' ' -f1)" = "0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8"
+          test "$(sha256sum tests/game_catalog/fixtures/v1.3/minimal-snapshot.json | cut -d' ' -f1)" = "c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7"
+      - name: Validate schema 1.3 shared fixture
+        run: |
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/v1.3/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1.3/game-catalog-snapshot.schema.json \
+            --expected-sha256 c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7
+      - name: Preserve prior registered fixtures
+        run: |
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1/game-catalog-snapshot.schema.json \
+            --expected-sha256 ec0658bb11877240f2e22575180513dbff426b3df1fc2af8f20343ed0d424055
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/v1.1/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1.1/game-catalog-snapshot.schema.json \
+            --expected-sha256 747467af3716873e2738973bc2d2c5cd0b0230bc69ae68e53f763e4d9f995dee
+          python tools/game-catalog/validate_snapshot.py \
+            tests/game_catalog/fixtures/v1.2/minimal-snapshot.json \
+            --schema schemas/game-catalog/v1.2/game-catalog-snapshot.schema.json \
+            --expected-sha256 42b832954f9aa68cf7e2465351f92266771b8132d9634757391d010eaec84855
