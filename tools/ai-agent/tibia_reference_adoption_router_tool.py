@@ -11,8 +11,7 @@ from tibia_reference_adoption_router import (
     AdoptionRoutingError,
     build_routing_report,
     canonical_json,
-    load_json_file,
-    sha256_path,
+    load_json_file_with_sha256,
 )
 
 
@@ -96,13 +95,17 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     request_path = _input_path(args.request, "routing request")
     if gateway_path == request_path:
         raise AdoptionRoutingError("gateway report and routing request must be distinct")
-    gateway = load_json_file(gateway_path, label="gateway report")
-    request = load_json_file(request_path, label="routing request")
+    gateway, gateway_file_sha256 = load_json_file_with_sha256(
+        gateway_path, label="gateway report"
+    )
+    request, request_file_sha256 = load_json_file_with_sha256(
+        request_path, label="routing request"
+    )
     report = build_routing_report(
         gateway,
         request,
-        gateway_file_sha256=sha256_path(gateway_path),
-        request_file_sha256=sha256_path(request_path),
+        gateway_file_sha256=gateway_file_sha256,
+        request_file_sha256=request_file_sha256,
     )
     write_report(
         args.output,

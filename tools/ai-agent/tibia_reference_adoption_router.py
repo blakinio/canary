@@ -106,7 +106,16 @@ def _pairs_no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 def canonical_json(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    try:
+        return json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+    except (TypeError, ValueError) as exc:
+        raise AdoptionRoutingError("value is not canonical JSON") from exc
 
 
 def canonical_sha256(value: Any) -> str:
@@ -168,7 +177,9 @@ def _context_references(value: Any, label: str) -> list[str]:
     return sorted(normalized)
 
 
-def load_json_file(path: Path, *, label: str) -> dict[str, Any]:
+def load_json_file_with_sha256(
+    path: Path, *, label: str
+) -> tuple[dict[str, Any], str]:
     candidate = path.expanduser()
     if candidate.is_symlink():
         raise AdoptionRoutingError(f"{label} must not be a symlink: {path}")
@@ -185,7 +196,13 @@ def load_json_file(path: Path, *, label: str) -> dict[str, Any]:
     if before_identity != after_identity or len(data) != after.st_size:
         raise AdoptionRoutingError(f"{label} changed while reading")
     try:
-        document = json.loads(data.decode("utf-8"), object_pairs_hook=_pairs_no_duplicates)
+        document = json.loads(
+            data.decode("utf-8"),
+            object_pairs_hook=_pairs_no_duplicates,
+            parse_constant=lambda token: (_ for _ in ()).throw(
+                AdoptionRoutingError(f"{label} contains non-finite number {token}")
+            ),
+        )
     except UnicodeDecodeError as exc:
         raise AdoptionRoutingError(f"{label} must be UTF-8") from exc
     except json.JSONDecodeError as exc:
@@ -194,6 +211,11 @@ def load_json_file(path: Path, *, label: str) -> dict[str, Any]:
         ) from exc
     if not isinstance(document, dict):
         raise AdoptionRoutingError(f"{label} must contain a JSON object")
+    return document, hashlib.sha256(data).hexdigest()
+
+
+def load_json_file(path: Path, *, label: str) -> dict[str, Any]:
+    document, _ = load_json_file_with_sha256(path, label=label)
     return document
 
 

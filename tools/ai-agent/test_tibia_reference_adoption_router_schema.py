@@ -6,8 +6,10 @@ from pathlib import Path
 
 from tibia_reference_adoption_router import (
     ALL_TARGETS,
+    AdoptionRoutingError,
     REPORT_FORMAT,
     REQUEST_FORMAT,
+    canonical_sha256,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +47,12 @@ class AdoptionRouterSchemaTests(unittest.TestCase):
             ("otbm-bounded-phase8-writer", "canary-otbm-bounded-patch-result-v1"),
             schema_targets,
         )
+
+    def test_non_finite_numbers_are_not_canonical_json(self) -> None:
+        with self.assertRaisesRegex(AdoptionRoutingError, "not canonical JSON"):
+            canonical_sha256({"value": float("nan")})
+        with self.assertRaisesRegex(AdoptionRoutingError, "not canonical JSON"):
+            canonical_sha256({"value": float("inf")})
 
     def test_report_schema_preserves_non_execution_policy(self) -> None:
         schema = self.load(REPORT_SCHEMA)
