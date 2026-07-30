@@ -4,8 +4,8 @@ name: OTBM World Assurance Operations
 status: active
 owner: OTBM analysis tooling / world assurance operations
 created: 2026-07-23T14:25:00+02:00
-updated: 2026-07-30T23:00:00+02:00
-last_verified_commit: "9704087e3d6fc7b434938b343a546c14a23a447e"
+updated: 2026-07-30T23:30:00+02:00
+last_verified_commit: "3cc30856257fa7e6b3470801807413bb5dad20cc"
 primary_paths:
   - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
@@ -88,7 +88,7 @@ Included:
 
 # Active tasks
 
-OWA-003C is active as a blocked exact-evidence recovery in draft PR #1035 under task `CAN-20260730-owa-003c-executed-evidence`. It owns only recovery/preflight evidence and creates no substitute TCR, QA, candidate or runtime proof.
+No active OWA task remains after OWA-003C recovery PR #1035 merged. Lifecycle PR #1036 archives the blocked task and releases ownership without converting either external-evidence blocker into completion.
 
 OWA-006 target-selection/preflight PR #848 is merged. The functional package remains blocked by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; lifecycle closure archives that task and releases ownership without changing the functional blocker into completion.
 
@@ -98,7 +98,7 @@ OWA-006 target-selection/preflight PR #848 is merged. The functional package rem
 |---|---|---|---|---|---|
 | OWA-001 | Real-World Certification Campaign | completed via #801 | QA-005/006/016/018 + exact reviewed Thais route evidence | medium | Preserve the exact delivered state: QA-005 not-evaluated, QA-006 C0, QA-016 current, route-level Physical E2E proven, three explicit QA-005/006 blockers. |
 | OWA-002 | Factual Certification and Coverage Map | completed via #817 | OWA-001 reviewed manifest/campaign semantics + factual renderer | medium | Preserve `canary-otbm-world-assurance-map-v1`: factual renderer reuse, reviewed bounds/endpoints only, separate QA-006/QA-005/QA-016/Physical-E2E/blocker surfaces, no inferred route geometry or composite health score. |
-| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked/lifecycle-closed; OWA-003C recovery blocked in #1035 — `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` | exact snapshot-B bytes or the complete retained TCR-009 report chain before TCR-010/011/QA-016/OWA-003A execution | medium | Re-enter only after exact recoverable snapshot-B or report-chain bytes reproduce the accepted TCR-009 identities; hashes and summaries alone are not executable report payloads. |
+| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked/lifecycle-closed; OWA-003C recovery merged #1035, lifecycle #1036 — `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` | exact snapshot-B bytes or the complete retained TCR-009 report chain before TCR-010/011/QA-016/OWA-003A execution | medium | Re-enter only after exact recoverable snapshot-B or report-chain bytes reproduce the accepted TCR-009 identities; hashes and summaries alone are not executable report payloads. |
 | OWA-004 | Runtime Incident to OTBM Evidence Bridge | completed via #838; lifecycle closed via #847 | QA-018 + existing route/failure-triage evidence | medium | Preserve the exact-selector, QA-018-delegating, no-diagnosis/no-E2E boundary delivered by #838. |
 | OWA-005 | QA Contract Hardening and Adversarial Fixtures | completed via #802; lifecycle closed via #816 | delivered QA contracts | medium | Preserve the merged deterministic adversarial/fail-closed contract coverage; do not duplicate canonical validators. |
 | OWA-006 | Continuous Assurance Operational Adoption | blocked — `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; preflight merged via #848 | one retained reviewed real candidate/change chain + QA-001/002/006/007/016 + Semantic Diff + OTBM-E2E-008/009 | high | An owning map-change/repair workflow must first retain or explicitly reference one concrete reviewed real candidate chain with exact before/current/candidate identity and required downstream evidence; then re-enter OWA-006. |
@@ -112,7 +112,7 @@ OWA-006 target-selection/preflight PR #848 is merged. The functional package rem
 5. **OWA-006** — target-selection preflight merged via #848; operational adoption is blocked before the first required provenance step because no retained reviewed concrete real candidate/change chain exists in current repository/task/PR evidence. Task ownership is lifecycle-closed separately without claiming functional completion.
 6. **OWA-003A** — completed via #1031; lifecycle closes in #1032. Exact TCR-011-to-existing-QA-016 freshness verification is stable/merged.
 7. **OWA-003B** — blocked preflight merged via #1033 and lifecycle-closed via #1034. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility remains unevaluated.
-8. **OWA-003C** — exact-evidence recovery in #1035 exhausted retained Actions artifacts, official-launcher rematerialization and the public exact-tag mirror. It stops at `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` without reconstructing report bytes from hashes or summaries.
+8. **OWA-003C** — exact-evidence recovery merged via #1035 and lifecycle-closed via #1036. It exhausted retained Actions artifacts, official-launcher rematerialization and the public exact-tag mirror, then stopped at `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` without reconstructing report bytes from hashes or summaries.
 
 All currently executable OWA recovery work has been performed. OWA-006 remains independently blocked on a real candidate chain. OWA-003 downstream remains blocked before TCR-010 because exact recoverable snapshot-B/report-chain bytes are absent; QA-008/002/007/006 remain unevaluated.
 
@@ -181,7 +181,7 @@ OWA never parses `staticdata`, `staticmapdata`, proficiency or minimap files and
 
 ### OWA-003C exact-evidence recovery
 
-PR #1035 records a bounded recovery attempt after OWA-003B. The accepted TCR-009 lifecycle proves exact A/B manifest and drift hashes, but the corresponding snapshot-B/report bytes remain external. Final and diagnostic TCR workflow artifacts retain no executable report chain; official launcher requests are Cloudflare-blocked from GitHub-hosted runners; the public client mirror has no exact `15.31.69f220` tag. Stable hashes, task prose and evidence summaries are not reconstructed into report payloads.
+PR #1035 records the bounded recovery attempt after OWA-003B; lifecycle PR #1036 archives the blocked task and releases ownership. The accepted TCR-009 lifecycle proves exact A/B manifest and drift hashes, but the corresponding snapshot-B/report bytes remain external. Final and diagnostic TCR workflow artifacts retain no executable report chain; official launcher requests are Cloudflare-blocked from GitHub-hosted runners; the public client mirror has no exact `15.31.69f220` tag. Stable hashes, task prose and evidence summaries are not reconstructed into report payloads.
 
 The first failure is `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN`. Re-entry requires either exact snapshot-B bytes reproducing final manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 manifest/index/drift bytes. Only then may canonical TCR-010, TCR-011, QA-016 and OWA-003A execute.
 
