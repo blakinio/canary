@@ -18,6 +18,7 @@ SCHEMA_SHA256_BY_VERSION = {
     "1.0.0": "099a8373ff2b0017cc2b321991662dc4e4783b626391aa7a110a6db0559d146b",
     "1.1.0": "323ff6ae849759c9190f2a0c342855194ed74645816adc45051b6d914e67c7ac",
     "1.2.0": "a9fa1e3c6366a90d61005796511c344ced9c39594ed676276279a5917287c6de",
+    "1.3.0": "0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8",
 }
 MAX_DOCUMENT_BYTES = 67_108_864
 MAX_FINDINGS = 200
@@ -43,8 +44,8 @@ class SchemaSubsetValidator:
         "$schema", "$id", "$defs", "$ref", "title", "description",
         "type", "additionalProperties", "required", "properties",
         "minProperties", "maxProperties", "items", "minItems", "maxItems",
-        "minLength", "maxLength", "pattern", "format", "minimum", "maximum",
-        "enum", "const", "oneOf", "allOf",
+        "uniqueItems", "minLength", "maxLength", "pattern", "format",
+        "minimum", "maximum", "enum", "const", "oneOf", "allOf",
     }
 
     def __init__(self, root_schema: dict[str, Any], maximum_findings: int = MAX_FINDINGS) -> None:
@@ -149,6 +150,10 @@ class SchemaSubsetValidator:
             self._add("schema.min_items", path, "Array contains fewer items than allowed.")
         if isinstance(schema.get("maxItems"), int) and len(value) > schema["maxItems"]:
             self._add("schema.max_items", path, "Array contains more items than allowed.")
+        if schema.get("uniqueItems") is True:
+            normalized = [json.dumps(item, sort_keys=True, separators=(",", ":")) for item in value]
+            if len(set(normalized)) != len(normalized):
+                self._add("schema.unique_items", path, "Array items must be unique.")
         item_schema = schema.get("items")
         if item_schema is not None:
             if not isinstance(item_schema, dict):
@@ -273,6 +278,8 @@ def validate_semantics(document: dict[str, Any]) -> list[Finding]:
 
     entity_keys: set[str] = set()
     typed_entity_keys: set[tuple[str, str]] = set()
+    entity_types: dict[str, str] = {}
+    entity_data: dict[str, dict[str, Any]] = {}
     entity_sort_keys: list[tuple[str, str]] = []
     for index, entity in enumerate(entities if isinstance(entities, list) else []):
         if not isinstance(entity, dict):
@@ -283,9 +290,23 @@ def validate_semantics(document: dict[str, Any]) -> list[Finding]:
             identity = (entity_type, key)
             if identity in typed_entity_keys:
                 findings.append(Finding("semantic.duplicate_entity", f"$/entities/{index}/canonical_key", "Duplicate entity canonical key for the same type."))
+            if key in entity_types and entity_types[key] != entity_type:
+                findings.append(Finding("semantic.ambiguous_entity", f"$/entities/{index}/canonical_key", "Entity canonical key is reused by another type."))
             typed_entity_keys.add(identity)
             entity_keys.add(key)
+            entity_types[key] = entity_type
+            data = entity.get("data")
+            if isinstance(data, dict):
+                entity_data[key] = data
             entity_sort_keys.append(identity)
+            if entity_type == "npc" and isinstance(data, dict):
+                _validate_currency_endpoint(
+                    data.get("currency"),
+                    f"$/entities/{index}/data/currency",
+                    entity_types,
+                    entity_data,
+                    findings,
+                )
         _validate_range(entity, f"$/entities/{index}", release_orders, findings)
         _validate_identifiers(entity.get("identifiers"), f"$/entities/{index}/identifiers", findings)
         _validate_source_path(entity.get("source_path"), f"$/entities/{index}/source_path", findings)
@@ -297,42 +318,145 @@ def validate_semantics(document: dict[str, Any]) -> list[Finding]:
     for index, relation in enumerate(relations if isinstance(relations, list) else []):
         if not isinstance(relation, dict):
             continue
+        path = f"$/relations/{index}"
         key = relation.get("canonical_key")
         relation_type = relation.get("type")
+        source = relation.get("source")
+        target = relation.get("target")
         if isinstance(key, str):
             if key in relation_keys:
-                findings.append(Finding("semantic.duplicate_relation", f"$/relations/{index}/canonical_key", "Duplicate relation canonical key."))
+                findings.append(Finding("semantic.duplicate_relation", f"{path}/canonical_key", "Duplicate relation canonical key."))
             relation_keys.add(key)
             relation_sort_keys.append((relation_type if isinstance(relation_type, str) else "", key))
-        for endpoint in ("source", "target"):
-            endpoint_key = relation.get(endpoint)
+        for endpoint, endpoint_key in (("source", source), ("target", target)):
             if not isinstance(endpoint_key, str) or endpoint_key not in entity_keys:
-                findings.append(Finding("semantic.dangling_relation", f"$/relations/{index}/{endpoint}", f"Relation {endpoint} does not resolve to an entity."))
-        _validate_range(relation, f"$/relations/{index}", release_orders, findings)
-        _validate_source_path(relation.get("source_path"), f"$/relations/{index}/source_path", findings)
+                findings.append(Finding("semantic.dangling_relation", f"{path}/{endpoint}", f"Relation {endpoint} does not resolve to an entity."))
+        _validate_range(relation, path, release_orders, findings)
+        _validate_source_path(relation.get("source_path"), f"{path}/source_path", findings)
         data = relation.get("data")
-        if isinstance(data, dict):
-            if "chance_model" in data:
-                if (
-                    data.get("chance_model") != "canary_dynamic_threshold_v1"
-                    or not isinstance(data.get("chance_threshold"), int)
-                    or not isinstance(data.get("roll_maximum"), int)
-                    or data["roll_maximum"] <= 0
-                ):
-                    findings.append(Finding("semantic.invalid_threshold_model", f"$/relations/{index}/data", "Loot runtime threshold model is invalid."))
-            else:
-                numerator = data.get("chance_numerator")
-                denominator = data.get("chance_denominator")
-                if isinstance(numerator, int) and isinstance(denominator, int) and numerator > denominator:
-                    findings.append(Finding("semantic.invalid_probability", f"$/relations/{index}/data/chance_numerator", "Loot chance numerator exceeds its denominator."))
-            minimum = data.get("minimum_count")
-            maximum = data.get("maximum_count")
-            if isinstance(minimum, int) and isinstance(maximum, int) and maximum < minimum:
-                findings.append(Finding("semantic.invalid_count_range", f"$/relations/{index}/data/maximum_count", "Loot maximum count is lower than minimum count."))
+
+        if relation_type == "creature_loot":
+            _validate_relation_endpoint_type(source, "creature", f"{path}/source", entity_types, findings)
+            _validate_relation_endpoint_type(target, "item", f"{path}/target", entity_types, findings)
+            _validate_loot_data(data, f"{path}/data", findings)
+        elif relation_type in ("npc_buy_offer", "npc_sell_offer"):
+            _validate_relation_endpoint_type(source, "npc", f"{path}/source", entity_types, findings)
+            _validate_relation_endpoint_type(target, "item", f"{path}/target", entity_types, findings)
+            _validate_shop_relation(
+                relation,
+                path,
+                entity_types,
+                entity_data,
+                findings,
+            )
+        elif isinstance(relation_type, str):
+            findings.append(Finding("semantic.unknown_relation_type", f"{path}/type", "Relation type has no semantic validator."))
     if relation_sort_keys != sorted(relation_sort_keys):
         findings.append(Finding("semantic.relation_order", "$/relations", "Relations are not sorted by type and canonical key."))
 
     return findings[:MAX_FINDINGS]
+
+
+def _validate_relation_endpoint_type(
+    endpoint: Any,
+    expected_type: str,
+    path: str,
+    entity_types: dict[str, str],
+    findings: list[Finding],
+) -> None:
+    if isinstance(endpoint, str) and endpoint in entity_types and entity_types[endpoint] != expected_type:
+        findings.append(Finding("semantic.wrong_endpoint_type", path, f"Relation endpoint must resolve to [{expected_type}]."))
+
+
+def _validate_loot_data(data: Any, path: str, findings: list[Finding]) -> None:
+    if not isinstance(data, dict):
+        return
+    if "chance_model" in data:
+        if (
+            data.get("chance_model") != "canary_dynamic_threshold_v1"
+            or not isinstance(data.get("chance_threshold"), int)
+            or isinstance(data.get("chance_threshold"), bool)
+            or not isinstance(data.get("roll_maximum"), int)
+            or isinstance(data.get("roll_maximum"), bool)
+            or data["roll_maximum"] <= 0
+        ):
+            findings.append(Finding("semantic.invalid_threshold_model", path, "Loot runtime threshold model is invalid."))
+    else:
+        numerator = data.get("chance_numerator")
+        denominator = data.get("chance_denominator")
+        if isinstance(numerator, int) and isinstance(denominator, int) and numerator > denominator:
+            findings.append(Finding("semantic.invalid_probability", f"{path}/chance_numerator", "Loot chance numerator exceeds its denominator."))
+    minimum = data.get("minimum_count")
+    maximum = data.get("maximum_count")
+    if isinstance(minimum, int) and isinstance(maximum, int) and maximum < minimum:
+        findings.append(Finding("semantic.invalid_count_range", f"{path}/maximum_count", "Loot maximum count is lower than minimum count."))
+
+
+def _validate_shop_relation(
+    relation: dict[str, Any],
+    path: str,
+    entity_types: dict[str, str],
+    entity_data: dict[str, dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    data = relation.get("data")
+    if not isinstance(data, dict):
+        return
+    runtime_path = data.get("runtime_path")
+    if not isinstance(runtime_path, list) or not runtime_path:
+        return
+    if not all(isinstance(value, int) and not isinstance(value, bool) and value >= 0 for value in runtime_path):
+        findings.append(Finding("semantic.invalid_runtime_path", f"{path}/data/runtime_path", "Shop runtime path must contain non-negative integers."))
+        return
+
+    source = relation.get("source")
+    target = relation.get("target")
+    relation_type = relation.get("type")
+    direction = "buy" if relation_type == "npc_buy_offer" else "sell"
+    expected_key = f"shop:{source}:{direction}:{target}:{'.'.join(str(value) for value in runtime_path)}"
+    if relation.get("canonical_key") != expected_key:
+        findings.append(Finding("semantic.invalid_shop_identity", f"{path}/canonical_key", "Shop relation canonical key does not match endpoints, direction and runtime path."))
+
+    _validate_currency_endpoint(
+        data.get("currency"),
+        f"{path}/data/currency",
+        entity_types,
+        entity_data,
+        findings,
+    )
+    if isinstance(source, str):
+        npc_data = entity_data.get(source)
+        if isinstance(npc_data, dict) and data.get("currency") != npc_data.get("currency"):
+            findings.append(Finding("semantic.currency_mismatch", f"{path}/data/currency", "Shop relation currency must match the final static NPC currency."))
+
+    storage = data.get("storage_requirement")
+    availability = relation.get("availability")
+    if storage is not None and availability != "conditional":
+        findings.append(Finding("semantic.storage_availability", f"{path}/availability", "A storage-gated shop offer must be conditional."))
+    if data.get("priced_item_count") != 1:
+        findings.append(Finding("semantic.priced_item_count", f"{path}/data/priced_item_count", "Shop prices must describe exactly one item."))
+
+
+def _validate_currency_endpoint(
+    endpoint: Any,
+    path: str,
+    entity_types: dict[str, str],
+    entity_data: dict[str, dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    if not isinstance(endpoint, dict):
+        return
+    item_key = endpoint.get("item")
+    server_id = endpoint.get("server_id")
+    if not isinstance(item_key, str) or item_key not in entity_types:
+        findings.append(Finding("semantic.dangling_currency", f"{path}/item", "Currency item does not resolve to an entity."))
+        return
+    if entity_types[item_key] != "item":
+        findings.append(Finding("semantic.wrong_currency_type", f"{path}/item", "Currency endpoint must resolve to an item."))
+        return
+    item_data = entity_data.get(item_key)
+    if isinstance(item_data, dict) and item_data.get("server_id") != server_id:
+        findings.append(Finding("semantic.currency_server_id", f"{path}/server_id", "Currency server_id does not match the referenced item."))
 
 
 def _validate_range(record: dict[str, Any], path: str, releases: dict[str, int], findings: list[Finding]) -> None:
@@ -367,9 +491,7 @@ def _validate_identifiers(identifiers: Any, path: str, findings: list[Finding]) 
 
 
 def _validate_source_path(source_path: Any, path: str, findings: list[Finding]) -> None:
-    if source_path is None:
-        return
-    if not isinstance(source_path, str):
+    if source_path is None or not isinstance(source_path, str):
         return
     pure = PurePosixPath(source_path)
     if not source_path or "\\" in source_path or pure.is_absolute() or ".." in pure.parts or re.match(r"^[A-Za-z]:", source_path):
@@ -419,11 +541,7 @@ def load_and_validate(snapshot_path: Path, schema_path: Path, expected_hash: str
         raise CatalogValidationError([Finding("json.invalid", "$", f"Invalid UTF-8 or JSON: {error}")]) from error
     if not isinstance(document, dict) or not isinstance(schema, dict):
         raise CatalogValidationError([Finding("json.root", "$", "Snapshot and schema roots must be JSON objects.")])
-    declared_schema_version = (
-        schema.get("properties", {})
-        .get("schema_version", {})
-        .get("const")
-    )
+    declared_schema_version = schema.get("properties", {}).get("schema_version", {}).get("const")
     if declared_schema_version != schema_version:
         raise CatalogValidationError([Finding("schema.version", "$schema", "Pinned schema hash and declared version do not match.")])
 
