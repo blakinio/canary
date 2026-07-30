@@ -2,13 +2,13 @@
 task_id: CAN-20260731-rtec-006-refresh-drift-planner
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-006
-status: implementing
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-006-refresh-drift-planner-20260731
 base_branch: main
 created: 2026-07-31T00:17:45+02:00
-updated: 2026-07-31T00:34:30+02:00
-last_verified_commit: "85712dddc138edbe57509c2b99995ff53a084ec1"
+updated: 2026-07-31T00:40:30+02:00
+last_verified_commit: "83c34da246fd71533bd111692643ccd84f2904ec"
 risk: medium
 related_issue: ""
 related_pr: "1038"
@@ -68,10 +68,10 @@ Implement the bounded RTEC-006 read-only planner that deterministically selects 
 - [x] Produce stable priorities, reasons, input identity and plan digest independent of argument order.
 - [x] Fail closed on malformed selectors, invalid corpus state, unsafe paths and duplicate/conflicting target axes.
 - [x] Exclude rejected and superseded evidence from actionable output.
-- [x] Add focused positive, negative, determinism and no-mutation tests.
+- [x] Add focused positive, negative, determinism, CLI and no-mutation tests.
 - [x] Document the operator workflow, output contract, priority rules and nonclaims.
 - [x] Change no global evidence index, owner request, dossier module or RTEC programme file.
-- [ ] Pass focused local/CI validation on the exact final head, then squash-merge the source PR.
+- [ ] Pass the final-gate checks on the final source head and squash-merge the source PR.
 - [ ] Archive this task in a separate lifecycle PR and merge it.
 
 # Scope boundaries
@@ -84,11 +84,11 @@ This task only plans future review work. It does not refresh evidence, change ev
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:34:30+02:00
-head: 85712dddc138edbe57509c2b99995ff53a084ec1
+updated_at: 2026-07-31T00:40:30+02:00
+head: 83c34da246fd71533bd111692643ccd84f2904ec
 branch: feat/rtec-006-refresh-drift-planner-20260731
 pr: 1038
-status: implementing
+status: ready
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -98,32 +98,34 @@ owned_paths:
   - tools/agents/test_real_tibia_refresh_plan.py
   - docs/agents/real-tibia/REFRESH_OPERATION.md
 proven:
-  - current main is dcc09b1d012cbf4462aecc9970ae8540353ea8e3
   - PR 1038 targets blakinio/canary main from the dedicated RTEC-006 branch
-  - no earlier live PR or branch claimed RTEC-006 or the three implementation paths
-  - implementation is limited to the four exclusive paths
+  - the exact PR diff contains only the four declared exclusive paths
   - planner uses explicit as_of, validated publication filtering, exact version anchors and exact provenance selectors
-  - planner emits deterministic input and plan SHA-256 identities and performs no corpus writes
-  - focused source and test files pass local Python bytecode compilation
-  - isolated synthetic smoke test passed selection, priority and plan digest verification
-  - CI, Real Tibia Module Registry and Upstream Intelligence passed on 85712dddc138edbe57509c2b99995ff53a084ec1
-  - Agent Task Ownership second failure is limited to unsupported checkpoint validation result PARTIAL
-  - global evidence indexes, owner requests, dossier modules and the RTEC programme remain unchanged
+  - planner emits stable priorities, normalized selectors, input SHA-256 and plan SHA-256 identities
+  - planner performs no corpus writes and excludes prepublication, rejected and superseded records from actionable output
+  - historical-version evidence is not selected solely because a newer target version is supplied
+  - malformed selectors, unsafe paths and blocking corpus errors fail closed
+  - Python bytecode compilation passed for the source and repository test file
+  - seven focused planner and CLI tests passed in the deterministic isolated harness
+  - Agent Task Ownership, Real Tibia Module Registry, Upstream Intelligence and draft CI passed on 2f336c8a86b4b1bb028b778d790fb59240d98309
+  - ready-for-review CI was started on 83c34da246fd71533bd111692643ccd84f2904ec
+  - ci:final-gate was applied before this final task/checkpoint commit
+  - global evidence indexes, owner requests, dossier modules, workflow files and the RTEC programme remain unchanged
   - docs/agents/PROJECT_STATE.md is absent on current main
   - docs/agents/prompts/RTEC_COMMON_AGENT_RULES.md is absent on current main
-  - the dedicated Real Tibia workflow discovers test_real_tibia*.py but its path trigger does not currently list the new planner files
-derived:
-  - checkpoint validation result must use FAIL rather than the unsupported PARTIAL value
+  - the dedicated Real Tibia evidence workflow does not currently include the new planner paths in its path filter
+-derived:
+  - focused planner behavior is validated locally while repository-wide final checks remain authoritative for merge
 unknown:
-  - focused integration test result on a complete repository checkout is not yet established
+  - final-gate conclusion on the final source head is pending this checkpoint commit
   - missing RTEC common rules cannot be evaluated because the current repository has no such file
   - missing project state cannot be evaluated because the current repository has no such file
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: "validation item 3 has unsupported result 'PARTIAL'"
+  marker: none
+  evidence: all implementation failures were corrected task-checkpoint metadata; no open code failure remains
 rejected_hypotheses:
-  - planner code caused either ownership failure: each failing ownership job completed its own focused tests and rejected only task checkpoint metadata
+  - planner code caused the ownership failures: each failure rejected only task checkpoint metadata
   - the planner should edit evidence or shared indexes: user scope and programme boundaries forbid those writes
   - historical evidence should become stale solely because a newer target version exists: historical-version records preserve bounded historical facts
 changed_paths:
@@ -132,15 +134,18 @@ changed_paths:
   - tools/agents/real_tibia_refresh_plan.py
   - tools/agents/test_real_tibia_refresh_plan.py
 validation:
-  - command: python -m py_compile /mnt/data/real_tibia_refresh_plan.py /mnt/data/test_real_tibia_refresh_plan.py
+  - command: python -m py_compile real_tibia_refresh_plan.py test_real_tibia_refresh_plan.py
     result: PASS
-    evidence: Python 3 bytecode compilation completed without diagnostics
-  - command: isolated synthetic planner smoke
+    evidence: Python bytecode compilation completed without diagnostics
+  - command: deterministic isolated planner test harness
     result: PASS
-    evidence: version/path/source selection, high priority and plan digest verification passed
-  - command: GitHub Actions on 85712dddc138edbe57509c2b99995ff53a084ec1
-    result: FAIL
-    evidence: CI, registry and upstream passed; ownership rejected only unsupported checkpoint result PARTIAL
+    evidence: 7 tests passed for freshness, versions, selectors, ordering, digests, CLI, publication filtering and no mutation
+  - command: GitHub Actions on 2f336c8a86b4b1bb028b778d790fb59240d98309
+    result: PASS
+    evidence: CI, Agent Task Ownership, Real Tibia Module Registry and Upstream Intelligence succeeded
+  - command: source PR final gate
+    result: NOT_RUN
+    evidence: ci:final-gate is applied and the final task commit must trigger the exact-head run
 blockers: []
-next_action: Confirm ownership validation after the checkpoint-result correction, then execute focused integration tests and final-head review.
+next_action: Confirm all required final-gate checks on the resulting exact source head, then squash-merge PR 1038 without further source-branch commits.
 ```
