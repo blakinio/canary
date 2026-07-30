@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: main
 base_branch: main
 created: 2026-07-30T22:35:00+02:00
-updated: 2026-07-30T23:26:00+02:00
-last_verified_commit: "3cc30856257fa7e6b3470801807413bb5dad20cc"
+updated: 2026-07-30T23:32:00+02:00
+last_verified_commit: "fd24d91f7a04b105720303e48623d600709ba1a1"
 risk: high
 related_issue: ""
 related_pr: "1035"
@@ -93,7 +93,7 @@ OWA-003C does not claim functional OWA-003 completion. It completed the maximum 
 3. Official launcher run `30580163217`, job `90998119134`, was blocked by HTTP 403 before bytes were accepted.
 4. Launcher/browser-compatible retry run `30580431144`, job `90999022124`, received six Cloudflare HTTP 403 responses and accepted no bytes.
 5. Exact public-tag recovery run `30580936803`, job `91000700142`, found no `dudantas/tibia-client` tag declaring package version `15.31.69f220` and accepted no payload.
-6. All temporary retrieval workflow/helper paths were removed from the final feature diff.
+6. All temporary retrieval workflow/helper paths were removed from the final feature and lifecycle diffs.
 
 # Rejected substitutions
 
@@ -134,8 +134,8 @@ OWA-003C created no candidate and did not alter this blocker.
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T23:26:00+02:00
-head: 3cc30856257fa7e6b3470801807413bb5dad20cc
+updated_at: 2026-07-30T23:32:00+02:00
+head: fd24d91f7a04b105720303e48623d600709ba1a1
 branch: docs/CAN-20260730-owa-003c-archive
 pr: 1036
 status: blocked-lifecycle-closing
@@ -148,6 +148,8 @@ proven:
   - Exact-head runs 30581939995, 30581940190, 30581940298, 30581940015 and 30581940163 passed.
   - Protected readiness CI 30582104876 passed on the unchanged exact feature head, including Required.
   - Feature reviews, review threads and comments were empty.
+  - Lifecycle PR 1036 contains exactly active-to-archive movement plus programme and roadmap reconciliation.
+  - Temporary lifecycle reconciliation workflow is absent from the final diff.
   - Functional OWA-003 remains blocked at OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN.
   - OWA-006 independently remains blocked at OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN.
 derived:
@@ -170,8 +172,11 @@ validation:
   - command: feature protected readiness gate
     result: PASS
     evidence: run 30582104876 on 2315756fa09c5b55d6cc7a090b00d692d5e5e7ce, including Required.
+  - command: lifecycle changed-file scope
+    result: PASS
+    evidence: PR 1036 contains exactly the four declared lifecycle paths.
 blockers:
   - OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN
   - OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN
-next_action: Open the lifecycle PR, bind its number into this archive checkpoint, remove the active task, reconcile programme/roadmap, pass exact-final and protected readiness gates, then squash-merge without changing either blocker into completion.
+next_action: Run the exact-final lifecycle checks on the newest connector-authored head, audit reviews, threads, comments and mergeability, then mark ready and squash-merge PR 1036 after protected readiness CI passes on that unchanged head.
 ```
