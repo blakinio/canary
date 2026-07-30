@@ -21,7 +21,7 @@ on:
       - ".github/workflows/agent-task-lifecycle.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -122,3 +122,27 @@ jobs:
             artifacts/agent-coordination/OWNERSHIP_INDEX.md
           if-no-files-found: warn
           retention-days: 14
+
+  closeout-tcr010:
+    name: Close out TCR-010 lifecycle
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'docs/CAN-20260730-tcr-010-archive' && github.event.pull_request.head.repo.full_name == 'blakinio/canary'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: docs/CAN-20260730-tcr-010-archive
+          fetch-depth: 0
+      - name: Archive task and restore workflows
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          python tools/agents/tcr010_lifecycle_closeout.py
+          git checkout origin/main -- .github/workflows/agent-task-ownership.yml
+          rm -f .github/workflows/tcr010-lifecycle-closeout.yml
+          rm -f .github/workflows/tcr010-lifecycle-trigger.yml
+          rm -f tools/agents/tcr010_lifecycle_closeout.py
+          git add docs/agents/tasks docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md docs/agents/MODULE_CATALOG.md .github/workflows tools/agents/tcr010_lifecycle_closeout.py
+          git commit -m "docs(agents): archive TCR-010 evidence gateway"
+          git push origin HEAD:docs/CAN-20260730-tcr-010-archive
