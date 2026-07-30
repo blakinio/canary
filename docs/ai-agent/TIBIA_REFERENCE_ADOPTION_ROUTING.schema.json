@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-tibia-reference-adoption-routing-v1.json",
+  "title": "Canary Tibia Reference Adoption Routing v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "gateway", "request", "routes", "summary", "policy", "reportSha256"],
+  "properties": {
+    "format": {"const": "canary-tibia-reference-adoption-routing-v1"},
+    "schemaVersion": {"const": 1},
+    "gateway": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "fileSha256", "reportSha256", "evidenceBundleSha256", "bindingId", "kind", "contextReferences"],
+      "properties": {
+        "format": {"const": "canary-tibia-client-reference-evidence-gateway-v1"},
+        "fileSha256": {"$ref": "#/$defs/sha256"},
+        "reportSha256": {"$ref": "#/$defs/sha256"},
+        "evidenceBundleSha256": {"$ref": "#/$defs/sha256"},
+        "bindingId": {"$ref": "#/$defs/identifier"},
+        "kind": {"enum": ["house", "content", "proficiency", "drift"]},
+        "contextReferences": {"$ref": "#/$defs/contextReferences"}
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "fileSha256", "canonicalSha256", "review"],
+      "properties": {
+        "format": {"const": "canary-tibia-reference-adoption-routing-request-v1"},
+        "fileSha256": {"$ref": "#/$defs/sha256"},
+        "canonicalSha256": {"$ref": "#/$defs/sha256"},
+        "review": {"$ref": "TIBIA_REFERENCE_ADOPTION_ROUTING_REQUEST.schema.json#/$defs/review"}
+      }
+    },
+    "routes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {"$ref": "TIBIA_REFERENCE_ADOPTION_ROUTING_REQUEST.schema.json#/$defs/route"}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["extractCount", "routedCount", "unsupportedCount", "blockedCount", "targetCount", "ownerCounts", "capabilityCounts"],
+      "properties": {
+        "extractCount": {"type": "integer", "minimum": 1, "maximum": 4},
+        "routedCount": {"type": "integer", "minimum": 0, "maximum": 4},
+        "unsupportedCount": {"type": "integer", "minimum": 0, "maximum": 4},
+        "blockedCount": {"type": "integer", "minimum": 0, "maximum": 4},
+        "targetCount": {"type": "integer", "minimum": 0, "maximum": 16},
+        "ownerCounts": {"$ref": "#/$defs/countMap"},
+        "capabilityCounts": {"$ref": "#/$defs/countMap"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnlyRouting",
+        "reviewedRequestRequired",
+        "exactFindingReferencesRequired",
+        "infersMutationTarget",
+        "expandsWriters",
+        "generatesApproval",
+        "executesWriterOrMaterializer",
+        "mutatesMapOrGameState",
+        "deploys",
+        "runsE2e",
+        "claimsGameplayParity",
+        "mapChangesRouteThroughQa003",
+        "unsupportedOutcomesPreserved"
+      ],
+      "properties": {
+        "readOnlyRouting": {"const": true},
+        "reviewedRequestRequired": {"const": true},
+        "exactFindingReferencesRequired": {"const": true},
+        "infersMutationTarget": {"const": false},
+        "expandsWriters": {"const": false},
+        "generatesApproval": {"const": false},
+        "executesWriterOrMaterializer": {"const": false},
+        "mutatesMapOrGameState": {"const": false},
+        "deploys": {"const": false},
+        "runsE2e": {"const": false},
+        "claimsGameplayParity": {"const": false},
+        "mapChangesRouteThroughQa003": {"const": true},
+        "unsupportedOutcomesPreserved": {"const": true}
+      }
+    },
+    "reportSha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "contextReferences": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "countMap": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    }
+  }
+}

@@ -1,0 +1,52 @@
+name: Tibia Reference Adoption Router
+
+on:
+  pull_request:
+    paths:
+      - "tools/ai-agent/tibia_reference_adoption_router.py"
+      - "tools/ai-agent/tibia_reference_adoption_router_tool.py"
+      - "tools/ai-agent/test_tibia_reference_adoption_router.py"
+      - "tools/ai-agent/test_tibia_reference_adoption_router_output_safety.py"
+      - "tools/ai-agent/test_tibia_reference_adoption_router_schema.py"
+      - "docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTER.md"
+      - "docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING_REQUEST.schema.json"
+      - "docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING.schema.json"
+      - ".github/workflows/tibia-reference-adoption-router.yml"
+      - "docs/agents/tasks/active/CAN-20260730-tcr-011-adoption-router.md"
+      - "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
+      - "docs/agents/MODULE_CATALOG.md"
+      - "docs/agents/CHANGELOG.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adoption-router:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: >-
+          python -m unittest discover
+          -s tools/ai-agent
+          -p "test_tibia_reference_adoption_router*.py"
+          -v
+      - name: Compile Python
+        run: >-
+          python -m py_compile
+          tools/ai-agent/tibia_reference_adoption_router.py
+          tools/ai-agent/tibia_reference_adoption_router_tool.py
+          tools/ai-agent/test_tibia_reference_adoption_router.py
+          tools/ai-agent/test_tibia_reference_adoption_router_output_safety.py
+          tools/ai-agent/test_tibia_reference_adoption_router_schema.py
+      - name: Validate schemas
+        run: |
+          python -m json.tool docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING_REQUEST.schema.json >/dev/null
+          python -m json.tool docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING.schema.json >/dev/null
+      - name: Validate CLI
+        run: python tools/ai-agent/tibia_reference_adoption_router_tool.py --help >/dev/null
