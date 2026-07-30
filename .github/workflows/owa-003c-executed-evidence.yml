@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/owa-003c-executed-evidence.yml"
+      - ".github/owa-003c/**"
       - "docs/agents/tasks/active/CAN-20260730-owa-003c-executed-evidence.md"
       - "docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md"
       - "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
@@ -24,206 +25,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Download and verify exact official inputs
+      - name: Compile exact rematerializer
+        run: python -m py_compile .github/owa-003c/rematerialize.py
+
+      - name: Rematerialize exact snapshot B inputs
         env:
           EXPECTED_PACKAGE_VERSION: 15.31.69f220
-        run: |
-          python - <<'PY'
-          from __future__ import annotations
+          OWA003C_OUTPUT: .owa-003c-evidence
+        run: python .github/owa-003c/rematerialize.py
 
-          import hashlib
-          import json
-          import lzma
-          import os
-          import pathlib
-          import time
-          import urllib.error
-          import urllib.parse
-          import urllib.request
-
-          PACKAGE_URL = "https://static.tibia.com/launcher/tibiaclient-windows-current/package.json"
-          ASSETS_URL = "https://static.tibia.com/launcher/assets-current/assets.json"
-          OUTPUT = pathlib.Path(".owa-003c-evidence")
-          EXPECTED_VERSION = os.environ["EXPECTED_PACKAGE_VERSION"]
-          MAX_MANIFEST = 16 * 1024 * 1024
-          MAX_FILE = 256 * 1024 * 1024
-          HEADER_PROFILES = (
-              {
-                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-                  "Accept": "application/json,text/plain,*/*",
-                  "Accept-Language": "en-US,en;q=0.9",
-                  "Referer": "https://www.tibia.com/",
-                  "Cache-Control": "no-cache",
-                  "Pragma": "no-cache",
-              },
-              {
-                  "User-Agent": "Tibia Launcher",
-                  "Accept": "*/*",
-                  "Referer": "https://www.tibia.com/",
-              },
-          )
-
-          def sha256(data: bytes) -> str:
-              return hashlib.sha256(data).hexdigest()
-
-          def reject_duplicates(pairs):
-              result = {}
-              for key, value in pairs:
-                  if key in result:
-                      raise ValueError(f"duplicate JSON key: {key}")
-                  result[key] = value
-              return result
-
-          def load_json(data: bytes, source: str):
-              return json.loads(
-                  data.decode("utf-8"),
-                  object_pairs_hook=reject_duplicates,
-                  parse_constant=lambda value: (_ for _ in ()).throw(
-                      ValueError(f"non-finite JSON value in {source}: {value}")
-                  ),
-              )
-
-          def download(url: str, limit: int) -> bytes:
-              failures = []
-              for profile_index, headers in enumerate(HEADER_PROFILES, start=1):
-                  for attempt in range(1, 4):
-                      request = urllib.request.Request(url, headers=headers)
-                      try:
-                          with urllib.request.urlopen(request, timeout=60) as response:
-                              data = response.read(limit + 1)
-                          if len(data) > limit:
-                              raise ValueError(f"download exceeds limit: {url}")
-                          return data
-                      except urllib.error.HTTPError as exc:
-                          body = exc.read(1024).decode("utf-8", errors="replace")
-                          failures.append(
-                              f"profile={profile_index} attempt={attempt} status={exc.code} body={body!r}"
-                          )
-                          if exc.code not in {403, 429, 500, 502, 503, 504}:
-                              break
-                      except urllib.error.URLError as exc:
-                          failures.append(f"profile={profile_index} attempt={attempt} urlerror={exc.reason!r}")
-                      if attempt < 3:
-                          time.sleep(attempt * 2)
-              raise RuntimeError(f"OWA003C_OFFICIAL_DOWNLOAD_FAILED: {url}: {'; '.join(failures)}")
-
-          def manifest_files(manifest, source: str):
-              files = manifest.get("files") if isinstance(manifest, dict) else None
-              if not isinstance(files, list) or not files:
-                  raise ValueError(f"{source} has no non-empty files array")
-              return files
-
-          def find_entry(files, localfile: str):
-              matches = [entry for entry in files if isinstance(entry, dict) and entry.get("localfile") == localfile]
-              if len(matches) != 1:
-                  raise ValueError(f"expected exactly one manifest entry for {localfile}, found {len(matches)}")
-              return matches[0]
-
-          def materialize(entry, base_url: str) -> tuple[bytes, dict]:
-              source_path = entry.get("url")
-              localfile = entry.get("localfile")
-              if not isinstance(source_path, str) or not isinstance(localfile, str):
-                  raise ValueError("manifest entry requires url and localfile")
-              url = urllib.parse.urljoin(base_url, source_path)
-              packed = download(url, MAX_FILE)
-              expected_packed_size = entry.get("packedsize")
-              expected_packed_hash = entry.get("packedhash")
-              if expected_packed_size is not None and len(packed) != expected_packed_size:
-                  raise ValueError(f"packed size mismatch for {localfile}")
-              if expected_packed_hash is not None and sha256(packed) != expected_packed_hash:
-                  raise ValueError(f"packed SHA-256 mismatch for {localfile}")
-              unpacked = lzma.decompress(packed) if source_path.lower().endswith(".lzma") else packed
-              if len(unpacked) > MAX_FILE:
-                  raise ValueError(f"unpacked file exceeds limit: {localfile}")
-              expected_unpacked_size = entry.get("unpackedsize")
-              expected_unpacked_hash = entry.get("unpackedhash")
-              if expected_unpacked_size is not None and len(unpacked) != expected_unpacked_size:
-                  raise ValueError(f"unpacked size mismatch for {localfile}")
-              if expected_unpacked_hash is not None and sha256(unpacked) != expected_unpacked_hash:
-                  raise ValueError(f"unpacked SHA-256 mismatch for {localfile}")
-              return unpacked, {
-                  "sourceUrl": url,
-                  "sourcePath": source_path,
-                  "localPath": localfile,
-                  "packedByteSize": len(packed),
-                  "packedSha256": sha256(packed),
-                  "byteSize": len(unpacked),
-                  "sha256": sha256(unpacked),
-              }
-
-          OUTPUT.mkdir(mode=0o700)
-          package_bytes = download(PACKAGE_URL, MAX_MANIFEST)
-          assets_bytes = download(ASSETS_URL, MAX_MANIFEST)
-          package = load_json(package_bytes, PACKAGE_URL)
-          assets = load_json(assets_bytes, ASSETS_URL)
-
-          version = package.get("version") if isinstance(package, dict) else None
-          if version != EXPECTED_VERSION:
-              raise SystemExit(
-                  f"OWA003C_OFFICIAL_CURRENT_PACKAGE_CHANGED: expected {EXPECTED_VERSION}, got {version!r}"
-              )
-
-          package_files = manifest_files(package, "package.json")
-          assets_files = manifest_files(assets, "assets.json")
-          del package_files
-
-          (OUTPUT / "package.json").write_bytes(package_bytes)
-          (OUTPUT / "assets.json").write_bytes(assets_bytes)
-
-          catalog_entry = find_entry(assets_files, "assets/catalog-content.json")
-          catalog_bytes, catalog_audit = materialize(catalog_entry, ASSETS_URL)
-          catalog = load_json(catalog_bytes, "assets/catalog-content.json")
-          if not isinstance(catalog, list):
-              raise ValueError("catalog-content must be an array")
-
-          wanted_types = ("staticdata", "staticmapdata", "proficiencies")
-          selected_catalog = {}
-          for wanted_type in wanted_types:
-              matches = [entry for entry in catalog if isinstance(entry, dict) and entry.get("type") == wanted_type]
-              if len(matches) != 1 or not isinstance(matches[0].get("file"), str):
-                  raise ValueError(f"expected exactly one catalog entry for {wanted_type}")
-              selected_catalog[wanted_type] = matches[0]["file"]
-
-          audit = {
-              "format": "canary-owa-003c-official-input-rematerialization-v1",
-              "expectedPackageVersion": EXPECTED_VERSION,
-              "observedPackageVersion": version,
-              "packageManifest": {
-                  "url": PACKAGE_URL,
-                  "byteSize": len(package_bytes),
-                  "sha256": sha256(package_bytes),
-              },
-              "assetsManifest": {
-                  "url": ASSETS_URL,
-                  "byteSize": len(assets_bytes),
-                  "sha256": sha256(assets_bytes),
-              },
-              "catalogContent": catalog_audit,
-              "selectedInputs": [],
-          }
-
-          (OUTPUT / "assets").mkdir(mode=0o700)
-          (OUTPUT / "assets" / "catalog-content.json").write_bytes(catalog_bytes)
-          for role in wanted_types:
-              filename = selected_catalog[role]
-              localfile = f"assets/{filename}"
-              entry = find_entry(assets_files, localfile)
-              payload, payload_audit = materialize(entry, ASSETS_URL)
-              destination = OUTPUT / localfile
-              destination.parent.mkdir(parents=True, exist_ok=True)
-              destination.write_bytes(payload)
-              audit["selectedInputs"].append({"role": role, **payload_audit})
-
-          audit["selectedInputs"].sort(key=lambda item: item["role"])
-          audit_bytes = (json.dumps(audit, indent=2, sort_keys=True) + "\n").encode("utf-8")
-          (OUTPUT / "input-audit.json").write_bytes(audit_bytes)
-          print(json.dumps(audit, indent=2, sort_keys=True))
-          PY
+      - name: Validate audit JSON
+        run: python -m json.tool .owa-003c-evidence/input-audit.json >/dev/null
 
       - name: Upload exact rematerialized inputs
         uses: actions/upload-artifact@v4
         with:
-          name: owa-003c-snapshot-b-${{ github.sha }}
+          name: owa-003c-snapshot-b-${{ github.event.pull_request.head.sha || github.sha }}
           path: .owa-003c-evidence
           if-no-files-found: error
           retention-days: 90
+          compression-level: 0
