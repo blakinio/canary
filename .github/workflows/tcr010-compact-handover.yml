@@ -1,0 +1,27 @@
+---
+name: TCR-010 Compact Handover
+
+on:
+  pull_request:
+    paths:
+      - "docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md"
+      - ".github/workflows/tcr010-compact-handover.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  handover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate checkpoint
+        run: >-
+          python tools/agents/checkpoint.py
+          docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md
+          --require-checkpoint
+      - name: Generate resume bundle
+        run: >-
+          python tools/agents/resume.py
+          --task docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md
