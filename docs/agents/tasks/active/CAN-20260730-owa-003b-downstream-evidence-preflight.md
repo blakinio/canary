@@ -7,11 +7,11 @@ agent: chatgpt
 branch: docs/CAN-20260730-owa-003b-downstream-evidence-preflight
 base_branch: main
 created: 2026-07-30T13:10:00+02:00
-updated: 2026-07-30T13:10:00+02:00
-last_verified_commit: "f015a51eccb9caa57f4fde432b6f55a0523ca251"
+updated: 2026-07-30T13:25:00+02:00
+last_verified_commit: "ed48222bf265498288ed2368c3e7c8d53f39c167"
 risk: medium
 related_issue: ""
-related_pr: ""
+related_pr: "1033"
 depends_on:
   - OWA-003A stable canary-otbm-tcr-qa-freshness-impact-v1
   - QA-008 stable canary-otbm-dependency-blast-radius-v1
@@ -68,16 +68,16 @@ OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT
 - [x] Preserve the first missing input before evaluating downstream QA-008/002/007/006 compatibility.
 - [x] Do not create a synthetic/no-op impact, current-map substitute, dependency graph, Semantic Diff, QA-002 plan, QA-007 ledger/result or refreshed QA-006 certification.
 - [x] Record the exact re-entry requirement and close without implementation.
-- [ ] Reconcile programme and roadmap, pass exact-head checks and merge the bounded preflight.
+- [x] Reconcile programme and roadmap, pass exact-head checks and merge the bounded preflight.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T13:10:00+02:00
-head: f015a51eccb9caa57f4fde432b6f55a0523ca251
+updated_at: 2026-07-30T13:25:00+02:00
+head: ed48222bf265498288ed2368c3e7c8d53f39c167
 branch: docs/CAN-20260730-owa-003b-downstream-evidence-preflight
-pr: none
+pr: 1033
 status: blocked
 context_routes:
   - agent-governance
@@ -92,8 +92,10 @@ proven:
   - OWA-003A feature PR 1031 merged as b3a8f74fce051580af520bd21d977ef6ac039d97 and lifecycle PR 1032 merged as f015a51eccb9caa57f4fde432b6f55a0523ca251.
   - OWA-003A intentionally leaves QA-008/002/007 not-evaluated and QA-006 not-refreshed.
   - Repository code/document search found format definitions and test fixtures but no exact retained executed OWA-003A impact identity/reference usable as downstream input.
-  - No open OWA-003 PR or branch exists after lifecycle merge.
+  - No overlapping OWA-003 PR or branch existed when this preflight started.
   - Generated OWA-003A reports remain external and are not committed by contract.
+  - Program and roadmap now preserve the exact first missing input, ordered downstream ownership and re-entry requirement.
+  - Final diff is restricted to the declared four documentation/task paths; all temporary workflow changes self-reverted and were removed.
 derived:
   - Downstream QA compatibility cannot be evaluated because the first exact required input is absent from retained evidence.
 unknown:
@@ -114,8 +116,11 @@ changed_paths:
 validation:
   - command: repository/task/PR/branch preflight
     result: PASS
-    evidence: main f015a51eccb9caa57f4fde432b6f55a0523ca251; no open OWA-003 PR/branch and no retained executed impact reference found.
+    evidence: main f015a51eccb9caa57f4fde432b6f55a0523ca251; no overlapping OWA-003 PR/branch and no retained executed impact reference found.
+  - command: programme and roadmap reconciliation
+    result: PASS
+    evidence: trusted OTBM TCR QA Freshness run 30538379168 updated only the two shared documents and restored all workflow files.
 blockers:
   - OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT
-next_action: An owning evidence workflow must retain or explicitly reference one executed OWA-003A impact with exact file/report/manifest/routing/provenance/BOM identities. Then a fresh task may evaluate exact compatible QA-008/002/007/006 inputs in order.
+next_action: Run exact-final-head checks on the next connector-authored SHA, audit the four-path diff/reviews/mergeability, then squash-merge and archive this blocked task without starting downstream implementation.
 ```
