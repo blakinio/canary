@@ -87,9 +87,9 @@ Add the smallest deterministic read-only TCR-011 router that consumes one exact 
 ```yaml
 checkpoint_version: 1
 updated_at: 2026-07-30T11:45:00+02:00
-head: 094523da1c07eaebcc7096606b690a25cf3474a9
+head: 1b68be86c8a6beffeb1bdcfd2d8fa6dbc459cf73
 branch: docs/CAN-20260730-tcr-011-archive
-pr: none
+pr: 1030
 status: ready
 context_routes:
   - agent-governance
@@ -108,7 +108,7 @@ proven:
 derived:
   - The TCR programme has delivered all required TCR packages; OWA-003 is the next separate bounded package after lifecycle merge.
 unknown:
-  - Exact lifecycle PR number, lifecycle head and lifecycle workflow results are not yet available.
+  - Exact post-sync lifecycle head and its pull-request workflow results must be verified from live repository state.
 conflicts: []
 first_failure:
   marker: none
@@ -125,5 +125,5 @@ validation:
     result: PASS
     evidence: runs 30530210426, 30529815706, 30529815555, 30529815574, 30529815464, 30529815532 and 30529815480 on f3512b685dfc3708df0ac1a9831c1031afdf8e2d.
 blockers: []
-next_action: Delete the active task record, reconcile the programme and module catalogue, then open the documentation-only lifecycle PR.
+next_action: Verify the live post-sync head, four-path lifecycle diff and required PR 1030 checks, then squash-merge if unchanged.
 ```
