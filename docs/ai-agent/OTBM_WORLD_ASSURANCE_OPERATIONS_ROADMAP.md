@@ -147,7 +147,7 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: OWA-003A stable/merged; OWA-003B blocked external evidence.**
+**Priority: OWA-003A stable/merged; OWA-003B preflight/lifecycle closed, blocked external evidence.**
 
 ## Goal
 
@@ -177,9 +177,9 @@ verified OWA-003A freshness impact
   -> refreshed QA-006 certification state
 ```
 
-OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. OWA-003B preflight PR #1033 found no retained executed freshness impact with sufficient exact provenance and stops at `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`.
+OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. OWA-003B preflight PR #1033 found no retained executed freshness impact with sufficient exact provenance; lifecycle PR #1034 archives the blocked preflight without changing `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT` into completion.
 
-## OWA-003B preflight disposition
+## OWA-003B terminal preflight disposition — PR #1033 / lifecycle #1034
 
 ```text
 BLOCKED_EXTERNAL_EVIDENCE

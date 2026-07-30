@@ -13,8 +13,6 @@ on:
       - "docs/ai-agent/OTBM_TCR_QA_FRESHNESS.schema.json"
       - ".github/workflows/otbm-tcr-qa-freshness.yml"
       - "docs/agents/tasks/active/CAN-20260730-owa-003a-tcr-qa-freshness.md"
-      - "docs/agents/tasks/active/CAN-20260730-owa-003b-downstream-evidence-preflight.md"
-      - "docs/agents/tasks/archive/CAN-20260730-owa-003b-downstream-evidence-preflight.md"
       - "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
       - "docs/agents/MODULE_CATALOG.md"
       - "docs/agents/CHANGELOG.md"
@@ -22,7 +20,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   tcr-qa-freshness:
@@ -53,49 +51,3 @@ jobs:
           python -m json.tool docs/ai-agent/OTBM_TCR_QA_FRESHNESS.schema.json >/dev/null
       - name: Validate CLI
         run: python tools/ai-agent/otbm_tcr_qa_freshness_tool.py --help >/dev/null
-
-  owa003b-lifecycle-sync:
-    if: github.event_name == 'pull_request' && github.head_ref == 'docs/CAN-20260730-owa-003b-archive'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: docs/CAN-20260730-owa-003b-archive
-          fetch-depth: 0
-      - name: Reconcile terminal blocked handoff
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path: str, old: str, new: str) -> None:
-              target = Path(path)
-              text = target.read_text(encoding="utf-8")
-              if text.count(old) != 1:
-                  raise SystemExit(f"expected one match in {path}, found {text.count(old)}")
-              target.write_text(text.replace(old, new), encoding="utf-8")
-
-          p = "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
-          replace_once(p, 'updated: 2026-07-30T13:15:00+02:00\nlast_verified_commit: "f015a51eccb9caa57f4fde432b6f55a0523ca251"', 'updated: 2026-07-30T13:35:00+02:00\nlast_verified_commit: "535c2fad31772af616c1c5d03cd1d570b4bf2a2b"')
-          replace_once(p, "OWA-003B is active as a blocked retained-evidence preflight in draft PR #1033 under task `CAN-20260730-owa-003b-downstream-evidence-preflight`. First failure: `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`. It creates no downstream implementation or substitute evidence.", "No active OWA task remains after OWA-003B preflight PR #1033 merged. Lifecycle PR #1034 archives the blocked task and releases ownership without converting the external-evidence blocker into completion.")
-          replace_once(p, "| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked — `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT` in #1033 | one retained executed OWA-003A impact before any QA-008/002/007/006 compatibility evaluation | medium | An owning evidence workflow must retain or explicitly reference one executed freshness impact with exact file/report/manifest/routing/provenance/BOM identities; then re-enter in a fresh bounded task. |", "| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked preflight merged #1033, lifecycle #1034 — `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT` | one retained executed OWA-003A impact before any QA-008/002/007/006 compatibility evaluation | medium | Re-enter only after an owning evidence workflow retains or explicitly references one executed freshness impact with exact file/report/manifest/routing/provenance/BOM and review/invocation identities. |")
-          replace_once(p, "7. **OWA-003B** — blocked preflight in #1033. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility is not evaluated.", "7. **OWA-003B** — blocked preflight merged via #1033 and lifecycle-closed via #1034. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility remains unevaluated.")
-          replace_once(p, "All currently executable non-TCR OWA work has been performed.", "All currently executable OWA work has been performed.")
-          replace_once(p, "- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. OWA-003B preflight in #1033 is blocked at `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`; no later QA-008/002/007/006 compatibility is claimed or evaluated.", "- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. OWA-003B preflight merged via #1033 and lifecycle-closed via #1034 with blocker `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`; no later QA-008/002/007/006 compatibility is claimed or evaluated.")
-          replace_once(p, "all currently executable non-TCR OWA work completed", "all currently executable OWA work completed")
-          replace_once(p, "OWA-003B downstream evidence preflight is blocked on a retained executed OWA-003A impact; QA-008/002/007/006 remain unevaluated", "OWA-003B preflight/lifecycle are closed with blocker OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT; QA-008/002/007/006 remain unevaluated")
-
-          r = "docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md"
-          replace_once(r, "**Priority: OWA-003A stable/merged; OWA-003B blocked external evidence.**", "**Priority: OWA-003A stable/merged; OWA-003B preflight/lifecycle closed, blocked external evidence.**")
-          replace_once(r, "OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. OWA-003B preflight PR #1033 found no retained executed freshness impact with sufficient exact provenance and stops at `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`.", "OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. OWA-003B preflight PR #1033 found no retained executed freshness impact with sufficient exact provenance; lifecycle PR #1034 archives the blocked preflight without changing `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT` into completion.")
-          replace_once(r, "## OWA-003B preflight disposition", "## OWA-003B terminal preflight disposition — PR #1033 / lifecycle #1034")
-          PY
-          git fetch origin main
-          git checkout origin/main -- .github/workflows/otbm-tcr-qa-freshness.yml
-      - name: Commit terminal reconciliation
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md .github/workflows/otbm-tcr-qa-freshness.yml
-          git commit -m "docs(otbm): reconcile OWA-003B lifecycle handoff"
-          git push origin HEAD:docs/CAN-20260730-owa-003b-archive
