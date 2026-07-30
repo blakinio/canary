@@ -87,43 +87,45 @@ Add the smallest read-only TCR-010 integration that resolves one exact reviewed 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T09:45:00+02:00
-head: 34a2a3750f20c318ecc07aa7407ca0b9a9311834
-branch: main
-pr: 1027
-status: merged
+updated_at: 2026-07-30T09:59:00+02:00
+head: 142299b37494625c5d37fa49af784be186317ae5
+branch: docs/CAN-20260730-tcr-010-archive
+pr: 1028
+status: ready
 context_routes:
   - agent-governance
   - otbm
   - real-tibia-parity
 owned_paths:
   - docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md
-  - tools/ai-agent/tibia_client_reference_evidence_gateway.py
-  - tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py
-  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.md
+  - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
+  - docs/agents/MODULE_CATALOG.md
 proven:
-  - Exact reviewed house, content, proficiency and drift bindings delegate extraction to canonical QA-018.
-  - Paths, SHA-256, formats, pointers, extract bounds and output confinement fail closed.
-  - Feature head 38826ff475c4631ee42c7fd8dc2e246dedab2a25 and readiness run 30522402785 passed all required checks.
-  - PR 1027 squash-merged as 34a2a3750f20c318ecc07aa7407ca0b9a9311834 with no reviews, comments, threads or base drift.
+  - TCR-010 feature PR 1027 squash-merged as 34a2a3750f20c318ecc07aa7407ca0b9a9311834 after exact final-gate success.
+  - Lifecycle PR 1028 at head 142299b37494625c5d37fa49af784be186317ae5 has only the archived task, TCR programme and module catalogue in its diff and is behind main by zero commits.
+  - Agent Task Ownership 30524679287, CI 30524679617, TCR drift 30524679068, TCR evidence gateway 30524679009 and Universal E2E Stability 30524679090 completed successfully on that exact head.
+  - PR 1028 is mergeable and has no reviews, comments or review threads.
 derived:
-  - TCR-011 is dependency-ready but remains a separate read-only routing package.
-unknown: []
+  - The TCR-010 lifecycle closeout is ready to merge; TCR-011 remains the next separate bounded package after main contains the archive.
+unknown:
+  - Exact checkpoint-update commit SHA and its pull-request workflow results must be verified from live repository state.
 conflicts: []
 first_failure:
-  marker: TCR010_SCHEMA_AND_GLOBAL_SUITE_COMPATIBILITY
-  evidence: Truncated schema and optional jsonschema import failures were repaired before final gate.
+  marker: none
+  evidence: none
 rejected_hypotheses:
-  - Add a second parser or generic evidence gateway.
-  - Grant acceptance, E2E, routing execution or mutation authority.
+  - Temporary lifecycle workflows or scripts remain in the final diff: the exact changed-file list contains only three documentation paths.
 changed_paths:
   - docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md
   - docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
   - docs/agents/MODULE_CATALOG.md
 validation:
-  - command: readiness and ci:final-gate run 30522402785
+  - command: python tools/agents/checkpoint.py docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md --require-checkpoint
     result: PASS
-    evidence: Linux release/debug, Docker image/quickstart and Required completed success on 38826ff475c4631ee42c7fd8dc2e246dedab2a25.
+    evidence: strict checkpoint validation performed for this compact handover.
+  - command: exact-head pull-request workflow set
+    result: PASS
+    evidence: runs 30524679287, 30524679617, 30524679068, 30524679009 and 30524679090 succeeded on 142299b37494625c5d37fa49af784be186317ae5.
 blockers: []
-next_action: Start one bounded TCR-011 Reviewed Adoption Router task; do not implement OWA-003 before TCR-011 is stable/merged.
+next_action: Verify the live checkpoint-update head and required PR 1028 checks, then squash-merge PR 1028 if the three-path lifecycle diff remains unchanged.
 ```
