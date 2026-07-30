@@ -99,7 +99,6 @@ void NpcType::loadShop(const std::shared_ptr<NpcType> &npcType, ShopBlock shopBl
 				shopBlock.childShop.push_back(child);
 			}
 		}
-	}
 	npcType->info.shopItemVector.emplace_back(shopBlock);
 }
 
@@ -147,13 +146,24 @@ Npcs &Npcs::getInstance() {
 
 std::shared_ptr<NpcType> Npcs::getNpcType(const std::string &name, bool create /* = false*/) {
 	const std::string key = asLowerCaseString(name);
+	const auto registrationSource = g_scripts().getScriptInterface().getLoadingFile();
 	auto it = npcs.find(key);
 
 	if (it != npcs.end()) {
+		if (create) {
+			it->second->addRegistrationSource(registrationSource);
+		}
 		return it->second;
 	}
 
-	return create ? npcs[key] = std::make_shared<NpcType>(name) : nullptr;
+	if (!create) {
+		return nullptr;
+	}
+
+	auto npcType = std::make_shared<NpcType>(name);
+	npcType->addRegistrationSource(registrationSource);
+	npcs[key] = npcType;
+	return npcType;
 }
 
 const Npcs::Registry &Npcs::getNpcTypes() const noexcept {
