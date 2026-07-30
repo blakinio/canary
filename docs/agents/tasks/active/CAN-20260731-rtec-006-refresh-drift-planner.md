@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-006-refresh-drift-planner-20260731
 base_branch: main
 created: 2026-07-31T00:17:45+02:00
-updated: 2026-07-31T00:31:30+02:00
-last_verified_commit: "04c61e987b374743e626c82e17bbaa3f1b52d6ee"
+updated: 2026-07-31T00:34:30+02:00
+last_verified_commit: "85712dddc138edbe57509c2b99995ff53a084ec1"
 risk: medium
 related_issue: ""
 related_pr: "1038"
@@ -84,8 +84,8 @@ This task only plans future review work. It does not refresh evidence, change ev
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:31:30+02:00
-head: 04c61e987b374743e626c82e17bbaa3f1b52d6ee
+updated_at: 2026-07-31T00:34:30+02:00
+head: 85712dddc138edbe57509c2b99995ff53a084ec1
 branch: feat/rtec-006-refresh-drift-planner-20260731
 pr: 1038
 status: implementing
@@ -106,14 +106,14 @@ proven:
   - planner emits deterministic input and plan SHA-256 identities and performs no corpus writes
   - focused source and test files pass local Python bytecode compilation
   - isolated synthetic smoke test passed selection, priority and plan digest verification
-  - CI, Real Tibia Module Registry and Upstream Intelligence passed on 04c61e987b374743e626c82e17bbaa3f1b52d6ee
-  - Agent Task Ownership first failed because frontmatter status active is not a valid active lifecycle status
+  - CI, Real Tibia Module Registry and Upstream Intelligence passed on 85712dddc138edbe57509c2b99995ff53a084ec1
+  - Agent Task Ownership second failure is limited to unsupported checkpoint validation result PARTIAL
   - global evidence indexes, owner requests, dossier modules and the RTEC programme remain unchanged
   - docs/agents/PROJECT_STATE.md is absent on current main
   - docs/agents/prompts/RTEC_COMMON_AGENT_RULES.md is absent on current main
   - the dedicated Real Tibia workflow discovers test_real_tibia*.py but its path trigger does not currently list the new planner files
 derived:
-  - frontmatter status must be implementing to match the implementing checkpoint
+  - checkpoint validation result must use FAIL rather than the unsupported PARTIAL value
 unknown:
   - focused integration test result on a complete repository checkout is not yet established
   - missing RTEC common rules cannot be evaluated because the current repository has no such file
@@ -121,9 +121,9 @@ unknown:
 conflicts: []
 first_failure:
   marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: "record under tasks/active has non-active status 'active'"
+  evidence: "validation item 3 has unsupported result 'PARTIAL'"
 rejected_hypotheses:
-  - planner code caused the first CI failure: the failing job completed its own 63 focused tests and rejected only task status metadata
+  - planner code caused either ownership failure: each failing ownership job completed its own focused tests and rejected only task checkpoint metadata
   - the planner should edit evidence or shared indexes: user scope and programme boundaries forbid those writes
   - historical evidence should become stale solely because a newer target version exists: historical-version records preserve bounded historical facts
 changed_paths:
@@ -138,9 +138,9 @@ validation:
   - command: isolated synthetic planner smoke
     result: PASS
     evidence: version/path/source selection, high priority and plan digest verification passed
-  - command: GitHub Actions on 04c61e987b374743e626c82e17bbaa3f1b52d6ee
-    result: PARTIAL
-    evidence: CI, registry and upstream passed; ownership failed on frontmatter status only
+  - command: GitHub Actions on 85712dddc138edbe57509c2b99995ff53a084ec1
+    result: FAIL
+    evidence: CI, registry and upstream passed; ownership rejected only unsupported checkpoint result PARTIAL
 blockers: []
-next_action: Re-run ownership validation after the status correction, then execute focused integration tests and final-head review.
+next_action: Confirm ownership validation after the checkpoint-result correction, then execute focused integration tests and final-head review.
 ```
