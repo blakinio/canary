@@ -51,10 +51,7 @@
     },
     {
       "id": "canary-runtime",
-      "label": "Canary runtime and uncategorized work",
-      "task_prefixes": [
-        "CAN"
-      ]
+      "label": "Canary runtime and uncategorized work"
     }
   ]
 }
