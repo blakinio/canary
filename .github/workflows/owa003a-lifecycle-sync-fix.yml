@@ -1,0 +1,65 @@
+name: OWA-003A Lifecycle Sync Fix
+
+on:
+  push:
+    branches:
+      - docs/CAN-20260730-owa-003a-archive
+    paths:
+      - .github/workflows/owa003a-lifecycle-sync-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: docs/CAN-20260730-owa-003a-archive
+          fetch-depth: 0
+      - name: Reconcile lifecycle documents
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected one match in {path}, found {text.count(old)}")
+              target.write_text(text.replace(old, new), encoding="utf-8")
+
+          program = "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
+          replace_once(program, 'updated: 2026-07-30T12:30:00+02:00\nlast_verified_commit: "e1474d39d51c14bc1d2d016e35c7a7de970be4bd"', 'updated: 2026-07-30T13:00:00+02:00\nlast_verified_commit: "b3a8f74fce051580af520bd21d977ef6ac039d97"')
+          replace_once(program, "OWA-003A is active in draft PR #1031 under task `CAN-20260730-owa-003a-tcr-qa-freshness`. It owns only exact TCR-011 route-to-existing-QA-016 freshness verification; it does not produce QA-008/002/007 evidence, execute validators/E2E or refresh QA-006.", "No active OWA task remains after OWA-003A feature PR #1031 merged. Lifecycle PR #1032 archives its task and releases ownership; downstream OWA-003 work starts only after a fresh retained-evidence preflight.")
+          replace_once(program, "| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A active/in-review in #1031; downstream evidence integration remains separate | stable TCR-011 routing + QA-016 for OWA-003A; later QA-008/002/007/006 evidence owned downstream | medium | Complete exact-head validation and merge of the bounded freshness-impact contract. Do not promote TCR evidence into Semantic Diff, validator selection, execution results, assurance or refreshed certification. |", "| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged via #1031; downstream retained-evidence preflight required | stable TCR-011 routing + QA-016 consumed by stable freshness-impact contract; later QA-008/002/007/006 evidence owned downstream | medium | Run one bounded read-only retained-evidence preflight. If no exact OWA-003A impact plus canonical downstream chain exists, record the first external-evidence blocker without building a wrapper or synthetic evidence. |")
+          replace_once(program, "6. **OWA-003A** — active in #1031: verify exact reviewed TCR-011 route/component/dimension mappings against existing QA-016 staleness only.\n7. **OWA-003 downstream** — begin only as separate bounded packages when exact canonical QA-008/002/007/006 inputs exist; never synthesize them from TCR.", "6. **OWA-003A** — completed via #1031; lifecycle closes in #1032. Exact TCR-011-to-existing-QA-016 freshness verification is stable/merged.\n7. **OWA-003 downstream preflight** — next bounded package: determine whether one exact retained OWA-003A impact and canonical QA-008/002/007/006 evidence chain exists; never synthesize missing inputs from TCR.")
+          replace_once(program, "The TCR dependency is satisfied; OWA-003A is active, while downstream QA execution/assurance evidence remains unproven and separately owned.", "The TCR dependency and OWA-003A freshness integration are complete. Downstream QA execution/assurance evidence remains unproven and separately owned pending a fresh retained-evidence preflight.")
+          replace_once(program, "OWA-003A public formats in PR #1031 are `canary-otbm-tcr-qa-freshness-manifest-v1` and `canary-otbm-tcr-qa-freshness-impact-v1`.", "OWA-003A public formats are stable/merged as of PR #1031 / merge `b3a8f74fce051580af520bd21d977ef6ac039d97`: `canary-otbm-tcr-qa-freshness-manifest-v1` and `canary-otbm-tcr-qa-freshness-impact-v1`.")
+          replace_once(program, "- OWA-003A is active in PR #1031 after stable TCR delivery; later QA-008/002/007/006 stages remain separate and require exact canonical map-change, dependency, execution, health and certification evidence rather than TCR-derived substitutes.", "- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. Later QA-008/002/007/006 stages remain separate and require an exact retained OWA-003A impact plus canonical map-change, dependency, execution, health and certification evidence rather than TCR-derived substitutes.")
+          replace_once(program, "OWA-003A exact TCR-to-QA-016 freshness verification is active in PR #1031", "OWA-003A exact TCR-to-QA-016 freshness verification is stable/merged via PR #1031")
+          replace_once(program, "- After OWA-003A merges, a fresh bounded preflight must determine whether any exact retained canonical QA-008/002/007/006 evidence chain exists; missing evidence must be recorded as a blocker rather than synthesized from TCR.", "- The next bounded action is a fresh retained-evidence preflight for one exact OWA-003A impact and canonical QA-008/002/007/006 chain; missing evidence must be recorded as a blocker rather than synthesized from TCR.")
+
+          roadmap = "docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md"
+          replace_once(roadmap, "**Priority: active bounded first slice; downstream evidence-gated.**", "**Priority: OWA-003A stable/merged; downstream evidence-gated.**")
+          replace_once(roadmap, "## OWA-003A delivered boundary in PR #1031", "## OWA-003A stable boundary — PR #1031 / merge `b3a8f74fce051580af520bd21d977ef6ac039d97`")
+          replace_once(roadmap, "OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners.", "OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. The next action is a separate read-only retained-evidence preflight before any downstream implementation.")
+
+          replace_once("docs/agents/MODULE_CATALOG.md", "| OTBM TCR-to-QA Freshness Impact | active OWA-003A (#1031) |", "| OTBM TCR-to-QA Freshness Impact | merged OWA-003A (#1031; lifecycle #1032) |")
+          replace_once("docs/agents/CHANGELOG.md", "- Adds OWA-003A `canary-otbm-tcr-qa-freshness-manifest-v1`", "- Adds stable/merged OWA-003A `canary-otbm-tcr-qa-freshness-manifest-v1`")
+
+          archive = "docs/agents/tasks/archive/CAN-20260730-owa-003a-tcr-qa-freshness.md"
+          replace_once(archive, "head: b3a8f74fce051580af520bd21d977ef6ac039d97\nbranch: docs/CAN-20260730-owa-003a-archive\npr: none", "head: 2c3d7320fab1c0336681d1d559dcff402dbfd081\nbranch: docs/CAN-20260730-owa-003a-archive\npr: 1032")
+          replace_once(archive, "  - Exact lifecycle PR number, lifecycle head and lifecycle workflow results are not yet available.", "  - Exact post-sync lifecycle head and its pull-request workflow results must be verified from live repository state.")
+          replace_once(archive, "next_action: Delete the active task record, mark OWA-003A stable/merged in programme discovery and open the documentation-only lifecycle PR.", "next_action: Verify the live post-sync lifecycle head, six-path documentation-only diff and required PR 1032 checks, then squash-merge if unchanged.")
+          PY
+          rm .github/workflows/owa003a-lifecycle-sync.yml .github/workflows/owa003a-lifecycle-sync-fix.yml
+      - name: Commit lifecycle reconciliation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md docs/agents/MODULE_CATALOG.md docs/agents/CHANGELOG.md docs/agents/tasks/archive/CAN-20260730-owa-003a-tcr-qa-freshness.md .github/workflows/owa003a-lifecycle-sync.yml .github/workflows/owa003a-lifecycle-sync-fix.yml
+          git commit -m "docs(otbm): reconcile OWA-003A lifecycle state"
+          git push origin HEAD:docs/CAN-20260730-owa-003a-archive
