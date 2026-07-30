@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 base_branch: main
 created: 2026-07-30T22:35:00+02:00
-updated: 2026-07-30T22:40:00+02:00
-last_verified_commit: "85c482939a02581316a70fda73fc956e2a18cdf2"
+updated: 2026-07-30T22:47:00+02:00
+last_verified_commit: "99b9d2a05f381cd361013a7bfbbface4fb871c14"
 risk: high
 related_issue: ""
 related_pr: "1035"
@@ -75,11 +75,11 @@ Produce and retain one real executed OWA-003A freshness impact with exact TCR-01
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T22:40:00+02:00
-head: 85c482939a02581316a70fda73fc956e2a18cdf2
+updated_at: 2026-07-30T22:47:00+02:00
+head: 99b9d2a05f381cd361013a7bfbbface4fb871c14
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 pr: 1035
-status: active
+status: investigating
 context_routes:
   - agent-governance
   - otbm
@@ -90,25 +90,36 @@ owned_paths:
   - docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md
 proven:
   - Current main is 9704087e3d6fc7b434938b343a546c14a23a447e and no pre-existing open OWA/TCR/QA PR or OWA/candidate branch owned this scope.
-  - Draft PR 1035 now owns the bounded OWA-003C executed-evidence package.
+  - Draft PR 1035 owns the bounded OWA-003C executed-evidence package.
   - TCR-009 completed two exact retained snapshots and drift: A manifest 6096b021..., B manifest 54646c3f..., retained summary 6224a175..., drift be0593cb... with 27 findings.
   - TCR-010, TCR-011 and OWA-003A contracts are stable, but their exact-head workflows retained no executed operational artifacts.
   - The previously supplied snapshot B was version 15.31.69f220 with package SHA-256 95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8; its local binary is not mounted in the current runtime.
   - The supplied OTBM SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 is the current OWA-001 map, not an OWA-006 candidate.
+  - First trusted rematerialization run 30580163217 reached the official launcher endpoint and failed HTTP 403 before parsing any package bytes.
+  - Browser-compatible and launcher-compatible bounded retry profiles are running in OWA-003C workflow run 30580431144.
 derived:
-  - A trusted repository workflow can rematerialize official current package inputs and execute existing producers while keeping proprietary payloads outside Git.
+  - Exact producer execution remains possible only if the historical snapshot B bytes can be recovered or rematerialized byte-identically; stable hashes alone are not report payloads.
 unknown:
   - Whether the official current package still resolves byte-identically to retained snapshot B.
   - Whether exact retained TCR-005/006/007 inputs required for a complete operational TCR-010 route can be recovered or reproduced.
 conflicts: []
 first_failure:
-  marker: pending-rematerialization
-  evidence: no retained executed canary-otbm-tcr-qa-freshness-impact-v1 is currently available.
+  marker: OWA003C_OFFICIAL_DOWNLOAD_HTTP_403
+  evidence: workflow run 30580163217 job 90998119134 received HTTP 403 from the official launcher endpoint before package parsing.
 rejected_hypotheses:
   - Treat stable code, schemas or unit-test fixtures as executed operational evidence.
   - Use the current map as an OWA-006 candidate.
   - Infer reviewer mappings from names, visual proximity or guessed identifier equivalence.
-validation: []
+changed_paths:
+  - .github/workflows/owa-003c-executed-evidence.yml
+  - docs/agents/tasks/active/CAN-20260730-owa-003c-executed-evidence.md
+validation:
+  - command: OWA-003C official input rematerialization run 30580163217
+    result: FAIL
+    evidence: job 90998119134 failed closed on HTTP 403 before reading or accepting package content.
+  - command: repository CI run 30580431732
+    result: PASS
+    evidence: CI completed successfully on head 99b9d2a05f381cd361013a7bfbbface4fb871c14.
 blockers: []
-next_action: Add the trusted exact-input rematerialization workflow, inspect its retained artifact and continue from the first exact result.
+next_action: Inspect run 30580431144. If the official endpoint remains inaccessible, exhaust exact historical artifact and retained-file recovery before recording an external-evidence blocker.
 ```
