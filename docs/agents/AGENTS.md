@@ -37,3 +37,19 @@ A program may create many task PRs. After each task reaches a final state:
 - Feature agents own only their suite-specific scenarios and assertions.
 - A generic platform change and a feature scenario change use separate task records and PRs when both are required.
 - Use `templates/E2E_SCENARIO.md` for new physical-client scenarios.
+
+## Resilient worker execution
+
+Before creating, claiming, resuming, updating, handing off, or closing any task under this directory:
+
+1. read `EXECUTION_PROTOCOL.md`;
+2. read `PROJECT_LANES.json`;
+3. select or preserve the correct `project_lane`;
+4. treat the task record and Git/PR state as durable and the worker session as disposable;
+5. execute one bounded phase per session and persist a checkpoint before a long-running or failure-prone operation;
+6. do not remain active while waiting for CI, dependencies, external evidence, deployment, or a user reply;
+7. on a blocker, preserve coherent work, record `status`, evidence, blocker and exactly one `next_action`, then end the session;
+8. record `execution_mode` and let the worker decide whether Chat/GitHub or Codex is appropriate;
+9. at a synchronization barrier, run `python tools/agents/control_room.py --format markdown` and escalate only material decisions.
+
+When rules overlap, follow the more restrictive safety requirement.
