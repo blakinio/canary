@@ -7,7 +7,7 @@ agent: chatgpt
 branch: main
 base_branch: main
 created: 2026-07-30T13:10:00+02:00
-updated: 2026-07-30T13:32:00+02:00
+updated: 2026-07-30T13:38:00+02:00
 last_verified_commit: "535c2fad31772af616c1c5d03cd1d570b4bf2a2b"
 risk: medium
 related_issue: ""
@@ -88,10 +88,10 @@ Only then may a fresh bounded task evaluate exact compatible QA-008, QA-002/Sema
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T13:32:00+02:00
-head: 535c2fad31772af616c1c5d03cd1d570b4bf2a2b
+updated_at: 2026-07-30T13:38:00+02:00
+head: e4b725939b84cad0ae2bced8d94df98e6fee6536
 branch: docs/CAN-20260730-owa-003b-archive
-pr: none
+pr: 1034
 status: blocked
 context_routes:
   - agent-governance
@@ -106,8 +106,10 @@ proven:
   - Readiness CI 30538630535 and exact-head checks 30538497819, 30538497769, 30538497956, 30538497650 and 30538498092 all passed.
   - Preflight diff contained only the declared four documentation/task paths.
   - The first missing exact input remains OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT.
+  - Lifecycle diff is restricted to active-to-archive movement plus terminal programme and roadmap reconciliation.
+  - No active OWA task remains after this lifecycle merge; all currently executable OWA work is complete.
 derived:
-  - All currently executable OWA-003 work is complete; re-entry is external-evidence-triggered.
+  - OWA-003 re-entry is external-evidence-triggered; no further autonomous implementation is valid without the exact executed impact.
 unknown:
   - Whether an executed OWA-003A impact exists outside current retained repository/task/PR evidence.
 conflicts: []
@@ -125,7 +127,10 @@ validation:
   - command: OWA-003B exact-head and readiness workflow set
     result: PASS
     evidence: runs 30538630535, 30538497819, 30538497769, 30538497956, 30538497650 and 30538498092 on a094998df8d63c3e022ee9d407e140eb09b8b71c.
+  - command: lifecycle terminal reconciliation
+    result: PASS
+    evidence: trusted OTBM TCR QA Freshness run 30538971896 restored the workflow from main and updated only programme/roadmap.
 blockers:
   - OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT
-next_action: Delete the active task record, reconcile the programme/roadmap to terminal blocked handoff and merge the documentation-only lifecycle PR.
+next_action: Run exact-final-head lifecycle checks on the next connector-authored SHA, audit the four-path diff/reviews/mergeability and squash-merge PR 1034 if unchanged and fully green.
 ```
