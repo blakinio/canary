@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 base_branch: main
 created: 2026-07-30T22:35:00+02:00
-updated: 2026-07-30T23:05:00+02:00
-last_verified_commit: "c2c5c5c2e3a3603dd38a362ee104548e15af11ff"
+updated: 2026-07-30T23:10:00+02:00
+last_verified_commit: "99c613a147085236116c72c67a7b917968cf0100"
 risk: high
 related_issue: ""
 related_pr: "1035"
@@ -80,8 +80,8 @@ OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T23:05:00+02:00
-head: c2c5c5c2e3a3603dd38a362ee104548e15af11ff
+updated_at: 2026-07-30T23:10:00+02:00
+head: 99c613a147085236116c72c67a7b917968cf0100
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 pr: 1035
 status: blocked
@@ -126,13 +126,13 @@ changed_paths:
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
 validation:
   - command: OWA-003C official input rematerialization run 30580163217
-    result: FAIL_CLOSED
+    result: BLOCKED
     evidence: job 90998119134 received HTTP 403 before reading or accepting package content.
   - command: OWA-003C launcher-compatible retry run 30580431144
-    result: FAIL_CLOSED
+    result: BLOCKED
     evidence: job 90999022124 received six Cloudflare HTTP 403 responses; no package content or artifact was accepted.
   - command: OWA-003C exact public-tag recovery run 30580936803
-    result: FAIL_CLOSED
+    result: BLOCKED
     evidence: job 91000700142 found zero exact 15.31.69f220 source tags and accepted no payload.
   - command: TCR-009/TCR-010/TCR-011/OWA-003A retained Actions artifact audit
     result: PASS
