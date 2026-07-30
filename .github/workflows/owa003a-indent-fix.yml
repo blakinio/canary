@@ -1,0 +1,45 @@
+name: OWA-003A Indent Fix
+
+on:
+  push:
+    branches:
+      - feat/CAN-20260730-owa-003a-tcr-qa-freshness
+    paths:
+      - .github/workflows/owa003a-indent-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/CAN-20260730-owa-003a-tcr-qa-freshness
+      - name: Restore test method indentation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("tools/ai-agent/test_otbm_tcr_qa_freshness.py")
+          lines = path.read_text(encoding="utf-8").splitlines()
+          marker = "    def test_output_is_deterministic_under_mapping_order_permutation(self) -> None:"
+          try:
+              start = lines.index(marker) + 1
+              end = lines.index('if __name__ == "__main__":')
+          except ValueError as exc:
+              raise SystemExit(f"expected test markers are missing: {exc}") from exc
+          for index in range(start, end):
+              if lines[index]:
+                  lines[index] = "    " + lines[index]
+          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+          rm .github/workflows/owa003a-indent-fix.yml
+      - name: Commit indentation correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/ai-agent/test_otbm_tcr_qa_freshness.py .github/workflows/owa003a-indent-fix.yml
+          git commit -m "test(otbm): restore OWA-003A test indentation"
+          git push origin HEAD:feat/CAN-20260730-owa-003a-tcr-qa-freshness
