@@ -152,14 +152,14 @@ Mandatory reuse before implementation:
 | TCR-007 | Proficiency Reference Correlation | merged | `canary-tibia-proficiency-reference-resolver-v1` + `canary-tibia-proficiency-reference-correlation-v1`; PR #898; merge `89acb51d...` | TCR-004 | medium | Complete. Exact reviewed proficiency/appearance/item resolution and read-only correlation are stable/merged; runtime, persistence, protocol/client, automated behavior, Physical E2E and gameplay parity remain separate evidence dimensions. |
 | TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case | no concrete parity use case found in fresh 2026-07-28 preflight | TCR-001 merged | low | Do not implement on speculation. Reopen only for a documented advisory-only use case not already covered by World Index, landmarks, Reachability, factual rendering or StaticMapData. |
 | TCR-009 | Client Reference Drift | merged | `canary-tibia-client-reference-drift-v1`; PR #1018; merge `c678d904...`; consumed request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; retained evidence summary `6224a175...`; retained drift `be0593cb...` | TCR-002, TCR-003, TCR-004/TCR-004A | medium | Complete. Deterministic manifest/index drift is stable/merged; StaticData `legacy -> newer` remains an explicit family boundary and the contract grants no gameplay or mutation authority. |
-| TCR-010 | Compact Evidence Gateway Integration | ready | Stable TCR-005/006/007 and merged TCR-009 `c678d904...` | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Start the smallest read-only QA-018 gateway integration for bounded house, content, proficiency and drift extracts; do not reparse sources or add mutation authority. |
-| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-009-and-TCR-010 | stable TCR-005/006/007 exist; TCR-009/010 are not stable | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Do not start until all required producer/gateway contracts are stable/merged. No executor or mutation authority. |
+| TCR-010 | Compact Evidence Gateway Integration | active/in-review | `canary-tibia-client-reference-evidence-bindings-v1` + `canary-tibia-client-reference-evidence-gateway-v1`; draft PR #1027; delegates to QA-018 | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Complete exact-head validation and merge. Reviewed-binding transport only; no parsing, reinterpretation, mutation, E2E, acceptance or routing. |
+| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-010 | TCR-005/006/007/009 are stable; TCR-010 remains in review | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Start only after TCR-010 merges and archives. No executor, approval generation or mutation authority. |
 
 # Stable producer contract state
 
 TCR-000 stabilizes the **architecture/governance contract**.
 
-TCR-001, TCR-002, TCR-003, TCR-004, TCR-005, TCR-006 and TCR-007 stabilize these reference, resolver and correlation contracts:
+TCR-001 through TCR-007 and TCR-009 stabilize these reference, resolver, correlation and drift contracts. TCR-010 PR #1027 adds reviewed gateway bindings over QA-018 and remains in review until merge:
 
 ```text
 canary-tibia-client-reference-manifest-v1
@@ -172,6 +172,9 @@ canary-tibia-content-reference-resolver-v1
 canary-tibia-content-reference-correlation-v1
 canary-tibia-proficiency-reference-resolver-v1
 canary-tibia-proficiency-reference-correlation-v1
+canary-tibia-client-reference-drift-v1
+canary-tibia-client-reference-evidence-bindings-v1
+canary-tibia-client-reference-evidence-gateway-v1
 ```
 
 The manifest is `stable/merged` as of PR #809 / merge `3227ee1e3b5f323656b101a601f873ae21b61f27`. It provides exact selected-input identity, size, SHA-256, source role, explicit client-build evidence state, parser revision, optional generated-index hash pins and deterministic provenance metadata. It is not StaticData, StaticMapData, map authority or gameplay parity evidence.
@@ -188,9 +191,13 @@ The content-reference resolver and correlation contracts are `stable/merged` as 
 
 The proficiency-reference resolver and correlation contracts are `stable/merged` as of PR #898 / merge `89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`. They consume exact TCR-004 proficiency definitions, canonical appearance proficiency/object bindings and compact Canary loader/runtime evidence through exact reviewed mappings. They keep definition, appearance, item, runtime, persistence, protocol/client, automated behavior and Physical E2E separate; they do not prove gameplay parity or authorize mutation.
 
-TCR-008 is `optional/deferred-no-concrete-use-case`. TCR-009 is `blocked-external-evidence` on `TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS` with exact owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002`. TCR-010 and TCR-011 remain dependency-blocked. `canary-tibia-client-reference-drift-v1`, gateway integration and adoption routing are **not stable/merged**.
+The client-reference drift contract is `stable/merged` as of PR #1018 / merge `c678d90483af945b3bbf0a40f6d6b9ce99da4a3f`. It compares exact retained manifest/index snapshots, preserves dependency-scoped staleness and fails closed across the StaticData schema-family boundary. It does not prove gameplay impact or authorize mutation.
 
-OWA-003 may later consume `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, `canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, `canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1`, `canary-tibia-content-reference-correlation-v1`, `canary-tibia-proficiency-reference-resolver-v1` and `canary-tibia-proficiency-reference-correlation-v1` only within their exact stable provenance/reference boundaries where that dependency is required. It must not infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or any still-planned minimap, drift, gateway or routing output before the owning bounded package merges.
+TCR-010 PR #1027 adds exact reviewed binding IDs for one bounded house, content, proficiency or drift extract and delegates path, SHA-256, format, JSON Pointer and serialized-size enforcement to QA-018. It adds no parser, semantic reinterpretation, E2E, acceptance or routing authority and remains non-stable until merge.
+
+TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 is stable/merged and owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002` is consumed. TCR-010 is active in PR #1027 and is not stable until merge; TCR-011 remains blocked only by stable/merged TCR-010.
+
+OWA-003 may consume stable TCR-001 through TCR-007 and TCR-009 contracts only within their exact provenance boundaries. TCR-010 remains non-consumable until PR #1027 merges and TCR-011 remains unavailable. No consumer may infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or mutation authority.
 
 # Package contracts
 
@@ -349,7 +356,7 @@ Acceptance must preserve:
 
 ## TCR-009 — Client Reference Drift
 
-Planned public format:
+Stable public format:
 
 ```text
 canary-tibia-client-reference-drift-v1
@@ -364,6 +371,13 @@ Acceptance:
 - unchanged dependent evidence remains distinguishable from changed dependent evidence.
 
 ## TCR-010 — Evidence Gateway
+
+In-review public formats in PR #1027:
+
+```text
+canary-tibia-client-reference-evidence-bindings-v1
+canary-tibia-client-reference-evidence-gateway-v1
+```
 
 Acceptance:
 
@@ -424,11 +438,10 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 
 # Last bounded lifecycle disposition
 
-- Task: `docs/agents/tasks/archive/CAN-20260728-tcr-009-client-reference-drift.md`.
-- Feature/preflight PR: `#992`; exact head `ada7a9e6f7d855a2d6f8c34d003b752a49251c1b`; merge `8a88e2f09257e620985770e5e053381df32f916d`.
-- Ready-state protected CI: run `30399382989`, success.
-- Lifecycle PR: `#993`.
-- Disposition: `blocked-external-evidence`; no TCR-009 producer contract was delivered or stabilized.
+- TCR-009 feature PR `#1018` merged as `c678d90483af945b3bbf0a40f6d6b9ce99da4a3f`.
+- TCR-009 lifecycle PR `#1025` merged as `7095f27c684f0825278c5fcc4b78f93f85ab087b`.
+- Discovery reconciliation PR `#1026` merged as `6c7bdb8817d2010620d119a9a1f6b944895bc73d`.
+- TCR-010 is active in draft PR `#1027` and remains non-stable until exact-final-head merge.
 
 # Blockers and unresolved references
 
@@ -438,48 +451,10 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 - New client schemas beyond the independently verified old/new staticdata families require a new bounded schema-discovery task.
 - Direct source-code reuse from the research repository is blocked by licensing review; independent implementation is the default.
 
-# Exact next action after TCR-009 evidence preflight
+# Exact next action after TCR-010 implementation
 
-All currently executable programme work is complete. TCR-000 through TCR-007 remain stable/merged within their exact evidence boundaries. TCR-008 is optional/deferred because no concrete minimap parity use case was found.
-
-TCR-009 must not resume until owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002` is satisfied with two distinct complete exact retained snapshot sets, each containing a validated manifest plus compatible StaticData, StaticMapData and proficiency indexes with exact hashes, revisions and explicit client-build evidence state. The first failure remains:
-
-```text
-TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS
-```
-
-Do not start TCR-010, TCR-011 or OWA-003 before TCR-009 is genuinely implemented, validated and merged stable. Do not synthesize snapshots, reuse one snapshot as A and B, infer build identity from filenames or commit proprietary/generated client artifacts.
+Complete PR #1027 through exact-final-head validation and squash merge, then archive its task and mark TCR-011 ready. Do not start TCR-011 or OWA-003 before TCR-010 is stable/merged.
 
 # Handoff
 
-A continuation agent must:
-
-1. read root `AGENTS.md`, repository/context routing and this programme;
-2. re-fetch current `main`, active tasks, branches, PRs and retained evidence;
-3. inspect `RTREQ-TCR-ITEM-DEFINITIONS-0002` first;
-4. resume TCR-009 only if two distinct complete exact snapshot sets now satisfy the request contract;
-5. create one new bounded active task/branch/early draft PR for the drift producer;
-6. reuse TCR-001 through TCR-004 producers and QA-016 dependency-scoped freshness semantics;
-7. preserve unresolved ID spaces and never equate reference drift with gameplay regression;
-8. keep all proprietary inputs and generated reports outside Git;
-9. leave TCR-008 deferred unless a concrete non-duplicative advisory use case exists;
-10. leave TCR-010, TCR-011 and OWA-003 blocked until their exact dependencies are stable/merged.
-
-# Agent kickoff prompt
-
-```text
-Continue CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE from repository state.
-Repository writes are allowed only in blakinio/canary.
-Do not rely on previous chat history.
-
-Fresh preflight is mandatory. Read AGENTS.md, repository/context routing, this programme, OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md and owner request RTREQ-TCR-ITEM-DEFINITIONS-0002.
-
-Current durable state:
-- TCR-000..007 stable/merged within exact evidence boundaries;
-- TCR-008 optional/deferred-no-concrete-use-case;
-- TCR-009 blocked-external-evidence on TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS;
-- TCR-010, TCR-011 and OWA-003 dependency-blocked;
-- no canary-tibia-client-reference-drift-v1 stable contract exists.
-
-Resume TCR-009 only when two distinct complete exact retained manifest/index snapshot sets are proven. Otherwise do not create a task or synthetic evidence. Never commit proprietary client packages or generated reports, and never create duplicate parsers, indexes, gateways, assurance engines, pathfinders or E2E runners.
-```
+Continue from the active TCR-010 checkpoint and live PR #1027. Preserve QA-018 as the sole extractor, exact reviewed binding IDs, the four stable source formats, proprietary-input retention outside Git and all identifier/runtime/gameplay/mutation boundaries.

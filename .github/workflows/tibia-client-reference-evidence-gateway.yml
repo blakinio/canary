@@ -1,0 +1,52 @@
+---
+name: Tibia Client Reference Evidence Gateway
+
+on:
+  pull_request:
+    paths:
+      - "tools/ai-agent/tibia_client_reference_evidence_gateway.py"
+      - "tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py"
+      - "tools/ai-agent/test_tibia_client_reference_evidence_gateway*.py"
+      - "tools/ai-agent/otbm_evidence_gateway.py"
+      - "tools/ai-agent/otbm_evidence_gateway_tool.py"
+      - "tools/ai-agent/test_otbm_evidence_gateway*.py"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.md"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json"
+      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json"
+      - "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
+      - "docs/agents/MODULE_CATALOG.md"
+      - "docs/agents/CHANGELOG.md"
+      - ".github/workflows/tibia-client-reference-evidence-gateway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: tools/ai-agent
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install schema checker
+        run: python -m pip install --disable-pip-version-check jsonschema
+      - name: Run TCR-010 tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_evidence_gateway*.py" -v
+      - name: Run canonical QA-018 regression tests
+        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_evidence_gateway*.py" -v
+      - name: Compile adapter and tests
+        run: |
+          python -m py_compile \
+            tools/ai-agent/tibia_client_reference_evidence_gateway.py \
+            tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py \
+            tools/ai-agent/test_tibia_client_reference_evidence_gateway.py \
+            tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py \
+            tools/ai-agent/test_tibia_client_reference_evidence_gateway_schema.py
+      - name: Validate public schema syntax
+        run: |
+          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json > /dev/null
+          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json > /dev/null
