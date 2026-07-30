@@ -153,7 +153,7 @@ Mandatory reuse before implementation:
 | TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case | no concrete parity use case found in fresh 2026-07-28 preflight | TCR-001 merged | low | Do not implement on speculation. Reopen only for a documented advisory-only use case not already covered by World Index, landmarks, Reachability, factual rendering or StaticMapData. |
 | TCR-009 | Client Reference Drift | merged | `canary-tibia-client-reference-drift-v1`; PR #1018; merge `c678d904...`; consumed request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; retained evidence summary `6224a175...`; retained drift `be0593cb...` | TCR-002, TCR-003, TCR-004/TCR-004A | medium | Complete. Deterministic manifest/index drift is stable/merged; StaticData `legacy -> newer` remains an explicit family boundary and the contract grants no gameplay or mutation authority. |
 | TCR-010 | Compact Evidence Gateway Integration | merged | `canary-tibia-client-reference-evidence-bindings-v1` + `canary-tibia-client-reference-evidence-gateway-v1`; PR #1027; merge `34a2a375...`; delegates to QA-018 | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Complete. Exact reviewed binding transport is stable/merged; no parsing, reinterpretation, mutation, E2E, acceptance or routing authority. |
-| TCR-011 | Reviewed Adoption Router | ready | TCR-005/006/007/009/010 are stable/merged | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Start one bounded read-only routing task. Classify exact reviewed findings to existing owners/capabilities; no executor, approval generation or mutation authority. |
+| TCR-011 | Reviewed Adoption Router | active/in-review | `canary-tibia-reference-adoption-routing-request-v1` + `canary-tibia-reference-adoption-routing-v1`; draft PR #1029 | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Complete exact-head validation and merge. Exact reviewed extract routing only; no parser, target-state inference, approval generation, writer execution, deployment, E2E or gameplay authority. |
 
 # Stable producer contract state
 
@@ -195,7 +195,7 @@ The client-reference drift contract is `stable/merged` as of PR #1018 / merge `c
 
 The client-reference evidence binding and gateway contracts are `stable/merged` as of PR #1027 / merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834`. They expose one exact reviewed house, content, proficiency or drift extract through QA-018 path, SHA-256, format, JSON Pointer and serialized-size enforcement. They add no parser, semantic reinterpretation, E2E, acceptance or routing authority.
 
-TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 and TCR-010 are stable/merged. TCR-011 is dependency-ready and remains the only required TCR package before OWA-003.
+TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 and TCR-010 are stable/merged. TCR-011 is active in PR #1029 and remains non-stable until exact-final-head merge; OWA-003 remains blocked.
 
 OWA-003 may consume stable TCR-001 through TCR-010 contracts only within their exact provenance boundaries, but implementation remains blocked until TCR-011 is stable/merged. No consumer may infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or mutation authority.
 
@@ -388,19 +388,22 @@ Acceptance:
 
 ## TCR-011 — Adoption Router
 
-Planned public format:
+In-review public formats in PR #1029:
 
 ```text
+canary-tibia-reference-adoption-routing-request-v1
 canary-tibia-reference-adoption-routing-v1
 ```
 
 Acceptance:
 
-- deterministic owner/capability classification;
-- map changes route only to existing supported repair/materialization capabilities;
-- unsupported map changes remain unsupported rather than expanding writers implicitly;
-- non-OTBM findings route to their module owners;
-- no approval generation, writer execution, deployment or gameplay claim.
+- require one exact executed TCR-010 report plus one reviewer-authored hash-pinned request;
+- preserve exact binding, kind, extract ID, source ID, JSON Pointer and extract value SHA-256;
+- deterministic fixed owner/capability classification with complete one-time extract coverage;
+- map changes route only to existing OTBM-QA-003 Repair Recommendation, never directly to a writer/materializer;
+- unsupported and blocked outcomes remain explicit rather than expanding writers or inventing target state;
+- non-OTBM findings route only to existing module/TCR owners;
+- no parser, approval generation, mutation request, writer execution, deployment, E2E or gameplay claim.
 
 # First vertical slice
 
@@ -442,6 +445,7 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 - TCR-009 lifecycle PR `#1025` merged as `7095f27c684f0825278c5fcc4b78f93f85ab087b`.
 - Discovery reconciliation PR `#1026` merged as `6c7bdb8817d2010620d119a9a1f6b944895bc73d`.
 - TCR-010 feature PR `#1027` merged as `34a2a3750f20c318ecc07aa7407ca0b9a9311834` after readiness/final-gate run `30522402785` passed.
+- TCR-011 is active in draft PR `#1029` and remains non-stable until exact-final-head merge.
 
 # Blockers and unresolved references
 
@@ -451,10 +455,10 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 - New client schemas beyond the independently verified old/new staticdata families require a new bounded schema-discovery task.
 - Direct source-code reuse from the research repository is blocked by licensing review; independent implementation is the default.
 
-# Exact next action after TCR-010 merge
+# Exact next action during TCR-011 review
 
-Start one bounded TCR-011 Reviewed Adoption Router task. Preserve exact finding references, deterministic existing-owner/capability classification and unsupported outcomes. Do not execute writers, generate approval, deploy, claim gameplay parity or start OWA-003 before TCR-011 is stable/merged.
+Complete PR #1029 through exact-final-head validation and squash merge, then archive its task and mark OWA-003 dependency-ready. Preserve exact extract references and unsupported/blocked outcomes; do not execute writers, generate approval, deploy or claim gameplay parity.
 
 # Handoff
 
-Continue from `main` merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834` and the archived TCR-010 checkpoint. Reuse TCR-005/006/007/009/010 stable contracts and existing repair/subsystem owners; do not add a second router, executor or mutation path.
+Continue from active task `CAN-20260730-tcr-011-adoption-router` and draft PR #1029. Reuse the executed TCR-010 report boundary, QA-003 as the sole map-repair capability classifier and existing subsystem owners; do not add a second parser, router, executor, approval or mutation path.
