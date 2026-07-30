@@ -1,0 +1,98 @@
+name: TCR-011 Lifecycle Sync Fix
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/tcr011-lifecycle-sync-fix.yml"
+      - ".github/workflows/tcr011-lifecycle-sync.yml"
+      - "docs/agents/tasks/archive/CAN-20260730-tcr-011-adoption-router.md"
+      - "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
+      - "docs/agents/MODULE_CATALOG.md"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Reconcile TCR-011 lifecycle documents
+        env:
+          TRIGGER_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count == 1:
+                  target.write_text(text.replace(old, new), encoding="utf-8")
+                  return
+              if count == 0 and new in text:
+                  return
+              raise SystemExit(f"replacement mismatch in {path}: old_count={count}")
+
+          program = "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
+          replace_once(
+              program,
+              "| TCR-011 | Reviewed Adoption Router | active/in-review | `canary-tibia-reference-adoption-routing-request-v1` + `canary-tibia-reference-adoption-routing-v1`; draft PR #1029 | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Complete exact-head validation and merge. Exact reviewed extract routing only; no parser, target-state inference, approval generation, writer execution, deployment, E2E or gameplay authority. |",
+              "| TCR-011 | Reviewed Adoption Router | merged | `canary-tibia-reference-adoption-routing-request-v1` + `canary-tibia-reference-adoption-routing-v1`; PR #1029; merge `094523da...` | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Complete. Exact reviewed extract routing is stable/merged; map work routes only through QA-003, unsupported/blocked outcomes remain explicit, and no parser, target-state, approval, writer, deployment, E2E or gameplay authority was added. |",
+          )
+          replace_once(
+              program,
+              "TCR-001 through TCR-007 and TCR-009 through TCR-010 stabilize these reference, resolver, correlation, drift and compact gateway contracts:",
+              "TCR-001 through TCR-007 and TCR-009 through TCR-011 stabilize these reference, resolver, correlation, drift, compact gateway and reviewed adoption-routing contracts:",
+          )
+          replace_once(
+              program,
+              "canary-tibia-client-reference-drift-v1\ncanary-tibia-client-reference-evidence-bindings-v1\ncanary-tibia-client-reference-evidence-gateway-v1\n```",
+              "canary-tibia-client-reference-drift-v1\ncanary-tibia-client-reference-evidence-bindings-v1\ncanary-tibia-client-reference-evidence-gateway-v1\ncanary-tibia-reference-adoption-routing-request-v1\ncanary-tibia-reference-adoption-routing-v1\n```",
+          )
+          replace_once(
+              program,
+              "The client-reference evidence binding and gateway contracts are `stable/merged` as of PR #1027 / merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834`. They expose one exact reviewed house, content, proficiency or drift extract through QA-018 path, SHA-256, format, JSON Pointer and serialized-size enforcement. They add no parser, semantic reinterpretation, E2E, acceptance or routing authority.\n\nTCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 and TCR-010 are stable/merged. TCR-011 is active in PR #1029 and remains non-stable until exact-final-head merge; OWA-003 remains blocked.\n\nOWA-003 may consume stable TCR-001 through TCR-010 contracts only within their exact provenance boundaries, but implementation remains blocked until TCR-011 is stable/merged. No consumer may infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or mutation authority.",
+              "The client-reference evidence binding and gateway contracts are `stable/merged` as of PR #1027 / merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834`. They expose one exact reviewed house, content, proficiency or drift extract through QA-018 path, SHA-256, format, JSON Pointer and serialized-size enforcement. They add no parser, semantic reinterpretation, E2E, acceptance or routing authority.\n\nThe reviewed adoption-routing request and report contracts are `stable/merged` as of PR #1029 / merge `094523da1c07eaebcc7096606b690a25cf3474a9`. They require one exact executed TCR-010 report plus one reviewer-authored hash-pinned request, cover every selected extract exactly once, route only to a closed inventory of existing owners/capabilities and preserve explicit unsupported/blocked outcomes. Map work routes only through QA-003; the contracts add no target-state inference, approval, mutation request, writer execution, deployment, E2E or gameplay authority.\n\nTCR-008 remains `optional/deferred-no-concrete-use-case`. All required TCR packages TCR-000 through TCR-011 are now stable/merged. OWA-003 is dependency-ready as the next separate bounded package.\n\nOWA-003 may consume stable TCR-001 through TCR-011 contracts only within their exact provenance boundaries. No consumer may infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity, approval or mutation authority.",
+          )
+          replace_once(program, "In-review public formats in PR #1029:", "Stable public formats:")
+          replace_once(
+              program,
+              "- TCR-011 is active in draft PR `#1029` and remains non-stable until exact-final-head merge.",
+              "- TCR-011 feature PR `#1029` merged as `094523da1c07eaebcc7096606b690a25cf3474a9` after readiness/final-gate CI `30530210426` passed.\n- TCR-011 lifecycle PR `#1030` archives the terminal task and marks OWA-003 dependency-ready.",
+          )
+          replace_once(
+              program,
+              "# Exact next action during TCR-011 review\n\nComplete PR #1029 through exact-final-head validation and squash merge, then archive its task and mark OWA-003 dependency-ready. Preserve exact extract references and unsupported/blocked outcomes; do not execute writers, generate approval, deploy or claim gameplay parity.\n\n# Handoff\n\nContinue from active task `CAN-20260730-tcr-011-adoption-router` and draft PR #1029. Reuse the executed TCR-010 report boundary, QA-003 as the sole map-repair capability classifier and existing subsystem owners; do not add a second parser, router, executor, approval or mutation path.",
+              "# Exact next action after TCR programme completion\n\nStart one bounded OWA-003 package from the merged TCR-011 lifecycle state. Consume only exact stable TCR evidence through the reviewed adoption router, preserve unsupported/blocked outcomes and reuse existing repair/subsystem owners; do not add a second parser, router, executor, approval or mutation path.\n\n# Handoff\n\nContinue from `main` merge `094523da1c07eaebcc7096606b690a25cf3474a9` and the archived TCR-011 checkpoint after lifecycle PR #1030 merges. The required TCR sequence is complete; OWA-003 is dependency-ready but remains a separate bounded task with its own ownership, evidence and merge gate.",
+          )
+
+          catalog = "docs/agents/MODULE_CATALOG.md"
+          replace_once(
+              catalog,
+              "| OTBM Tibia client reference architecture | active programme; TCR-000..010 stable/merged, TCR-008 optional/deferred, TCR-011 active (#1029) | Exact manifest, StaticData, StaticMapData, proficiency, resolver/parity/correlation, drift, reviewed QA-018 gateway and exact adoption-routing request/report contracts | `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`, `docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTER.md`, `tools/ai-agent/tibia_*reference*.py`, `tools/ai-agent/tibia_client_reference_evidence_gateway*.py`, `tools/ai-agent/tibia_reference_adoption_router*.py` | Reuse stable TCR producers and QA-018. TCR-011 consumes one exact executed gateway report plus a reviewer-authored hash-pinned request, routes map work only through QA-003 and preserves unsupported/blocked outcomes; no parser, target-state inference, approval, writer execution, deployment, E2E or gameplay authority. OWA-003 remains blocked until merge. |",
+              "| OTBM Tibia client reference architecture | required TCR programme complete; TCR-000..011 stable/merged, TCR-008 optional/deferred; OWA-003 dependency-ready | Exact manifest, StaticData, StaticMapData, proficiency, resolver/parity/correlation, drift, reviewed QA-018 gateway and stable adoption-routing request/report contracts | `docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`, `docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTER.md`, `tools/ai-agent/tibia_*reference*.py`, `tools/ai-agent/tibia_client_reference_evidence_gateway*.py`, `tools/ai-agent/tibia_reference_adoption_router*.py` | Reuse stable TCR producers, QA-018 and the closed TCR-011 routing inventory. Start OWA-003 only as a separate bounded package; map work remains behind QA-003, unsupported/blocked outcomes remain explicit, and no parser, target-state inference, approval, writer execution, deployment, E2E or gameplay authority is implied. |",
+          )
+
+          archive = "docs/agents/tasks/archive/CAN-20260730-tcr-011-adoption-router.md"
+          trigger_head = os.environ["TRIGGER_HEAD"]
+          replace_once(archive, "head: 094523da1c07eaebcc7096606b690a25cf3474a9\nbranch: docs/CAN-20260730-tcr-011-archive\npr: none", f"head: {trigger_head}\nbranch: docs/CAN-20260730-tcr-011-archive\npr: 1030")
+          replace_once(archive, "  - Exact lifecycle PR number, lifecycle head and lifecycle workflow results are not yet available.", "  - Exact post-sync lifecycle head and its pull-request workflow results must be verified from live repository state.")
+          replace_once(archive, "next_action: Delete the active task record, reconcile the programme and module catalogue, then open the documentation-only lifecycle PR.", "next_action: Verify the live post-sync head, four-path lifecycle diff and required PR 1030 checks, then squash-merge if unchanged.")
+          PY
+      - name: Remove temporary workflows
+        run: rm .github/workflows/tcr011-lifecycle-sync.yml .github/workflows/tcr011-lifecycle-sync-fix.yml
+      - name: Commit lifecycle reconciliation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md docs/agents/MODULE_CATALOG.md docs/agents/tasks/archive/CAN-20260730-tcr-011-adoption-router.md .github/workflows/tcr011-lifecycle-sync.yml .github/workflows/tcr011-lifecycle-sync-fix.yml
+          git commit -m "docs(agents): reconcile TCR-011 lifecycle"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
