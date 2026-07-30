@@ -103,6 +103,16 @@ void NpcType::loadShop(const std::shared_ptr<NpcType> &npcType, ShopBlock shopBl
 	npcType->info.shopItemVector.emplace_back(shopBlock);
 }
 
+void NpcType::addRegistrationSource(const std::string &source) {
+	if (!source.empty()) {
+		registrationSources.insert(source);
+	}
+}
+
+const std::set<std::string> &NpcType::getRegistrationSources() const noexcept {
+	return registrationSources;
+}
+
 bool Npcs::load(bool loadLibs /* = true*/, bool loadNpcs /* = true*/, bool reloading /* = false*/) const {
 	if (loadLibs) {
 		const auto coreFolder = g_configManager().getString(CORE_DIRECTORY);
@@ -144,4 +154,8 @@ std::shared_ptr<NpcType> Npcs::getNpcType(const std::string &name, bool create /
 	}
 
 	return create ? npcs[key] = std::make_shared<NpcType>(name) : nullptr;
+}
+
+const Npcs::Registry &Npcs::getNpcTypes() const noexcept {
+	return npcs;
 }
