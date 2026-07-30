@@ -152,14 +152,14 @@ Mandatory reuse before implementation:
 | TCR-007 | Proficiency Reference Correlation | merged | `canary-tibia-proficiency-reference-resolver-v1` + `canary-tibia-proficiency-reference-correlation-v1`; PR #898; merge `89acb51d...` | TCR-004 | medium | Complete. Exact reviewed proficiency/appearance/item resolution and read-only correlation are stable/merged; runtime, persistence, protocol/client, automated behavior, Physical E2E and gameplay parity remain separate evidence dimensions. |
 | TCR-008 | Optional Minimap Reference | optional/deferred-no-concrete-use-case | no concrete parity use case found in fresh 2026-07-28 preflight | TCR-001 merged | low | Do not implement on speculation. Reopen only for a documented advisory-only use case not already covered by World Index, landmarks, Reachability, factual rendering or StaticMapData. |
 | TCR-009 | Client Reference Drift | merged | `canary-tibia-client-reference-drift-v1`; PR #1018; merge `c678d904...`; consumed request `RTREQ-TCR-ITEM-DEFINITIONS-0002`; retained evidence summary `6224a175...`; retained drift `be0593cb...` | TCR-002, TCR-003, TCR-004/TCR-004A | medium | Complete. Deterministic manifest/index drift is stable/merged; StaticData `legacy -> newer` remains an explicit family boundary and the contract grants no gameplay or mutation authority. |
-| TCR-010 | Compact Evidence Gateway Integration | active/in-review | `canary-tibia-client-reference-evidence-bindings-v1` + `canary-tibia-client-reference-evidence-gateway-v1`; draft PR #1027; delegates to QA-018 | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Complete exact-head validation and merge. Reviewed-binding transport only; no parsing, reinterpretation, mutation, E2E, acceptance or routing. |
-| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-010 | TCR-005/006/007/009 are stable; TCR-010 remains in review | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Start only after TCR-010 merges and archives. No executor, approval generation or mutation authority. |
+| TCR-010 | Compact Evidence Gateway Integration | merged | `canary-tibia-client-reference-evidence-bindings-v1` + `canary-tibia-client-reference-evidence-gateway-v1`; PR #1027; merge `34a2a375...`; delegates to QA-018 | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Complete. Exact reviewed binding transport is stable/merged; no parsing, reinterpretation, mutation, E2E, acceptance or routing authority. |
+| TCR-011 | Reviewed Adoption Router | ready | TCR-005/006/007/009/010 are stable/merged | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Start one bounded read-only routing task. Classify exact reviewed findings to existing owners/capabilities; no executor, approval generation or mutation authority. |
 
 # Stable producer contract state
 
 TCR-000 stabilizes the **architecture/governance contract**.
 
-TCR-001 through TCR-007 and TCR-009 stabilize these reference, resolver, correlation and drift contracts. TCR-010 PR #1027 adds reviewed gateway bindings over QA-018 and remains in review until merge:
+TCR-001 through TCR-007 and TCR-009 through TCR-010 stabilize these reference, resolver, correlation, drift and compact gateway contracts:
 
 ```text
 canary-tibia-client-reference-manifest-v1
@@ -193,11 +193,11 @@ The proficiency-reference resolver and correlation contracts are `stable/merged`
 
 The client-reference drift contract is `stable/merged` as of PR #1018 / merge `c678d90483af945b3bbf0a40f6d6b9ce99da4a3f`. It compares exact retained manifest/index snapshots, preserves dependency-scoped staleness and fails closed across the StaticData schema-family boundary. It does not prove gameplay impact or authorize mutation.
 
-TCR-010 PR #1027 adds exact reviewed binding IDs for one bounded house, content, proficiency or drift extract and delegates path, SHA-256, format, JSON Pointer and serialized-size enforcement to QA-018. It adds no parser, semantic reinterpretation, E2E, acceptance or routing authority and remains non-stable until merge.
+The client-reference evidence binding and gateway contracts are `stable/merged` as of PR #1027 / merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834`. They expose one exact reviewed house, content, proficiency or drift extract through QA-018 path, SHA-256, format, JSON Pointer and serialized-size enforcement. They add no parser, semantic reinterpretation, E2E, acceptance or routing authority.
 
-TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 is stable/merged and owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002` is consumed. TCR-010 is active in PR #1027 and is not stable until merge; TCR-011 remains blocked only by stable/merged TCR-010.
+TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 and TCR-010 are stable/merged. TCR-011 is dependency-ready and remains the only required TCR package before OWA-003.
 
-OWA-003 may consume stable TCR-001 through TCR-007 and TCR-009 contracts only within their exact provenance boundaries. TCR-010 remains non-consumable until PR #1027 merges and TCR-011 remains unavailable. No consumer may infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or mutation authority.
+OWA-003 may consume stable TCR-001 through TCR-010 contracts only within their exact provenance boundaries, but implementation remains blocked until TCR-011 is stable/merged. No consumer may infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or mutation authority.
 
 # Package contracts
 
@@ -372,7 +372,7 @@ Acceptance:
 
 ## TCR-010 — Evidence Gateway
 
-In-review public formats in PR #1027:
+Stable public formats:
 
 ```text
 canary-tibia-client-reference-evidence-bindings-v1
@@ -441,7 +441,7 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 - TCR-009 feature PR `#1018` merged as `c678d90483af945b3bbf0a40f6d6b9ce99da4a3f`.
 - TCR-009 lifecycle PR `#1025` merged as `7095f27c684f0825278c5fcc4b78f93f85ab087b`.
 - Discovery reconciliation PR `#1026` merged as `6c7bdb8817d2010620d119a9a1f6b944895bc73d`.
-- TCR-010 is active in draft PR `#1027` and remains non-stable until exact-final-head merge.
+- TCR-010 feature PR `#1027` merged as `34a2a3750f20c318ecc07aa7407ca0b9a9311834` after readiness/final-gate run `30522402785` passed.
 
 # Blockers and unresolved references
 
@@ -451,10 +451,10 @@ This vertical slice is delivered by TCR-001 through TCR-005. It proves the integ
 - New client schemas beyond the independently verified old/new staticdata families require a new bounded schema-discovery task.
 - Direct source-code reuse from the research repository is blocked by licensing review; independent implementation is the default.
 
-# Exact next action after TCR-010 implementation
+# Exact next action after TCR-010 merge
 
-Complete PR #1027 through exact-final-head validation and squash merge, then archive its task and mark TCR-011 ready. Do not start TCR-011 or OWA-003 before TCR-010 is stable/merged.
+Start one bounded TCR-011 Reviewed Adoption Router task. Preserve exact finding references, deterministic existing-owner/capability classification and unsupported outcomes. Do not execute writers, generate approval, deploy, claim gameplay parity or start OWA-003 before TCR-011 is stable/merged.
 
 # Handoff
 
-Continue from the active TCR-010 checkpoint and live PR #1027. Preserve QA-018 as the sole extractor, exact reviewed binding IDs, the four stable source formats, proprietary-input retention outside Git and all identifier/runtime/gameplay/mutation boundaries.
+Continue from `main` merge `34a2a3750f20c318ecc07aa7407ca0b9a9311834` and the archived TCR-010 checkpoint. Reuse TCR-005/006/007/009/010 stable contracts and existing repair/subsystem owners; do not add a second router, executor or mutation path.
