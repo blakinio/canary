@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "repository": "blakinio/canary",
+  "default_lane": "canary-runtime",
+  "task_globs": [
+    "docs/agents/tasks/active/*.md",
+    "docs/agents/tasks/*.md"
+  ],
+  "execution": {
+    "checkpoint_interval_minutes": 30,
+    "lease_minutes": 45,
+    "stale_after_minutes": 45,
+    "barrier_mode": "wave",
+    "max_interactive_interruptions": 0
+  },
+  "lanes": [
+    {
+      "id": "canary-real-tibia",
+      "label": "Real Tibia editor and refresh program",
+      "match_keywords": [
+        "rtec",
+        "real-tibia",
+        "real tibia",
+        "refresh-drift",
+        "refresh drift",
+        "otbm"
+      ]
+    },
+    {
+      "id": "canary-content",
+      "label": "NPC, monster, map and gameplay content",
+      "match_keywords": [
+        "npc",
+        "monster",
+        "quest",
+        "map",
+        "datapack",
+        "gameplay"
+      ]
+    },
+    {
+      "id": "canary-protocol",
+      "label": "Protocol and client integration",
+      "match_keywords": [
+        "protocol",
+        "opcode",
+        "client",
+        "login",
+        "contract"
+      ]
+    },
+    {
+      "id": "canary-runtime",
+      "label": "Canary runtime and uncategorized work",
+      "task_prefixes": [
+        "CAN"
+      ]
+    }
+  ]
+}
