@@ -7,7 +7,7 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-game-catalog-schema-1-3-producer
 base_branch: main
 created: 2026-07-31T00:59:00+02:00
-updated: 2026-07-31T00:59:00+02:00
+updated: 2026-07-31T01:08:00+02:00
 last_verified_commit: "da84057b43f9a3451c70fe06eb52c6e589715959"
 risk: high
 related_issue: ""
@@ -35,6 +35,7 @@ owned_paths:
     - tests/unit/game/catalog/game_catalog_test.cpp
     - tests/game_catalog/runtime-datapack/npc/**
     - .github/workflows/game-catalog.yml
+    - .github/workflows/game-catalog-v13.yml
   shared: []
   read_only:
     - docs/systems/GAME_CATALOG_NPC_RUNTIME_AUTHORITY.md
@@ -82,8 +83,8 @@ Implement the deterministic Canary producer for the exact pinned `oteryn.game-ca
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:59:00+02:00
-head: da84057b43f9a3451c70fe06eb52c6e589715959
+updated_at: 2026-07-31T01:08:00+02:00
+head: 71ffc77b75293cfc99a04d8542a41f90cc199d58
 branch: feat/CAN-20260730-game-catalog-schema-1-3-producer
 pr: 1040
 status: implementing
@@ -109,39 +110,44 @@ owned_paths:
   - tests/unit/game/catalog/game_catalog_test.cpp
   - tests/game_catalog/runtime-datapack/npc/**
   - .github/workflows/game-catalog.yml
+  - .github/workflows/game-catalog-v13.yml
 proven:
-  - Producer branch was rebased before code work onto Canary main da84057b43f9a3451c70fe06eb52c6e589715959.
+  - Producer branch is based on Canary main da84057b43f9a3451c70fe06eb52c6e589715959.
   - Audit PR 1037 merged as acd2825999d56bb90f03ae21022593fc01ed3874 and defines final Npcs/NpcType/shopItemVector authority.
   - Audit lifecycle PR 1039 merged as f71d3b844adfc5cc4fbfa62b8e7f4e223fd3eb4f and released audit ownership.
   - No overlapping open Canary schema 1.3 producer PR or branch was found during bounded preflight.
-  - Platform PR 338 pins schema SHA-256 0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8 and fixture SHA-256 c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7.
-  - Current export-only startup loads core npclib but not the configured NPC directory.
-  - Current Npcs registry is private, NpcType lacks provenance, and exporter/validators support only schemas 1.0.0 through 1.2.0.
+  - Exact Platform schema and fixture bytes are committed with pinned SHA-256 values 0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8 and c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7.
+  - Manifest dispatch now accepts schema 1.3.0 and retains schema 1.2.0 dynamic loot-threshold semantics.
+  - Python validation now registers the exact 1.3 schema hash and type-dispatches loot and NPC shop relations with endpoint, currency and canonical identity checks.
 derived:
-  - Schema 1.3.0 must retain schema 1.2.0 loot semantics while adding typed NPC/shop dispatch.
   - Old schemas must not serialize NPC records or otherwise change produced bytes.
   - Registration provenance can be captured from LuaScriptInterface::getLoadingFile at luaNpcTypeCreate.
 unknown:
+  - Whether the exact schema and fixture pass the new validator on GitHub Actions.
   - Whether every production NPC script executes under bounded export-only startup without top-level persistent-state access.
-  - Whether production datapacks intentionally register one NPC key from multiple source files.
-  - The first implementation failure from compilation, unit tests or runtime smoke.
+  - The first C++ compilation or runtime-smoke failure.
 conflicts: []
 first_failure:
   marker: none
-  evidence: Producer implementation validation has not run.
+  evidence: Current exact-head checks are queued after reopening draft PR 1040.
 rejected_hypotheses:
   - Parse NPC scripts independently from Canary runtime registration.
   - Use global ItemType buy/sell maxima as per-NPC authority.
   - Flatten player-specific or callback-computed offers into the static snapshot.
 changed_paths:
+  - .github/workflows/game-catalog-v13.yml
   - docs/agents/tasks/active/CAN-20260730-game-catalog-schema-1-3-producer.md
+  - schemas/game-catalog/v1.3/game-catalog-snapshot.schema.json
+  - src/game/catalog/game_catalog_manifest.cpp
+  - tests/game_catalog/fixtures/v1.3/minimal-snapshot.json
+  - tools/game-catalog/validate_snapshot.py
 validation:
   - command: bounded producer preflight
     result: PASS
     evidence: current main, merged audit lifecycle, Platform hashes and absence of overlapping producer work were verified.
-  - command: exact implementation checks
+  - command: exact contract workflow
     result: NOT_RUN
-    evidence: Producer code has not yet been committed or executed.
+    evidence: Game Catalog 1.3 Producer workflow has been registered and is awaiting the current head.
 blockers: []
-next_action: Copy exact schema and fixture bytes, then extend manifest and validator type dispatch before runtime collection changes.
+next_action: Validate exact schema and fixture bytes, then add final NPC registry enumeration and registration provenance before serializer changes.
 ```
