@@ -6,7 +6,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from jsonschema import Draft202012Validator
+try:
+    from jsonschema import Draft202012Validator
+except ModuleNotFoundError:  # Optional in the repository-wide stdlib-only suite.
+    Draft202012Validator = None  # type: ignore[assignment,misc]
 
 from tibia_client_reference_evidence_gateway import (
     BINDINGS_FORMAT,
@@ -46,8 +49,9 @@ class ClientReferenceEvidenceGatewaySchemaTests(unittest.TestCase):
             self.report_schema["properties"]["format"]["const"],
             REPORT_FORMAT,
         )
-        Draft202012Validator.check_schema(self.bindings_schema)
-        Draft202012Validator.check_schema(self.report_schema)
+        if Draft202012Validator is not None:
+            Draft202012Validator.check_schema(self.bindings_schema)
+            Draft202012Validator.check_schema(self.report_schema)
 
     def test_schema_preserves_qa018_and_read_only_boundaries(self) -> None:
         policy = self.report_schema["properties"]["policy"]["properties"]
@@ -68,7 +72,12 @@ class ClientReferenceEvidenceGatewaySchemaTests(unittest.TestCase):
         ):
             self.assertEqual(policy[key]["const"], False)
 
+    @unittest.skipIf(
+        Draft202012Validator is None,
+        "jsonschema is optional in the repository-wide stdlib-only suite",
+    )
     def test_plan_and_executed_reports_validate(self) -> None:
+        assert Draft202012Validator is not None
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "drift.json"
