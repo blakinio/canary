@@ -2,13 +2,13 @@
 task_id: CAN-20260730-game-catalog-npc-runtime-authority
 program_id: GAME-CATALOG-PRODUCTION-COMPLETION
 coordination_id: GAME-CATALOG-SCHEMA-1.3-NPC-SHOPS
-status: validating
+status: active
 agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-game-catalog-npc-runtime-authority
 base_branch: main
 created: 2026-07-30T23:44:00+02:00
-updated: 2026-07-31T00:06:00+02:00
-last_verified_commit: "9a24b962b8838ce6f0813a4da8f56db1446df8d9"
+updated: 2026-07-31T00:10:00+02:00
+last_verified_commit: "da14a4c70bdfc6d9eb838fa0e053f57ea9186fcb"
 risk: high
 related_issue: ""
 related_pr: "1037"
@@ -70,8 +70,8 @@ The static producer may use only the final `Npcs::npcs` registry, final `NpcType
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:06:00+02:00
-head: 9a24b962b8838ce6f0813a4da8f56db1446df8d9
+updated_at: 2026-07-31T00:10:00+02:00
+head: da14a4c70bdfc6d9eb838fa0e053f57ea9186fcb
 branch: feat/CAN-20260730-game-catalog-npc-runtime-authority
 pr: 1037
 status: validating
@@ -125,9 +125,12 @@ validation:
   - command: paired Platform schema and fixture review
     result: PASS
     evidence: exact schema 1.3 NPC/currency/shop fields, canonical identity patterns and fixture direction semantics were verified on Platform PR 338.
+  - command: CI run 30585706115 on head da14a4c70bdfc6d9eb838fa0e053f57ea9186fcb
+    result: PASS
+    evidence: repository CI completed successfully; ownership failed only because active-task frontmatter used an execution status instead of status active.
   - command: exact-head PR checks
     result: NOT_RUN
-    evidence: GitHub Actions has not yet completed on the documentation checkpoint head.
+    evidence: GitHub Actions has not yet completed on the corrected active-task metadata head.
 blockers: []
-next_action: Validate PR 1037 on its exact documentation head, mark the audit ready and merge it if all repository gates pass, then create the separate schema 1.3.0 producer task from current main.
+next_action: Validate PR 1037 on its exact corrected documentation head, mark the audit ready and merge it if all repository gates pass, then create the separate schema 1.3.0 producer task from current main.
 ```
