@@ -5,8 +5,9 @@ coordination_id: GAME-CATALOG-SCHEMA-1.3-NPC-SHOPS
 agent: "GPT-5.6 Thinking"
 status: completed
 related_pr: 1037
+lifecycle_pr: 1039
 created: 2026-07-30T23:44:00+02:00
-completed: 2026-07-31T00:33:50+02:00
+completed: 2026-07-31T00:38:00+02:00
 risk: high
 ---
 
@@ -28,15 +29,16 @@ Identify the authoritative final Canary runtime boundary for NPC entities and NP
 - The producer requires a bounded const NPC registry view, normalized registration-source provenance, NPC-only export startup and exact schema `1.3.0` validation.
 - No exporter behavior, schema bytes, datapack content, world, database, network, staging, production or deployment state changed in this audit.
 - PR #1037 squash-merged as `acd2825999d56bb90f03ae21022593fc01ed3874` from exact final head `e3313f0ceb4f94178e5f237a3bc37f11a17fd2cc`.
+- Lifecycle PR #1039 moves this record from active to archive and releases the audit ownership.
 
 ## Final checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:33:50+02:00
-head: e3313f0ceb4f94178e5f237a3bc37f11a17fd2cc
-branch: feat/CAN-20260730-game-catalog-npc-runtime-authority
-pr: 1037
+updated_at: 2026-07-31T00:38:00+02:00
+head: 2fa65345ea0b7e6f2c6c97c38d9089e083e42719
+branch: docs/CAN-20260730-game-catalog-npc-runtime-authority-archive
+pr: 1039
 merge_sha: acd2825999d56bb90f03ae21022593fc01ed3874
 status: completed
 context_routes:
@@ -51,8 +53,11 @@ proven:
   - ShopBlock retains exact item ID, name, subtype, buy price, sell price, storage key/value and nested child offers.
   - Per-player shop vectors and instance currency mutations are not final static catalog authority.
   - Platform PR 338 pins schema 1.3.0 SHA-256 0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8 and fixture SHA-256 c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7.
-  - Exact-head Agent Task Ownership run 30586093333 and full CI run 30586227159 passed on e3313f0ceb4f94178e5f237a3bc37f11a17fd2cc.
-  - PR 1037 merged without unresolved review threads or repository rule bypass.
+  - Exact feature-head Agent Task Ownership run 30586093333 and full CI run 30586227159 passed on e3313f0ceb4f94178e5f237a3bc37f11a17fd2cc.
+  - PR 1037 merged as acd2825999d56bb90f03ae21022593fc01ed3874 without unresolved review threads or repository rule bypass.
+  - Lifecycle PR 1039 changes only the archived task addition and matching active task deletion.
+  - Lifecycle Agent Task Ownership run 30587729988 and CI run 30587730095 passed on reviewed lifecycle head 2fa65345ea0b7e6f2c6c97c38d9089e083e42719.
+  - The ci:final-gate label was applied to PR 1039 before this final checkpoint commit.
 derived:
   - The separate producer can safely extend the existing export-only collector when NPC script loading remains bounded and database/network syscall checks remain fail closed.
   - Static output can remain deterministic by canonical-key sorting and final per-NPC vector order when ambiguous duplicate provenance is rejected.
@@ -63,19 +68,25 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: The audit and exact-head merge gate completed successfully.
+  evidence: The audit, feature final gate, merge and reviewed lifecycle checks completed successfully.
 rejected_hypotheses:
   - Parse NPC XML or Lua independently of runtime registration.
   - Treat per-player shop windows as a global static offer list.
   - Infer quest, availability, currency or subtype semantics from external documentation.
   - Start a normal world and scrape live NPC conversations.
 validation:
-  - command: Canary exact-head final gate
+  - command: Canary feature exact-head final gate
     result: PASS
     evidence: Agent Task Ownership run 30586093333 and CI run 30586227159 at e3313f0ceb4f94178e5f237a3bc37f11a17fd2cc.
-  - command: Canary squash merge
+  - command: Canary feature squash merge
     result: PASS
     evidence: PR 1037 merged as acd2825999d56bb90f03ae21022593fc01ed3874.
+  - command: Lifecycle reviewed-head checks
+    result: PASS
+    evidence: Agent Task Ownership run 30587729988 and CI run 30587730095 at 2fa65345ea0b7e6f2c6c97c38d9089e083e42719.
+  - command: Lifecycle exact-head final gate after this checkpoint commit
+    result: NOT_RUN
+    evidence: The synchronize event from this final checkpoint commit must complete before PR 1039 is merged.
 blockers: []
-next_action: Implement the separate CAN-20260730-game-catalog-schema-1-3-producer task from current main and prove exact compatibility with Platform PR 338 before either producer or consumer merge gate is released.
+next_action: Merge PR 1039 only after its exact final checkpoint head passes Agent Task Ownership and Required, then start CAN-20260730-game-catalog-schema-1-3-producer from current main.
 ```
