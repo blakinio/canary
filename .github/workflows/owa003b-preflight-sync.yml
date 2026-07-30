@@ -55,3 +55,5 @@ jobs:
           git add docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md .github/workflows/owa003b-preflight-sync.yml
           git commit -m "docs(otbm): reconcile OWA-003B blocked preflight"
           git push origin HEAD:docs/CAN-20260730-owa-003b-downstream-evidence-preflight
+
+# connector trigger
