@@ -36,6 +36,8 @@ jobs:
           import lzma
           import os
           import pathlib
+          import time
+          import urllib.error
           import urllib.parse
           import urllib.request
 
@@ -45,6 +47,21 @@ jobs:
           EXPECTED_VERSION = os.environ["EXPECTED_PACKAGE_VERSION"]
           MAX_MANIFEST = 16 * 1024 * 1024
           MAX_FILE = 256 * 1024 * 1024
+          HEADER_PROFILES = (
+              {
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+                  "Accept": "application/json,text/plain,*/*",
+                  "Accept-Language": "en-US,en;q=0.9",
+                  "Referer": "https://www.tibia.com/",
+                  "Cache-Control": "no-cache",
+                  "Pragma": "no-cache",
+              },
+              {
+                  "User-Agent": "Tibia Launcher",
+                  "Accept": "*/*",
+                  "Referer": "https://www.tibia.com/",
+              },
+          )
 
           def sha256(data: bytes) -> str:
               return hashlib.sha256(data).hexdigest()
@@ -67,15 +84,28 @@ jobs:
               )
 
           def download(url: str, limit: int) -> bytes:
-              request = urllib.request.Request(
-                  url,
-                  headers={"User-Agent": "canary-owa-003c-executed-evidence/1"},
-              )
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  data = response.read(limit + 1)
-              if len(data) > limit:
-                  raise ValueError(f"download exceeds limit: {url}")
-              return data
+              failures = []
+              for profile_index, headers in enumerate(HEADER_PROFILES, start=1):
+                  for attempt in range(1, 4):
+                      request = urllib.request.Request(url, headers=headers)
+                      try:
+                          with urllib.request.urlopen(request, timeout=60) as response:
+                              data = response.read(limit + 1)
+                          if len(data) > limit:
+                              raise ValueError(f"download exceeds limit: {url}")
+                          return data
+                      except urllib.error.HTTPError as exc:
+                          body = exc.read(1024).decode("utf-8", errors="replace")
+                          failures.append(
+                              f"profile={profile_index} attempt={attempt} status={exc.code} body={body!r}"
+                          )
+                          if exc.code not in {403, 429, 500, 502, 503, 504}:
+                              break
+                      except urllib.error.URLError as exc:
+                          failures.append(f"profile={profile_index} attempt={attempt} urlerror={exc.reason!r}")
+                      if attempt < 3:
+                          time.sleep(attempt * 2)
+              raise RuntimeError(f"OWA003C_OFFICIAL_DOWNLOAD_FAILED: {url}: {'; '.join(failures)}")
 
           def manifest_files(manifest, source: str):
               files = manifest.get("files") if isinstance(manifest, dict) else None
@@ -135,7 +165,7 @@ jobs:
 
           package_files = manifest_files(package, "package.json")
           assets_files = manifest_files(assets, "assets.json")
-          del package_files  # version evidence only; selected payloads are assets-owned
+          del package_files
 
           (OUTPUT / "package.json").write_bytes(package_bytes)
           (OUTPUT / "assets.json").write_bytes(assets_bytes)
