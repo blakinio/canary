@@ -147,7 +147,7 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: OWA-003A stable/merged; downstream evidence-gated.**
+**Priority: OWA-003A stable/merged; OWA-003B blocked external evidence.**
 
 ## Goal
 
@@ -177,7 +177,16 @@ verified OWA-003A freshness impact
   -> refreshed QA-006 certification state
 ```
 
-OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. The next action is a separate read-only retained-evidence preflight before any downstream implementation.
+OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. OWA-003B preflight PR #1033 found no retained executed freshness impact with sufficient exact provenance and stops at `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`.
+
+## OWA-003B preflight disposition
+
+```text
+BLOCKED_EXTERNAL_EVIDENCE
+OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT
+```
+
+The merged producer contract, schemas and synthetic test fixtures are not an executed operational impact. Re-entry requires one durable impact reference with file/report/manifest/routing/provenance/BOM and review/invocation identities. QA-008/002/007/006 compatibility remains unevaluated until that first exact input exists.
 
 ## Hard boundaries
 
