@@ -156,7 +156,7 @@ namespace game_catalog {
 			throw std::runtime_error("Unsupported Game Catalog contract in profile manifest.");
 		}
 		const auto schemaVersion = requiredString(profile, "schema_version", profilePath);
-		if (schemaVersion != "1.0.0" && schemaVersion != "1.1.0" && schemaVersion != "1.2.0") {
+		if (schemaVersion != "1.0.0" && schemaVersion != "1.1.0" && schemaVersion != "1.2.0" && schemaVersion != "1.3.0") {
 			throw std::runtime_error("Unsupported Game Catalog schema version in profile manifest.");
 		}
 
@@ -168,7 +168,7 @@ namespace game_catalog {
 		manifest.verifiedContentThroughRelease = schemaVersion == "1.0.0"
 			? std::optional<std::string>(requiredString(profile, "verified_content_through_release", profilePath))
 			: nullableString(profile, "verified_content_through_release", profilePath);
-		if (schemaVersion == "1.2.0") {
+		if (schemaVersion == "1.2.0" || schemaVersion == "1.3.0") {
 			manifest.lootRollMaximum = requiredPositiveUint32(profile, "loot_roll_maximum", profilePath);
 		} else {
 			manifest.lootChanceDenominator = requiredPositiveUint32(profile, "loot_chance_denominator", profilePath);
