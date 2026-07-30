@@ -5,7 +5,7 @@ coordination_id: RTEC-006
 agent: "GPT-5.6 Thinking"
 status: completed
 related_pr: 1038
-lifecycle_pr: pending
+lifecycle_pr: 1041
 created: 2026-07-31T00:17:45+02:00
 completed: 2026-07-31T00:58:02+02:00
 risk: medium
@@ -31,18 +31,18 @@ Implement the bounded RTEC-006 read-only planner that deterministically selects 
 - Seven focused planner/CLI tests and Python bytecode compilation passed.
 - Exact source head `c3cca39807cdf79750913cbce91cf747a88fed0c` passed Agent Task Ownership, Real Tibia Module Registry, Upstream Intelligence and full final-gate CI.
 - Source PR #1038 squash-merged as `da84057b43f9a3451c70fe06eb52c6e589715959`.
-- This lifecycle change only moves the task record from `active` to `archive` and releases RTEC-006 ownership.
+- Lifecycle PR #1041 only moves this record from `active` to `archive` and releases RTEC-006 ownership.
 
 ## Final checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:58:30+02:00
-head: da84057b43f9a3451c70fe06eb52c6e589715959
+updated_at: 2026-07-31T01:01:30+02:00
+head: 6d231808124799b924a61f90fd3abbd48851434f
 branch: docs/archive-rtec-006-refresh-drift-planner-20260731
-pr: pending
+pr: 1041
 merge_sha: da84057b43f9a3451c70fe06eb52c6e589715959
-status: implementing
+status: validating
 context_routes:
   - agent-governance
   - real-tibia-parity
@@ -56,16 +56,17 @@ proven:
   - Seven focused planner and CLI tests passed in the deterministic isolated harness.
   - Agent Task Ownership, Real Tibia Module Registry, Upstream Intelligence and full CI passed on exact source head c3cca39807cdf79750913cbce91cf747a88fed0c.
   - PR 1038 merged as da84057b43f9a3451c70fe06eb52c6e589715959 without unresolved review threads or repository rule bypass.
+  - Lifecycle PR 1041 changes only the archived task addition and matching active task deletion.
   - Global evidence indexes, owner requests, dossier modules, workflow files and the RTEC programme remained unchanged.
   - docs/agents/PROJECT_STATE.md and docs/agents/prompts/RTEC_COMMON_AGENT_RULES.md were absent from the verified source base and remained UNKNOWN.
 derived:
-  - The lifecycle PR can release ownership by an exact active-to-archive move with no implementation changes.
+  - The lifecycle PR releases ownership through an exact active-to-archive move with no implementation changes.
 unknown:
-  - Lifecycle PR number and exact-head validation are pending creation of the lifecycle PR.
+  - Lifecycle exact-head check conclusions are pending this binding commit.
 conflicts: []
 first_failure:
   marker: none
-  evidence: Source implementation, final gate and squash merge completed successfully.
+  evidence: Source implementation, final gate and squash merge completed successfully; lifecycle validation has no known failure.
 rejected_hypotheses:
   - The lifecycle PR should modify implementation or evidence files.
   - Missing governance files should be reconstructed from historical copies.
@@ -84,7 +85,7 @@ validation:
     evidence: PR 1038 merged as da84057b43f9a3451c70fe06eb52c6e589715959.
   - command: lifecycle exact-head checks
     result: NOT_RUN
-    evidence: Lifecycle PR has not yet been created.
+    evidence: PR 1041 checks must run on the resulting binding commit.
 blockers: []
-next_action: Delete the matching active task record, open the lifecycle PR, bind its number and run exact-head lifecycle checks.
+next_action: Confirm PR 1041 changed files and exact-head lifecycle checks, then apply ci:final-gate before the final archive checkpoint commit.
 ```
