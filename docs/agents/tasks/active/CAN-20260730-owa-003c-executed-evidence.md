@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 base_branch: main
 created: 2026-07-30T22:35:00+02:00
-updated: 2026-07-30T22:47:00+02:00
-last_verified_commit: "99b9d2a05f381cd361013a7bfbbface4fb871c14"
+updated: 2026-07-30T22:50:00+02:00
+last_verified_commit: "0b5b8e48049944a66ca9cb236632549ea4a6fb86"
 risk: high
 related_issue: ""
 related_pr: "1035"
@@ -24,6 +24,7 @@ owned_paths:
   exclusive:
     - docs/agents/tasks/active/CAN-20260730-owa-003c-executed-evidence.md
     - .github/workflows/owa-003c-executed-evidence.yml
+    - .github/owa-003c/rematerialize.py
     - docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md
   shared:
     - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
@@ -75,8 +76,8 @@ Produce and retain one real executed OWA-003A freshness impact with exact TCR-01
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T22:47:00+02:00
-head: 99b9d2a05f381cd361013a7bfbbface4fb871c14
+updated_at: 2026-07-30T22:50:00+02:00
+head: 0b5b8e48049944a66ca9cb236632549ea4a6fb86
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 pr: 1035
 status: investigating
@@ -87,6 +88,7 @@ context_routes:
 owned_paths:
   - docs/agents/tasks/active/CAN-20260730-owa-003c-executed-evidence.md
   - .github/workflows/owa-003c-executed-evidence.yml
+  - .github/owa-003c/rematerialize.py
   - docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md
 proven:
   - Current main is 9704087e3d6fc7b434938b343a546c14a23a447e and no pre-existing open OWA/TCR/QA PR or OWA/candidate branch owned this scope.
@@ -95,31 +97,34 @@ proven:
   - TCR-010, TCR-011 and OWA-003A contracts are stable, but their exact-head workflows retained no executed operational artifacts.
   - The previously supplied snapshot B was version 15.31.69f220 with package SHA-256 95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8; its local binary is not mounted in the current runtime.
   - The supplied OTBM SHA-256 a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2 is the current OWA-001 map, not an OWA-006 candidate.
-  - First trusted rematerialization run 30580163217 reached the official launcher endpoint and failed HTTP 403 before parsing any package bytes.
-  - Browser-compatible and launcher-compatible bounded retry profiles are running in OWA-003C workflow run 30580431144.
+  - Runs 30580163217 and 30580431144 both failed before package parsing because Cloudflare blocks static.tibia.com from GitHub-hosted runner addresses.
 derived:
-  - Exact producer execution remains possible only if the historical snapshot B bytes can be recovered or rematerialized byte-identically; stable hashes alone are not report payloads.
+  - Exact GitHub-tag rematerialization is a valid fallback only if one repository tag declares package version 15.31.69f220 and every selected raw file matches its package-manifest unpacked size/SHA-256.
 unknown:
-  - Whether the official current package still resolves byte-identically to retained snapshot B.
+  - Whether repository dudantas/tibia-client retains one exact tag matching package version 15.31.69f220.
   - Whether exact retained TCR-005/006/007 inputs required for a complete operational TCR-010 route can be recovered or reproduced.
 conflicts: []
 first_failure:
-  marker: OWA003C_OFFICIAL_DOWNLOAD_HTTP_403
-  evidence: workflow run 30580163217 job 90998119134 received HTTP 403 from the official launcher endpoint before package parsing.
+  marker: OWA003C_OFFICIAL_DOWNLOAD_CLOUDFLARE_BLOCKED
+  evidence: runs 30580163217 and 30580431144 received repeatable Cloudflare HTTP 403 from the official launcher endpoint under distinct header profiles.
 rejected_hypotheses:
   - Treat stable code, schemas or unit-test fixtures as executed operational evidence.
   - Use the current map as an OWA-006 candidate.
   - Infer reviewer mappings from names, visual proximity or guessed identifier equivalence.
 changed_paths:
   - .github/workflows/owa-003c-executed-evidence.yml
+  - .github/owa-003c/rematerialize.py
   - docs/agents/tasks/active/CAN-20260730-owa-003c-executed-evidence.md
 validation:
   - command: OWA-003C official input rematerialization run 30580163217
     result: FAIL
     evidence: job 90998119134 failed closed on HTTP 403 before reading or accepting package content.
+  - command: OWA-003C launcher-compatible retry run 30580431144
+    result: FAIL
+    evidence: job 90999022124 failed closed after six Cloudflare HTTP 403 responses; no package bytes were accepted.
   - command: repository CI run 30580431732
     result: PASS
     evidence: CI completed successfully on head 99b9d2a05f381cd361013a7bfbbface4fb871c14.
 blockers: []
-next_action: Inspect run 30580431144. If the official endpoint remains inaccessible, exhaust exact historical artifact and retained-file recovery before recording an external-evidence blocker.
+next_action: Add an exact GitHub-tag rematerializer that requires one package version match and full package-manifest raw-file hash closure, then inspect its retained artifact.
 ```
