@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -50,93 +50,3 @@ jobs:
         run: |
           python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json > /dev/null
-
-  reconcile:
-    needs: validate
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'blakinio/canary'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: feat/CAN-20260730-tcr-010-evidence-gateway
-          fetch-depth: 0
-      - name: Synchronize main and reconcile discovery
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git merge --no-ff --no-commit origin/main
-          python - <<'PY'
-          from pathlib import Path
-
-          def one(text, old, new, label):
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected one match, found {count}")
-              return text.replace(old, new, 1)
-
-          path = Path("docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md")
-          text = path.read_text(encoding="utf-8")
-          text = one(
-              text,
-              "| TCR-010 | Compact Evidence Gateway Integration | ready | Stable TCR-005/006/007 and merged TCR-009 `c678d904...` | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Start the smallest read-only QA-018 gateway integration for bounded house, content, proficiency and drift extracts; do not reparse sources or add mutation authority. |",
-              "| TCR-010 | Compact Evidence Gateway Integration | active/in-review | `canary-tibia-client-reference-evidence-bindings-v1` + `canary-tibia-client-reference-evidence-gateway-v1`; draft PR #1027; delegates to QA-018 | TCR-005, TCR-006, TCR-007, TCR-009 stable/merged | low | Complete exact-head validation and merge. Reviewed-binding transport only; no parsing, reinterpretation, mutation, E2E, acceptance or routing. |",
-              "TCR-010 queue",
-          )
-          text = one(
-              text,
-              "| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-009-and-TCR-010 | stable TCR-005/006/007 exist; TCR-009/010 are not stable | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Do not start until all required producer/gateway contracts are stable/merged. No executor or mutation authority. |",
-              "| TCR-011 | Reviewed Adoption Router | blocked-by-TCR-010 | TCR-005/006/007/009 are stable; TCR-010 remains in review | TCR-005, TCR-006, TCR-007, TCR-009, TCR-010 stable/merged | medium | Start only after TCR-010 merges and archives. No executor, approval generation or mutation authority. |",
-              "TCR-011 queue",
-          )
-          text = one(
-              text,
-              "TCR-008 is `optional/deferred-no-concrete-use-case`. TCR-009 is `blocked-external-evidence` on `TCR009_REQUIRES_TWO_COMPLETE_EXACT_REFERENCE_SNAPSHOTS` with exact owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002`. TCR-010 and TCR-011 remain dependency-blocked. `canary-tibia-client-reference-drift-v1`, gateway integration and adoption routing are **not stable/merged**.",
-              "TCR-008 remains `optional/deferred-no-concrete-use-case`. TCR-009 is stable/merged and owner request `RTREQ-TCR-ITEM-DEFINITIONS-0002` is consumed. TCR-010 is active in PR #1027 and is not stable until merge; TCR-011 remains blocked only by stable/merged TCR-010.",
-              "programme disposition",
-          )
-          marker = "# Exact next action after TCR-009 evidence preflight"
-          if text.count(marker) != 1:
-              raise SystemExit("programme next-action marker missing or duplicated")
-          text = text[:text.index(marker)] + (
-              "# Exact next action after TCR-010 implementation\n\n"
-              "Complete PR #1027 through exact-final-head validation and squash merge, then archive its task and mark TCR-011 ready. "
-              "Do not start TCR-011 or OWA-003 before TCR-010 is stable/merged.\n\n"
-              "# Handoff\n\n"
-              "Continue from the active TCR-010 checkpoint and live PR #1027. Preserve QA-018 as the sole extractor, exact reviewed binding IDs, "
-              "the four stable source formats, proprietary-input retention outside Git and all identifier/runtime/gameplay/mutation boundaries.\n"
-          )
-          path.write_text(text, encoding="utf-8")
-
-          path = Path("docs/agents/MODULE_CATALOG.md")
-          lines = path.read_text(encoding="utf-8").splitlines()
-          matches = [i for i, line in enumerate(lines) if line.startswith("| OTBM Tibia client reference architecture |")]
-          if len(matches) != 1:
-              raise SystemExit(f"catalogue row: expected one match, found {len(matches)}")
-          lines[matches[0]] = (
-              "| OTBM Tibia client reference architecture | active programme; TCR-000..009 stable/merged, TCR-008 optional/deferred, TCR-010 in review (#1027) | "
-              "Exact manifest, StaticData, StaticMapData, proficiency, resolver/parity/correlation and drift contracts plus reviewed QA-018 gateway bindings and the adoption-router queue | "
-              "`docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md`, `docs/ai-agent/OTBM_TIBIA_CLIENT_REFERENCE_ARCHITECTURE.md`, "
-              "`tools/ai-agent/tibia_*reference*.py`, `tools/ai-agent/tibia_client_reference_evidence_gateway*.py` | "
-              "Reuse existing TCR producers and QA-018. TCR-010 delegates exact paths, SHA-256, formats, pointers and bounds; no parsing, reinterpretation, mutation, E2E, acceptance or routing. "
-              "TCR-011 and OWA-003 remain blocked until TCR-010 is stable/merged. |"
-          )
-          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-          path = Path("docs/agents/CHANGELOG.md")
-          text = path.read_text(encoding="utf-8")
-          marker = "## Unreleased\n\n"
-          bullet = (
-              "- Adds TCR-010 `canary-tibia-client-reference-evidence-bindings-v1` and `canary-tibia-client-reference-evidence-gateway-v1` "
-              "as exact reviewed binding-ID transport for one bounded house, content, proficiency or drift extract. The adapter delegates safe paths, "
-              "SHA-256, stable formats, JSON Pointers and extract bounds to QA-018 and adds no parser, semantic reinterpretation, fuzzy selection, mutation, "
-              "E2E, acceptance or adoption-routing authority.\n\n"
-          )
-          if bullet not in text:
-              text = one(text, marker, marker + bullet, "changelog Unreleased")
-          path.write_text(text, encoding="utf-8")
-          PY
-          git add docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md docs/agents/MODULE_CATALOG.md docs/agents/CHANGELOG.md
-          git commit -m "docs(tcr): reconcile TCR-010 programme discovery"
-          git push origin HEAD:feat/CAN-20260730-tcr-010-evidence-gateway
