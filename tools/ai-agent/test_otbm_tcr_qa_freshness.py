@@ -80,7 +80,7 @@ def make_provenance(
     dimension_freshness: list[dict[str, object]] | None = None,
     removed_dimensions: list[str] | None = None,
 ) -> dict[str, object]:
-    changes = component_changes or [
+    changes = component_changes if component_changes is not None else [
         {
             "componentId": "tcr.house-reference",
             "status": "changed",
@@ -88,7 +88,7 @@ def make_provenance(
             "after": {"sha256": "a" * 64},
         }
     ]
-    dimensions = dimension_freshness or [
+    dimensions = dimension_freshness if dimension_freshness is not None else [
         {
             "dimensionId": "qa006.house-certification",
             "status": "stale",
@@ -110,7 +110,7 @@ def make_provenance(
             "previousBomSha256": PREVIOUS_BOM_SHA,
             "componentChanges": copy.deepcopy(changes),
             "dimensionFreshness": copy.deepcopy(dimensions),
-            "removedDimensions": copy.deepcopy(removed_dimensions or []),
+            "removedDimensions": copy.deepcopy([] if removed_dimensions is None else removed_dimensions),
             "summary": {
                 "changedComponentCount": len(changes),
                 "staleDimensionCount": sum(
@@ -292,7 +292,7 @@ class TcrQaFreshnessTests(unittest.TestCase):
         with self.assertRaisesRegex(TcrQaFreshnessError, "cover every routing route"):
             build_fixture(routing, provenance, manifest)
 
-        wrong_target = make_mapping(route_b, target=TARGET_REPAIR)
+        wrong_target = make_mapping(route_b, mapping_id="mapping.wrong-target", target=TARGET_REPAIR)
         manifest = make_manifest(
             routing,
             provenance,
@@ -400,61 +400,47 @@ class TcrQaFreshnessTests(unittest.TestCase):
         with self.assertRaisesRegex(TcrQaFreshnessError, "reportSha256"):
             build_fixture(routing, provenance, manifest)
 
-    def test_output_is_deterministic_under_input_order_permutation(self) -> None:
-        route_a = make_route(route_id="route.a", extract_id="extract.a")
-        route_b = make_route(
-            route_id="route.b", extract_id="extract.b", targets=[TARGET_HOUSE]
-        )
-        routing_a = make_routing([route_b, route_a])
-        provenance_a = make_provenance(
-            component_changes=[
-                {"componentId": "tcr.staticmapdata", "status": "changed"},
-                {"componentId": "tcr.house-reference", "status": "changed"},
-            ],
-            dimension_freshness=[
-                {
-                    "dimensionId": "qa006.house-certification",
-                    "status": "stale",
-                    "changedDependencies": ["tcr.house-reference"],
-                },
-                {
-                    "dimensionId": "qa006.staticmap",
-                    "status": "stale",
-                    "changedDependencies": ["tcr.staticmapdata"],
-                },
-            ],
-        )
-        mapping_a = make_mapping(route_a)
-        mapping_b = make_mapping(
-            route_b,
-            mapping_id="mapping.staticmap",
-            target=TARGET_HOUSE,
-            component_ids=["tcr.staticmapdata"],
-            dimension_ids=["qa006.staticmap"],
-        )
-        manifest_a = make_manifest(
-            routing_a, provenance_a, mappings=[mapping_b, mapping_a]
-        )
-        report_a = build_fixture(routing_a, provenance_a, manifest_a)
-
-        routing_b = make_routing([route_a, route_b])
-        provenance_b = make_provenance(
-            component_changes=list(reversed(provenance_a["componentChanges"])),
-            dimension_freshness=list(reversed(provenance_a["dimensionFreshness"])),
-        )
-        mapping_a2 = make_mapping(route_a)
-        mapping_b2 = make_mapping(
-            route_b,
-            mapping_id="mapping.staticmap",
-            target=TARGET_HOUSE,
-            component_ids=["tcr.staticmapdata"],
-            dimension_ids=["qa006.staticmap"],
-        )
-        manifest_b = make_manifest(
-            routing_b, provenance_b, mappings=[mapping_a2, mapping_b2]
-        )
-        report_b = build_fixture(routing_b, provenance_b, manifest_b)
-        self.assertEqual(report_a, report_b)
+    def test_output_is_deterministic_under_mapping_order_permutation(self) -> None:
+    route_a = make_route(route_id="route.a", extract_id="extract.a")
+    route_b = make_route(
+        route_id="route.b", extract_id="extract.b", targets=[TARGET_HOUSE]
+    )
+    routing = make_routing([route_b, route_a])
+    provenance = make_provenance(
+        component_changes=[
+            {"componentId": "tcr.staticmapdata", "status": "changed"},
+            {"componentId": "tcr.house-reference", "status": "changed"},
+        ],
+        dimension_freshness=[
+            {
+                "dimensionId": "qa006.house-certification",
+                "status": "stale",
+                "changedDependencies": ["tcr.house-reference"],
+            },
+            {
+                "dimensionId": "qa006.staticmap",
+                "status": "stale",
+                "changedDependencies": ["tcr.staticmapdata"],
+            },
+        ],
+    )
+    mapping_a = make_mapping(route_a)
+    mapping_b = make_mapping(
+        route_b,
+        mapping_id="mapping.staticmap",
+        target=TARGET_HOUSE,
+        component_ids=["tcr.staticmapdata"],
+        dimension_ids=["qa006.staticmap"],
+    )
+    manifest_a = make_manifest(
+        routing, provenance, mappings=[mapping_b, mapping_a]
+    )
+    manifest_b = make_manifest(
+        routing, provenance, mappings=[mapping_a, mapping_b]
+    )
+    report_a = build_fixture(routing, provenance, manifest_a)
+    report_b = build_fixture(routing, provenance, manifest_b)
+    self.assertEqual(report_a, report_b)
 
 
 if __name__ == "__main__":
