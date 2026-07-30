@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/rtec-006-refresh-drift-planner-20260731
 base_branch: main
 created: 2026-07-31T00:17:45+02:00
-updated: 2026-07-31T00:40:30+02:00
-last_verified_commit: "83c34da246fd71533bd111692643ccd84f2904ec"
+updated: 2026-07-31T00:41:30+02:00
+last_verified_commit: "4b6903840a7b06275d14c45296678bbe95f21096"
 risk: medium
 related_issue: ""
 related_pr: "1038"
@@ -84,8 +84,8 @@ This task only plans future review work. It does not refresh evidence, change ev
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:40:30+02:00
-head: 83c34da246fd71533bd111692643ccd84f2904ec
+updated_at: 2026-07-31T00:41:30+02:00
+head: 4b6903840a7b06275d14c45296678bbe95f21096
 branch: feat/rtec-006-refresh-drift-planner-20260731
 pr: 1038
 status: ready
@@ -109,12 +109,12 @@ proven:
   - seven focused planner and CLI tests passed in the deterministic isolated harness
   - Agent Task Ownership, Real Tibia Module Registry, Upstream Intelligence and draft CI passed on 2f336c8a86b4b1bb028b778d790fb59240d98309
   - ready-for-review CI was started on 83c34da246fd71533bd111692643ccd84f2904ec
-  - ci:final-gate was applied before this final task/checkpoint commit
+  - ci:final-gate was applied before the final task/checkpoint commits
   - global evidence indexes, owner requests, dossier modules, workflow files and the RTEC programme remain unchanged
   - docs/agents/PROJECT_STATE.md is absent on current main
   - docs/agents/prompts/RTEC_COMMON_AGENT_RULES.md is absent on current main
   - the dedicated Real Tibia evidence workflow does not currently include the new planner paths in its path filter
--derived:
+derived:
   - focused planner behavior is validated locally while repository-wide final checks remain authoritative for merge
 unknown:
   - final-gate conclusion on the final source head is pending this checkpoint commit
@@ -145,7 +145,7 @@ validation:
     evidence: CI, Agent Task Ownership, Real Tibia Module Registry and Upstream Intelligence succeeded
   - command: source PR final gate
     result: NOT_RUN
-    evidence: ci:final-gate is applied and the final task commit must trigger the exact-head run
+    evidence: ci:final-gate is applied and this final task commit must trigger the exact-head run
 blockers: []
 next_action: Confirm all required final-gate checks on the resulting exact source head, then squash-merge PR 1038 without further source-branch commits.
 ```
