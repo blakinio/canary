@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canary.local/schemas/canary-otbm-tcr-qa-freshness-impact-v1.json",
+  "title": "Canary OTBM TCR-to-QA Freshness Impact v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "routing",
+    "releaseProvenance",
+    "manifest",
+    "impacts",
+    "summary",
+    "policy",
+    "reportSha256"
+  ],
+  "properties": {
+    "format": {"const": "canary-otbm-tcr-qa-freshness-impact-v1"},
+    "schemaVersion": {"const": 1},
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "fileSha256", "reportSha256"],
+      "properties": {
+        "format": {"const": "canary-tibia-reference-adoption-routing-v1"},
+        "fileSha256": {"$ref": "#/$defs/sha256"},
+        "reportSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "releaseProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "fileSha256",
+        "reportSha256",
+        "currentBomSha256",
+        "previousBomSha256"
+      ],
+      "properties": {
+        "format": {"const": "canary-otbm-release-provenance-v1"},
+        "fileSha256": {"$ref": "#/$defs/sha256"},
+        "reportSha256": {"$ref": "#/$defs/sha256"},
+        "currentBomSha256": {"$ref": "#/$defs/sha256"},
+        "previousBomSha256": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "fileSha256", "canonicalSha256", "review"],
+      "properties": {
+        "format": {"const": "canary-otbm-tcr-qa-freshness-manifest-v1"},
+        "fileSha256": {"$ref": "#/$defs/sha256"},
+        "canonicalSha256": {"$ref": "#/$defs/sha256"},
+        "review": {"$ref": "#/$defs/review"}
+      }
+    },
+    "impacts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {"$ref": "#/$defs/impact"}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "routeCount",
+        "mappingCount",
+        "routedImpactCount",
+        "unsupportedImpactCount",
+        "blockedImpactCount",
+        "mappedChangedComponentCount",
+        "mappedStaleDimensionCount",
+        "mappedChangedComponentIds",
+        "mappedStaleDimensionIds"
+      ],
+      "properties": {
+        "routeCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "mappingCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "routedImpactCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "unsupportedImpactCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "blockedImpactCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "mappedChangedComponentCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "mappedStaleDimensionCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "mappedChangedComponentIds": {"$ref": "#/$defs/identifierArray"},
+        "mappedStaleDimensionIds": {"$ref": "#/$defs/identifierArray"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnlyComposition",
+        "stableTcrRoutingRequired",
+        "existingQa016Required",
+        "reviewedDependencyMappingRequired",
+        "exactRouteTargetCoverageRequired",
+        "exactChangedDependencyEqualityRequired",
+        "parsesClientInputs",
+        "parsesOtbm",
+        "guessesIdentifierMappings",
+        "discoversDependencyEdges",
+        "rerunsQa016",
+        "invokesQa008",
+        "selectsQa002Validators",
+        "createsQa007ExecutionEvidence",
+        "runsPhysicalE2e",
+        "refreshesQa006Certification",
+        "mutatesEvidenceOrGameState",
+        "authorizesDeployment",
+        "claimsGameplayParity",
+        "unsupportedAndBlockedPreserved"
+      ],
+      "properties": {
+        "readOnlyComposition": {"const": true},
+        "stableTcrRoutingRequired": {"const": true},
+        "existingQa016Required": {"const": true},
+        "reviewedDependencyMappingRequired": {"const": true},
+        "exactRouteTargetCoverageRequired": {"const": true},
+        "exactChangedDependencyEqualityRequired": {"const": true},
+        "parsesClientInputs": {"const": false},
+        "parsesOtbm": {"const": false},
+        "guessesIdentifierMappings": {"const": false},
+        "discoversDependencyEdges": {"const": false},
+        "rerunsQa016": {"const": false},
+        "invokesQa008": {"const": false},
+        "selectsQa002Validators": {"const": false},
+        "createsQa007ExecutionEvidence": {"const": false},
+        "runsPhysicalE2e": {"const": false},
+        "refreshesQa006Certification": {"const": false},
+        "mutatesEvidenceOrGameState": {"const": false},
+        "authorizesDeployment": {"const": false},
+        "claimsGameplayParity": {"const": false},
+        "unsupportedAndBlockedPreserved": {"const": true}
+      }
+    },
+    "reportSha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$"
+    },
+    "nonEmptyTrimmed": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "identifierArray": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/identifier"}
+    },
+    "contextReferences": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/nonEmptyTrimmed"}
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewId", "statement"],
+      "properties": {
+        "reviewId": {"$ref": "#/$defs/identifier"},
+        "statement": {"$ref": "#/$defs/nonEmptyTrimmed"}
+      }
+    },
+    "extract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sourceId", "pointer", "valueSha256"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "sourceId": {"$ref": "#/$defs/identifier"},
+        "pointer": {"type": "string", "pattern": "^/(?!$).+"},
+        "valueSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "capability"],
+      "properties": {
+        "owner": {"$ref": "#/$defs/identifier"},
+        "capability": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "downstreamEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qa008", "qa002", "qa007", "qa006"],
+      "properties": {
+        "qa008": {"const": "not-evaluated"},
+        "qa002": {"const": "not-evaluated"},
+        "qa007": {"const": "not-evaluated"},
+        "qa006": {"const": "not-refreshed"}
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mappingId",
+        "routeId",
+        "extract",
+        "disposition",
+        "reasonCode",
+        "target",
+        "componentIds",
+        "dimensionIds",
+        "freshnessStatus",
+        "reviewRequired",
+        "downstreamEvidence",
+        "contextReferences"
+      ],
+      "properties": {
+        "mappingId": {"$ref": "#/$defs/identifier"},
+        "routeId": {"$ref": "#/$defs/identifier"},
+        "extract": {"$ref": "#/$defs/extract"},
+        "disposition": {"enum": ["routed", "unsupported", "blocked"]},
+        "reasonCode": {"$ref": "#/$defs/identifier"},
+        "target": {
+          "oneOf": [
+            {"$ref": "#/$defs/target"},
+            {"type": "null"}
+          ]
+        },
+        "componentIds": {"$ref": "#/$defs/identifierArray"},
+        "dimensionIds": {"$ref": "#/$defs/identifierArray"},
+        "freshnessStatus": {"enum": ["stale", "not-mapped"]},
+        "reviewRequired": {"const": true},
+        "downstreamEvidence": {"$ref": "#/$defs/downstreamEvidence"},
+        "contextReferences": {"$ref": "#/$defs/contextReferences"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"disposition": {"const": "routed"}},
+            "required": ["disposition"]
+          },
+          "then": {
+            "properties": {
+              "target": {"$ref": "#/$defs/target"},
+              "componentIds": {"minItems": 1},
+              "dimensionIds": {"minItems": 1},
+              "freshnessStatus": {"const": "stale"}
+            }
+          },
+          "else": {
+            "properties": {
+              "target": {"type": "null"},
+              "componentIds": {"maxItems": 0},
+              "dimensionIds": {"maxItems": 0},
+              "freshnessStatus": {"const": "not-mapped"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}
