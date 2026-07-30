@@ -7,8 +7,8 @@ agent: chatgpt
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 base_branch: main
 created: 2026-07-30T12:05:00+02:00
-updated: 2026-07-30T12:35:00+02:00
-last_verified_commit: "e6c58bd3d4e5d86e31030200c270c0369449ab4c"
+updated: 2026-07-30T12:38:00+02:00
+last_verified_commit: "b15a8704fa7ce70dadd777c8c8c7af023eedeccf"
 risk: medium
 related_issue: ""
 related_pr: "1031"
@@ -77,11 +77,11 @@ OWA-003A consumes stable reports only. It never opens TCR client inputs, parses 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T12:35:00+02:00
-head: e6c58bd3d4e5d86e31030200c270c0369449ab4c
+updated_at: 2026-07-30T12:38:00+02:00
+head: b15a8704fa7ce70dadd777c8c8c7af023eedeccf
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 pr: 1031
-status: ready-for-exact-head-gate
+status: ready
 context_routes:
   - agent-governance
   - otbm
@@ -114,8 +114,8 @@ unknown:
   - Exact final-head workflow results and merge SHA are not yet available.
 conflicts: []
 first_failure:
-  marker: fixture-default-signature-and-indentation
-  evidence: focused runs 30534457196 and 30534666711; defects were test-fixture/import formatting only and were corrected without weakening production validation.
+  marker: checkpoint-status-vocabulary
+  evidence: ownership run 30535239301 rejected unsupported checkpoint status ready-for-exact-head-gate; corrected to allowed status ready without changing package behavior.
 rejected_hypotheses:
   - TCR drift can be converted directly into QA-002 or QA-007 evidence: rejected because those contracts require canonical map-change and executed result inputs owned elsewhere.
   - OWA should rediscover dependencies from TCR names or identifiers: rejected because QA-008 and OWA both require explicit reviewed dependency mappings.
@@ -141,6 +141,9 @@ validation:
   - command: focused OTBM TCR QA Freshness workflow
     result: PASS
     evidence: run 30534847199 on e1474d39d51c14bc1d2d016e35c7a7de970be4bd.
+  - command: first exact-head ownership gate
+    result: CHECKPOINT_STATUS_CORRECTED
+    evidence: run 30535239301; only checkpoint status vocabulary changed.
 blockers: []
 next_action: Run the full exact-final-head workflow set on the next connector-authored SHA, audit reviews/diff/mergeability, then mark ready and squash-merge only if unchanged and fully green.
 ```
