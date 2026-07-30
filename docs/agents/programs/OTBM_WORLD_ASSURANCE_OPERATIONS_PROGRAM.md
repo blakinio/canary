@@ -4,8 +4,8 @@ name: OTBM World Assurance Operations
 status: active
 owner: OTBM analysis tooling / world assurance operations
 created: 2026-07-23T14:25:00+02:00
-updated: 2026-07-24T01:22:00+02:00
-last_verified_commit: "332e47da1b1d8fb0d98fa4cf1e6698acb26f8e05"
+updated: 2026-07-30T12:30:00+02:00
+last_verified_commit: "e1474d39d51c14bc1d2d016e35c7a7de970be4bd"
 primary_paths:
   - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
@@ -88,7 +88,7 @@ Included:
 
 # Active tasks
 
-No active OWA task remains after the OWA-006 blocked-task lifecycle is merged.
+OWA-003A is active in draft PR #1031 under task `CAN-20260730-owa-003a-tcr-qa-freshness`. It owns only exact TCR-011 route-to-existing-QA-016 freshness verification; it does not produce QA-008/002/007 evidence, execute validators/E2E or refresh QA-006.
 
 OWA-006 target-selection/preflight PR #848 is merged. The functional package remains blocked by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; lifecycle closure archives that task and releases ownership without changing the functional blocker into completion.
 
@@ -98,7 +98,7 @@ OWA-006 target-selection/preflight PR #848 is merged. The functional package rem
 |---|---|---|---|---|---|
 | OWA-001 | Real-World Certification Campaign | completed via #801 | QA-005/006/016/018 + exact reviewed Thais route evidence | medium | Preserve the exact delivered state: QA-005 not-evaluated, QA-006 C0, QA-016 current, route-level Physical E2E proven, three explicit QA-005/006 blockers. |
 | OWA-002 | Factual Certification and Coverage Map | completed via #817 | OWA-001 reviewed manifest/campaign semantics + factual renderer | medium | Preserve `canary-otbm-world-assurance-map-v1`: factual renderer reuse, reviewed bounds/endpoints only, separate QA-006/QA-005/QA-016/Physical-E2E/blocker surfaces, no inferred route geometry or composite health score. |
-| OWA-003 | TCR-to-QA Drift and Freshness Integration | blocked on stable TCR parity/drift outputs | stable owning TCR outputs + QA-008/016/002/007 | medium | Re-derive scope from stable merged TCR producer contracts only after required parity/drift outputs exist; OWA consumes them but never parses client reference inputs. |
+| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A active/in-review in #1031; downstream evidence integration remains separate | stable TCR-011 routing + QA-016 for OWA-003A; later QA-008/002/007/006 evidence owned downstream | medium | Complete exact-head validation and merge of the bounded freshness-impact contract. Do not promote TCR evidence into Semantic Diff, validator selection, execution results, assurance or refreshed certification. |
 | OWA-004 | Runtime Incident to OTBM Evidence Bridge | completed via #838; lifecycle closed via #847 | QA-018 + existing route/failure-triage evidence | medium | Preserve the exact-selector, QA-018-delegating, no-diagnosis/no-E2E boundary delivered by #838. |
 | OWA-005 | QA Contract Hardening and Adversarial Fixtures | completed via #802; lifecycle closed via #816 | delivered QA contracts | medium | Preserve the merged deterministic adversarial/fail-closed contract coverage; do not duplicate canonical validators. |
 | OWA-006 | Continuous Assurance Operational Adoption | blocked — `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; preflight merged via #848 | one retained reviewed real candidate/change chain + QA-001/002/006/007/016 + Semantic Diff + OTBM-E2E-008/009 | high | An owning map-change/repair workflow must first retain or explicitly reference one concrete reviewed real candidate chain with exact before/current/candidate identity and required downstream evidence; then re-enter OWA-006. |
@@ -110,9 +110,10 @@ OWA-006 target-selection/preflight PR #848 is merged. The functional package rem
 3. **OWA-005** — completed independently: adversarial/fail-closed QA contract hardening is merged and lifecycle-closed.
 4. **OWA-004** — completed via #838 and lifecycle-closed via #847: explicit runtime incident selectors resolve only to compact compatible existing OTBM evidence through QA-018 without taking runtime diagnosis or E2E ownership.
 5. **OWA-006** — target-selection preflight merged via #848; operational adoption is blocked before the first required provenance step because no retained reviewed concrete real candidate/change chain exists in current repository/task/PR evidence. Task ownership is lifecycle-closed separately without claiming functional completion.
-6. **OWA-003** — begin only after stable owning TCR parity/drift outputs and explicit producer/consumer contracts exist.
+6. **OWA-003A** — active in #1031: verify exact reviewed TCR-011 route/component/dimension mappings against existing QA-016 staleness only.
+7. **OWA-003 downstream** — begin only as separate bounded packages when exact canonical QA-008/002/007/006 inputs exist; never synthesize them from TCR.
 
-All currently executable non-TCR OWA work has been performed. OWA-006 is not functionally complete and may resume only when its missing real candidate producer evidence exists. OWA-003 remains dependency-gated by TCR.
+All currently executable non-TCR OWA work has been performed. OWA-006 is not functionally complete and may resume only when its missing real candidate producer evidence exists. The TCR dependency is satisfied; OWA-003A is active, while downstream QA execution/assurance evidence remains unproven and separately owned.
 
 # Package boundaries
 
@@ -164,22 +165,18 @@ Visible spatial overlays are limited to exact reviewed routing bounds and exact 
 
 ## OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-After stable owning TCR formats exist:
+Stable TCR-009/010/011 outputs now satisfy the producer dependency. OWA-003 is split into bounded evidence-preserving stages:
 
 ```text
-TCR exact parity/drift finding
-  -> explicit dependency mapping
-  -> QA-016 staleness
-  -> QA-008 proven blast radius where declared
-  -> QA-002 impacted validation
-  -> owning validators / Physical E2E
-  -> QA-007 assurance
-  -> refreshed QA-006 certification
+TCR-011 exact reviewed route
+  -> OWA-003A reviewer-authored route/component/dimension mapping
+  -> verify existing QA-016 changed components and stale dimensions
+  -> downstream QA-008/002/007/006 remains not-evaluated/not-refreshed
 ```
 
-OWA never parses `staticdata`, `staticmapdata`, proficiency or minimap files and never guesses identifier mappings.
+OWA-003A public formats in PR #1031 are `canary-otbm-tcr-qa-freshness-manifest-v1` and `canary-otbm-tcr-qa-freshness-impact-v1`. They require complete route/target coverage, exact extract identity and exact equality between mapped components and QA-016 `changedDependencies`. Unsupported/blocked routes remain targetless review-required outcomes.
 
-Current gate: a stable package/reference manifest or StaticData index alone is insufficient. OWA-003 remains blocked until the owning TCR programme delivers the required stable parity/drift producer outputs.
+OWA never parses `staticdata`, `staticmapdata`, proficiency or minimap files and never guesses identifier mappings. OWA-003A does not invoke QA-008, generate Semantic Diff or QA-002 selection, create QA-007 execution evidence, run validators/Physical E2E or refresh QA-006. Those stages require their canonical downstream inputs and separate ownership.
 
 ## OWA-004 — Runtime Incident to OTBM Evidence Bridge
 
@@ -230,13 +227,13 @@ The programme is complete only when:
 7. no new parser, World Index, pathfinder, renderer, writer, E2E runner or E2E workflow has been introduced;
 8. generated certification, evidence and render artifacts remain outside Git.
 
-The programme therefore remains active: OWA-006 condition 6 is unproven and OWA-003 remains dependency-gated. Completion still does not imply that every tile, quest or mechanic in the entire world is gameplay-correct. Certification remains reviewed-target- and evidence-bounded.
+The programme therefore remains active: OWA-006 condition 6 is unproven and OWA-003A alone does not complete the downstream QA-008/002/007/006 chain. Completion still does not imply that every tile, quest or mechanic in the entire world is gameplay-correct. Certification remains reviewed-target- and evidence-bounded.
 
 # Dependencies and blockers
 
 - OWA-001 is complete but formal certification for its first pilot remains blocked at C0 until a legitimate canonical QA-005 target binds exact reviewed mechanic evidence.
 - OWA-002 is complete and must continue to represent that C0 state, independent QA-005 dimensions, freshness, retained Physical E2E and blockers without promotion or collapse into a score.
-- OWA-003 remains dependency-gated by stable owning TCR parity/drift outputs and must be re-derived from the actual merged producer contracts at task start.
+- OWA-003A is active in PR #1031 after stable TCR delivery; later QA-008/002/007/006 stages remain separate and require exact canonical map-change, dependency, execution, health and certification evidence rather than TCR-derived substitutes.
 - OWA-004 is complete via #838 and lifecycle-closed via #847; runtime diagnosis and Physical E2E remain downstream-owned.
 - OWA-006 is blocked at first provenance input by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; generic QA-004/OTBM-E2E-009 capability is not a concrete adoption target.
 - Physical proof for OWA-001/006 depends on existing Universal Physical E2E evidence and remains owned by that subsystem.
@@ -326,10 +323,11 @@ Then let QA-007 validate the exact supplied result set. Do not create another as
 ```text
 all currently executable non-TCR OWA work completed
 OWA-006 operational adoption remains blocked on retained reviewed real candidate/change evidence
-OWA-003 remains dependency-blocked by TCR
+OWA-003A exact TCR-to-QA-016 freshness verification is active in PR #1031
+OWA-003 downstream QA-008/002/007/006 evidence remains separate and unproven
 ```
 
-The programme itself is not complete while OWA-006 functional adoption and OWA-003 required producer-dependent integration remain unproven.
+The programme itself is not complete while OWA-006 functional adoption and the downstream OWA-003 assurance chain remain unproven.
 
 ## Task creation protocol
 
@@ -355,5 +353,5 @@ The programme itself is not complete while OWA-006 functional adoption and OWA-0
 
 ## Open questions
 
-- OWA-003 package scope must be re-derived from the TCR formats that are actually stable and merged at that time.
+- After OWA-003A merges, a fresh bounded preflight must determine whether any exact retained canonical QA-008/002/007/006 evidence chain exists; missing evidence must be recorded as a blocker rather than synthesized from TCR.
 - OWA-006 functional completion depends on a future owning workflow producing and retaining one legitimate reviewed real candidate/change evidence chain; no such chain is proven by current repository/task/PR evidence.

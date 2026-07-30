@@ -147,28 +147,37 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: dependency-gated.**
+**Priority: active bounded first slice; downstream evidence-gated.**
 
 ## Goal
 
 Use stable exact Tibia Client Reference outputs to invalidate or refresh only the QA/certification dimensions that explicitly depend on them.
 
-## Dependency
+## OWA-003A delivered boundary in PR #1031
 
-Implementation starts only after the required owning TCR packages and formats are merged and stable. OWA never parses client files itself.
-
-## Intended flow
+The first slice consumes one exact stable `canary-tibia-reference-adoption-routing-v1` report, one exact existing `canary-otbm-release-provenance-v1` report and one reviewer-authored hash-pinned mapping. It emits `canary-otbm-tcr-qa-freshness-impact-v1` only when every TCR route/target is covered and the mapped component set for each dimension exactly equals QA-016 `changedDependencies`.
 
 ```text
-stable TCR exact parity/drift finding
-  -> explicit dependency mapping
-  -> QA-016 dependency-scoped staleness
-  -> QA-008 proven blast radius where declared
-  -> QA-002 impacted validation selection
+TCR-011 exact route/extract/target
+  -> reviewed QA-016 component/dimension mapping
+  -> exact existing changed/stale verification
+  -> review-required freshness impact
+```
+
+Unsupported/blocked routes remain explicit targetless `not-mapped` outcomes. Unrelated QA-016 dimensions are not broadened into the impact set.
+
+## Downstream flow remains separate
+
+```text
+verified OWA-003A freshness impact
+  -> QA-008 proven blast radius where exact canonical inputs exist
+  -> QA-002 impacted validation from canonical Semantic Diff
   -> owning validators / Universal Physical E2E execute
-  -> QA-007 assurance
+  -> QA-007 exact result-set assurance
   -> refreshed QA-006 certification state
 ```
+
+OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners.
 
 ## Hard boundaries
 
@@ -177,11 +186,12 @@ stable TCR exact parity/drift finding
 - client reference is not map authority;
 - quest ID/name drift does not prove quest-stage/runtime changes;
 - matching proficiency IDs do not prove runtime/persistence/protocol parity;
+- no dependency-edge discovery, Semantic Diff generation, validator selection, execution-ledger generation, Physical E2E execution or certification refresh;
 - dependency uncertainty fails closed to stale/review-required or broader validation.
 
 ## Success condition
 
-A stable TCR change can deterministically identify which OTBM certification/assurance dimensions become stale or require revalidation without duplicating TCR ownership.
+A stable TCR route can deterministically verify which explicitly reviewed QA-016 dimensions are already stale without duplicating TCR or QA-016 ownership. Full downstream assurance remains a separate success condition requiring canonical QA evidence.
 
 # OWA-004 — Runtime Incident to OTBM Evidence Bridge
 
