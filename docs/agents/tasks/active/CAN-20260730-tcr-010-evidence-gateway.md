@@ -7,11 +7,11 @@ agent: chatgpt
 branch: feat/CAN-20260730-tcr-010-evidence-gateway
 base_branch: main
 created: 2026-07-30T08:14:00+02:00
-updated: 2026-07-30T08:14:00+02:00
-last_verified_commit: "6c7bdb8817d2010620d119a9a1f6b944895bc73d"
+updated: 2026-07-30T08:29:00+02:00
+last_verified_commit: "98e1ff9e74e3e932161cd2ab4ce16fda771f3b2a"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "1027"
 depends_on:
   - TCR-005 stable canary-otbm-house-reference-parity-v1
   - TCR-006 stable canary-tibia-content-reference-correlation-v1
@@ -63,23 +63,23 @@ Add the smallest read-only TCR-010 integration that resolves one exact reviewed 
 
 # Acceptance criteria
 
-- [ ] Support exact reviewed bindings for house, content, proficiency and drift evidence.
-- [ ] Delegate extraction only to `otbm_evidence_gateway.build_evidence_bundle()`.
-- [ ] Pin every source by safe relative path, exact SHA-256 and exact stable report format.
-- [ ] Permit only bounded reviewed JSON Pointer extracts and exact binding IDs.
-- [ ] Fail closed on duplicate IDs, wrong kind/format, stale binding hash, changed source hash, unsafe paths, symlinks, missing pointers and oversized extracts.
-- [ ] Perform no client/OTBM parsing, semantic reinterpretation, fuzzy selection, mutation, E2E execution, acceptance or routing decision.
-- [ ] Add deterministic plan/execution, schema and output-safety tests.
+- [x] Support exact reviewed bindings for house, content, proficiency and drift evidence.
+- [x] Delegate extraction only to `otbm_evidence_gateway.build_evidence_bundle()`.
+- [x] Pin every source by safe relative path, exact SHA-256 and exact stable report format.
+- [x] Permit only bounded reviewed JSON Pointer extracts and exact binding IDs.
+- [x] Fail closed on duplicate IDs, wrong kind/format, stale binding hash, changed source hash, unsafe paths, symlinks, missing pointers and oversized extracts.
+- [x] Perform no client/OTBM parsing, semantic reinterpretation, fuzzy selection, mutation, E2E execution, acceptance or routing decision.
+- [x] Add deterministic plan/execution, schema and output-safety tests.
 - [ ] Reconcile programme, catalogue and changelog; pass final-head CI; merge and archive.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T08:14:00+02:00
-head: 6c7bdb8817d2010620d119a9a1f6b944895bc73d
+updated_at: 2026-07-30T08:29:00+02:00
+head: 98e1ff9e74e3e932161cd2ab4ce16fda771f3b2a
 branch: feat/CAN-20260730-tcr-010-evidence-gateway
-pr: null
+pr: 1027
 status: implementing
 context_routes:
   - agent-governance
@@ -88,27 +88,49 @@ context_routes:
 owned_paths:
   - tools/ai-agent/tibia_client_reference_evidence_gateway.py
   - tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py
+  - tools/ai-agent/test_tibia_client_reference_evidence_gateway.py
+  - tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py
+  - tools/ai-agent/test_tibia_client_reference_evidence_gateway_schema.py
   - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.md
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json
+  - .github/workflows/tibia-client-reference-evidence-gateway.yml
 proven:
   - TCR-009 merged in PR 1018 as c678d90483af945b3bbf0a40f6d6b9ce99da4a3f.
-  - Programme main 6c7bdb8817d2010620d119a9a1f6b944895bc73d marks TCR-010 ready.
-  - QA-018 exposes exact source SHA/format pins, safe relative paths, JSON Pointer confinement and bounded extracts.
-  - No open TCR-010 PR or branch exists and no open PR owns the proposed implementation paths.
+  - QA-018 remains the sole source/hash/format/path/pointer extractor.
+  - Exact house, content, proficiency and drift source formats are enforced per binding kind.
+  - Local focused suite passed 18 tests, including plan/execution determinism, schema validation and output safety.
+  - The adapter performs no source parsing, semantic reinterpretation, fuzzy selection, mutation, E2E, acceptance or adoption routing.
 derived:
-  - A reviewed-binding adapter can satisfy TCR-010 without adding another extractor or parser.
+  - Stable TCR reports can be exposed as reviewed compact extracts without expanding QA-018 ownership.
 unknown:
-  - Exact implementation PR number and final-head CI evidence.
+  - Exact first CI outcomes and final-head gate evidence.
 conflicts: []
 first_failure:
   marker: none
-  evidence: Dependencies are stable and ownership is clear.
+  evidence: Implementation and local tests are complete; CI is running.
 rejected_hypotheses:
   - Add a second generic evidence gateway.
   - Search source reports by fuzzy content or inferred identifiers.
   - Reparse client files or OTBM inputs.
 changed_paths:
+  - .github/workflows/tibia-client-reference-evidence-gateway.yml
   - docs/agents/tasks/active/CAN-20260730-tcr-010-evidence-gateway.md
-validation: []
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.md
+  - docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json
+  - tools/ai-agent/test_tibia_client_reference_evidence_gateway.py
+  - tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py
+  - tools/ai-agent/test_tibia_client_reference_evidence_gateway_schema.py
+  - tools/ai-agent/tibia_client_reference_evidence_gateway.py
+  - tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py
+validation:
+  - command: focused local TCR-010 unit and schema suite
+    result: PASS
+    evidence: 18 tests passed; Draft 2020-12 schemas validated plan and executed reports.
+  - command: local py_compile and json.tool checks
+    result: PASS
+    evidence: adapter, CLI, tests and both public schemas compiled/parsed successfully.
 blockers: []
-next_action: open a draft PR, implement exact reviewed-binding plan/execution over QA-018, and add focused tests and schemas.
+next_action: inspect PR 1027 CI, repair any root cause, then reconcile programme/catalogue/changelog and synchronize current main before final-gate.
 ```
