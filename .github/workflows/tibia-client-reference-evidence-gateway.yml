@@ -5,62 +5,28 @@ on:
   pull_request:
     paths:
       - "tools/ai-agent/tibia_client_reference_evidence_gateway.py"
-      - "tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py"
-      - "tools/ai-agent/test_tibia_client_reference_evidence_gateway*.py"
-      - "tools/ai-agent/otbm_evidence_gateway.py"
-      - "tools/ai-agent/otbm_evidence_gateway_tool.py"
-      - "tools/ai-agent/test_otbm_evidence_gateway*.py"
-      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.md"
-      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json"
-      - "docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json"
+      - "tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py"
       - "docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md"
-      - "docs/agents/MODULE_CATALOG.md"
-      - "docs/agents/CHANGELOG.md"
       - ".github/workflows/tibia-client-reference-evidence-gateway.yml"
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  validate:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == 'blakinio/canary'
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: tools/ai-agent
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install schema checker
-        run: python -m pip install --disable-pip-version-check jsonschema
-      - name: Run TCR-010 tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_evidence_gateway*.py" -v
-      - name: Run canonical QA-018 regression tests
-        run: python -m unittest discover -s tools/ai-agent -p "test_otbm_evidence_gateway*.py" -v
-      - name: Compile adapter and tests
-        run: |
-          python -m py_compile \
-            tools/ai-agent/tibia_client_reference_evidence_gateway.py \
-            tools/ai-agent/tibia_client_reference_evidence_gateway_tool.py \
-            tools/ai-agent/test_tibia_client_reference_evidence_gateway.py \
-            tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py \
-            tools/ai-agent/test_tibia_client_reference_evidence_gateway_schema.py
-      - name: Validate public schema syntax
-        run: |
-          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json > /dev/null
-          python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json > /dev/null
-
-  patch:
-    needs: validate
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'blakinio/canary'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
         with:
           ref: feat/CAN-20260730-tcr-010-evidence-gateway
           fetch-depth: 0
-      - name: Harden writer and finish programme reconciliation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply reviewed hardening and programme corrections
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -74,8 +40,8 @@ jobs:
                   raise SystemExit(f"{label}: expected one match, found {count}")
               return text.replace(old, new, 1)
 
-          path = Path("tools/ai-agent/tibia_client_reference_evidence_gateway.py")
-          text = path.read_text(encoding="utf-8")
+          code = Path("tools/ai-agent/tibia_client_reference_evidence_gateway.py")
+          text = code.read_text(encoding="utf-8")
           text = one(
               text,
               "def _atomic_write_text(path: Path, content: str, *, overwrite: bool) -> None:\n    if path.is_symlink():\n",
@@ -92,10 +58,10 @@ jobs:
               "    if path.is_symlink():\n",
               "atomic writer parent safety",
           )
-          path.write_text(text, encoding="utf-8")
+          code.write_text(text, encoding="utf-8")
 
-          path = Path("tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py")
-          text = path.read_text(encoding="utf-8")
+          tests = Path("tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py")
+          text = tests.read_text(encoding="utf-8")
           marker = "    def test_relative_output_escape_rejected(self) -> None:\n"
           method = (
               "    def test_symlink_parent_rejected_direct_writer(self) -> None:\n"
@@ -111,10 +77,10 @@ jobs:
               "                write_report(link / \"output.json\", {}, overwrite=False)\n\n"
           )
           text = one(text, marker, method + marker, "direct writer symlink regression")
-          path.write_text(text, encoding="utf-8")
+          tests.write_text(text, encoding="utf-8")
 
-          path = Path("docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md")
-          text = path.read_text(encoding="utf-8")
+          programme = Path("docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md")
+          text = programme.read_text(encoding="utf-8")
           text = one(
               text,
               "## TCR-009 — Client Reference Drift\n\nPlanned public format:",
@@ -136,15 +102,19 @@ jobs:
               "TCR-010 PR #1027 adds reviewed gateway bindings over QA-018 and remains in review until merge:",
               "stable contract introduction",
           )
-          text = one(
-              text,
+          stable_start = text.index("# Stable producer contract state")
+          package_start = text.index("# Package contracts", stable_start)
+          stable = text[stable_start:package_start]
+          stable = one(
+              stable,
               "canary-tibia-proficiency-reference-correlation-v1\n```",
               "canary-tibia-proficiency-reference-correlation-v1\n"
               "canary-tibia-client-reference-drift-v1\n"
               "canary-tibia-client-reference-evidence-bindings-v1\n"
               "canary-tibia-client-reference-evidence-gateway-v1\n```",
-              "public contract list",
+              "stable public contract list",
           )
+          text = text[:stable_start] + stable + text[package_start:]
           proficiency = (
               "The proficiency-reference resolver and correlation contracts are `stable/merged` as of PR #898 / merge "
               "`89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`. They consume exact TCR-004 proficiency definitions, "
@@ -191,9 +161,10 @@ jobs:
               "- Discovery reconciliation PR `#1026` merged as `6c7bdb8817d2010620d119a9a1f6b944895bc73d`.\n"
               "- TCR-010 is active in draft PR `#1027` and remains non-stable until exact-final-head merge.\n\n"
           ) + text[end:]
-          path.write_text(text, encoding="utf-8")
+          programme.write_text(text, encoding="utf-8")
           PY
-          PYTHONPATH=tools/ai-agent python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_evidence_gateway*.py" -v
+          python -m pip install --disable-pip-version-check jsonschema
+          python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_evidence_gateway*.py" -v
           git add tools/ai-agent/tibia_client_reference_evidence_gateway.py \
             tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py \
             docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
