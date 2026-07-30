@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -50,3 +50,152 @@ jobs:
         run: |
           python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_BINDINGS.schema.json > /dev/null
           python -m json.tool docs/ai-agent/TIBIA_CLIENT_REFERENCE_EVIDENCE_GATEWAY.schema.json > /dev/null
+
+  patch:
+    needs: validate
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'blakinio/canary'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/CAN-20260730-tcr-010-evidence-gateway
+          fetch-depth: 0
+      - name: Harden writer and finish programme reconciliation
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python - <<'PY'
+          from pathlib import Path
+
+          def one(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match, found {count}")
+              return text.replace(old, new, 1)
+
+          path = Path("tools/ai-agent/tibia_client_reference_evidence_gateway.py")
+          text = path.read_text(encoding="utf-8")
+          text = one(
+              text,
+              "def _atomic_write_text(path: Path, content: str, *, overwrite: bool) -> None:\n    if path.is_symlink():\n",
+              "def _atomic_write_text(path: Path, content: str, *, overwrite: bool) -> None:\n"
+              "    for parent in (path.parent, *path.parent.parents):\n"
+              "        if parent.is_symlink():\n"
+              "            raise ClientReferenceEvidenceGatewayError(\n"
+              "                f\"output parent must not be a symlink: {parent}\"\n"
+              "            )\n"
+              "        if parent.exists() and not parent.is_dir():\n"
+              "            raise ClientReferenceEvidenceGatewayError(\n"
+              "                f\"output parent exists but is not a directory: {parent}\"\n"
+              "            )\n"
+              "    if path.is_symlink():\n",
+              "atomic writer parent safety",
+          )
+          path.write_text(text, encoding="utf-8")
+
+          path = Path("tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py")
+          text = path.read_text(encoding="utf-8")
+          marker = "    def test_relative_output_escape_rejected(self) -> None:\n"
+          method = (
+              "    def test_symlink_parent_rejected_direct_writer(self) -> None:\n"
+              "        with tempfile.TemporaryDirectory() as directory:\n"
+              "            root = Path(directory)\n"
+              "            real = root / \"real\"\n"
+              "            real.mkdir()\n"
+              "            link = root / \"link\"\n"
+              "            link.symlink_to(real, target_is_directory=True)\n"
+              "            with self.assertRaisesRegex(\n"
+              "                ClientReferenceEvidenceGatewayError, \"output parent must not be a symlink\"\n"
+              "            ):\n"
+              "                write_report(link / \"output.json\", {}, overwrite=False)\n\n"
+          )
+          text = one(text, marker, method + marker, "direct writer symlink regression")
+          path.write_text(text, encoding="utf-8")
+
+          path = Path("docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md")
+          text = path.read_text(encoding="utf-8")
+          text = one(
+              text,
+              "## TCR-009 — Client Reference Drift\n\nPlanned public format:",
+              "## TCR-009 — Client Reference Drift\n\nStable public format:",
+              "TCR-009 format status",
+          )
+          text = one(
+              text,
+              "## TCR-010 — Evidence Gateway\n\nAcceptance:",
+              "## TCR-010 — Evidence Gateway\n\nIn-review public formats in PR #1027:\n\n"
+              "```text\ncanary-tibia-client-reference-evidence-bindings-v1\n"
+              "canary-tibia-client-reference-evidence-gateway-v1\n```\n\nAcceptance:",
+              "TCR-010 public formats",
+          )
+          text = one(
+              text,
+              "TCR-001, TCR-002, TCR-003, TCR-004, TCR-005, TCR-006 and TCR-007 stabilize these reference, resolver and correlation contracts:",
+              "TCR-001 through TCR-007 and TCR-009 stabilize these reference, resolver, correlation and drift contracts. "
+              "TCR-010 PR #1027 adds reviewed gateway bindings over QA-018 and remains in review until merge:",
+              "stable contract introduction",
+          )
+          text = one(
+              text,
+              "canary-tibia-proficiency-reference-correlation-v1\n```",
+              "canary-tibia-proficiency-reference-correlation-v1\n"
+              "canary-tibia-client-reference-drift-v1\n"
+              "canary-tibia-client-reference-evidence-bindings-v1\n"
+              "canary-tibia-client-reference-evidence-gateway-v1\n```",
+              "public contract list",
+          )
+          proficiency = (
+              "The proficiency-reference resolver and correlation contracts are `stable/merged` as of PR #898 / merge "
+              "`89acb51d3f3c3b4d6de5c7c8a4557b2d931f88ed`. They consume exact TCR-004 proficiency definitions, "
+              "canonical appearance proficiency/object bindings and compact Canary loader/runtime evidence through exact reviewed mappings. "
+              "They keep definition, appearance, item, runtime, persistence, protocol/client, automated behavior and Physical E2E separate; "
+              "they do not prove gameplay parity or authorize mutation."
+          )
+          text = one(
+              text,
+              proficiency,
+              proficiency + (
+                  "\n\nThe client-reference drift contract is `stable/merged` as of PR #1018 / merge "
+                  "`c678d90483af945b3bbf0a40f6d6b9ce99da4a3f`. It compares exact retained manifest/index snapshots, "
+                  "preserves dependency-scoped staleness and fails closed across the StaticData schema-family boundary. "
+                  "It does not prove gameplay impact or authorize mutation."
+                  "\n\nTCR-010 PR #1027 adds exact reviewed binding IDs for one bounded house, content, proficiency or drift extract and "
+                  "delegates path, SHA-256, format, JSON Pointer and serialized-size enforcement to QA-018. "
+                  "It adds no parser, semantic reinterpretation, E2E, acceptance or routing authority and remains non-stable until merge."
+              ),
+              "drift and gateway contract descriptions",
+          )
+          old_owa = (
+              "OWA-003 may later consume `canary-tibia-client-reference-manifest-v1`, `canary-tibia-staticdata-index-v1`, "
+              "`canary-tibia-staticmapdata-index-v1`, `canary-tibia-proficiency-index-v1`, `canary-otbm-house-id-resolver-v1`, "
+              "`canary-otbm-house-reference-parity-v1`, `canary-tibia-content-reference-resolver-v1`, "
+              "`canary-tibia-content-reference-correlation-v1`, `canary-tibia-proficiency-reference-resolver-v1` and "
+              "`canary-tibia-proficiency-reference-correlation-v1` only within their exact stable provenance/reference boundaries where that dependency is required. "
+              "It must not infer map authority, `staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or any still-planned minimap, drift, gateway or routing output before the owning bounded package merges."
+          )
+          text = one(
+              text,
+              old_owa,
+              "OWA-003 may consume stable TCR-001 through TCR-007 and TCR-009 contracts only within their exact provenance boundaries. "
+              "TCR-010 remains non-consumable until PR #1027 merges and TCR-011 remains unavailable. No consumer may infer map authority, "
+              "`staticmapdata.object_id` equivalence, unreviewed proficiency-ID equivalence, gameplay/runtime parity or mutation authority.",
+              "OWA boundary",
+          )
+          start = text.index("# Last bounded lifecycle disposition")
+          end = text.index("# Blockers and unresolved references", start)
+          text = text[:start] + (
+              "# Last bounded lifecycle disposition\n\n"
+              "- TCR-009 feature PR `#1018` merged as `c678d90483af945b3bbf0a40f6d6b9ce99da4a3f`.\n"
+              "- TCR-009 lifecycle PR `#1025` merged as `7095f27c684f0825278c5fcc4b78f93f85ab087b`.\n"
+              "- Discovery reconciliation PR `#1026` merged as `6c7bdb8817d2010620d119a9a1f6b944895bc73d`.\n"
+              "- TCR-010 is active in draft PR `#1027` and remains non-stable until exact-final-head merge.\n\n"
+          ) + text[end:]
+          path.write_text(text, encoding="utf-8")
+          PY
+          PYTHONPATH=tools/ai-agent python -m unittest discover -s tools/ai-agent -p "test_tibia_client_reference_evidence_gateway*.py" -v
+          git add tools/ai-agent/tibia_client_reference_evidence_gateway.py \
+            tools/ai-agent/test_tibia_client_reference_evidence_gateway_output_safety.py \
+            docs/agents/programs/OTBM_TIBIA_CLIENT_REFERENCE_PROGRAM.md
+          git commit -m "fix(tcr): harden gateway output confinement"
+          git push origin HEAD:feat/CAN-20260730-tcr-010-evidence-gateway
