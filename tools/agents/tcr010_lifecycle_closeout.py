@@ -15,7 +15,9 @@ def one(text: str, old: str, new: str, label: str) -> str:
 
 active = Path("docs/agents/tasks/active/CAN-20260730-tcr-010-evidence-gateway.md")
 archive = Path("docs/agents/tasks/archive/CAN-20260730-tcr-010-evidence-gateway.md")
-text = active.read_text(encoding="utf-8")
+raw = active.read_text(encoding="utf-8")
+checkpoint = raw.index("## Context checkpoint")
+text = raw[:checkpoint]
 text = one(text, "status: ready", "status: merged", "task status")
 text = one(
     text,
@@ -47,8 +49,7 @@ text = one(
     "- [x] Pass exact-final-head CI, merge and archive.",
     "task final criterion",
 )
-checkpoint = text.index("## Context checkpoint")
-text = text[:checkpoint] + f'''# Feature result
+text = text + f'''# Feature result
 
 - Feature PR: `#1027`.
 - Exact final head: `{FEATURE_HEAD}`.
