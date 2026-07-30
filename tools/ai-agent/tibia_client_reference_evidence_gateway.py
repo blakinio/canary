@@ -439,6 +439,15 @@ def source_paths_for_plan(
 
 
 def _atomic_write_text(path: Path, content: str, *, overwrite: bool) -> None:
+    for parent in (path.parent, *path.parent.parents):
+        if parent.is_symlink():
+            raise ClientReferenceEvidenceGatewayError(
+                f"output parent must not be a symlink: {parent}"
+            )
+        if parent.exists() and not parent.is_dir():
+            raise ClientReferenceEvidenceGatewayError(
+                f"output parent exists but is not a directory: {parent}"
+            )
     if path.is_symlink():
         raise ClientReferenceEvidenceGatewayError(
             f"output must not be a symlink: {path}"

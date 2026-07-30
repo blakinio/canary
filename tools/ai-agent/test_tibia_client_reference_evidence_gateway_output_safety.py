@@ -37,6 +37,18 @@ class ClientReferenceEvidenceGatewayOutputSafetyTests(unittest.TestCase):
             with self.assertRaises(ClientReferenceEvidenceGatewayError):
                 write_report(link, {}, overwrite=True)
 
+    def test_symlink_parent_rejected_direct_writer(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real = root / "real"
+            real.mkdir()
+            link = root / "link"
+            link.symlink_to(real, target_is_directory=True)
+            with self.assertRaisesRegex(
+                ClientReferenceEvidenceGatewayError, "output parent must not be a symlink"
+            ):
+                write_report(link / "output.json", {}, overwrite=False)
+
     def test_relative_output_escape_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
