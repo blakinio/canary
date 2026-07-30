@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import copy
 import datetime as dt
 import hashlib
 import importlib.util
+import io
+import json
 from pathlib import Path
 
 from real_tibia_evidence_test_support import *
@@ -268,6 +271,39 @@ class RealTibiaRefreshPlanTests(EvidenceTestCase):
         )
         self.assertEqual(plan["summary"]["prepublication_evidence_records"], 1)
         self.assertEqual(plan["summary"]["nonactionable_published_records"], 2)
+
+    def test_cli_emits_repeatable_json_and_rejects_non_iso_date(self) -> None:
+        record = self.accepted_record("RT-COMBAT-0001")
+        self.write_record(record)
+        self.refresh()
+
+        outputs: list[str] = []
+        for _ in range(2):
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                result = planner.main(
+                    [
+                        "--root",
+                        str(self.root),
+                        "--as-of",
+                        AS_OF.isoformat(),
+                        "--module",
+                        "combat",
+                    ]
+                )
+            self.assertEqual(result, 0)
+            self.assertEqual(stderr.getvalue(), "")
+            outputs.append(stdout.getvalue())
+
+        self.assertEqual(outputs[0], outputs[1])
+        payload = json.loads(outputs[0])
+        self.assertEqual(payload["items"][0]["evidence_id"], "RT-COMBAT-0001")
+        self.assertTrue(planner.verify_plan_sha256(payload))
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                planner.parser().parse_args(["--as-of", "2026-7-1"])
 
     def test_selector_and_corpus_errors_fail_closed(self) -> None:
         with self.assertRaisesRegex(planner.RefreshPlanError, "duplicate target version axis"):
