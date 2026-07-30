@@ -1,0 +1,57 @@
+name: OWA-003B Preflight Sync Fix
+
+on:
+  push:
+    branches:
+      - docs/CAN-20260730-owa-003b-downstream-evidence-preflight
+    paths:
+      - .github/workflows/owa003b-preflight-sync-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: docs/CAN-20260730-owa-003b-downstream-evidence-preflight
+          fetch-depth: 0
+      - name: Reconcile OWA-003B programme state
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected one match in {path}, found {text.count(old)}")
+              target.write_text(text.replace(old, new), encoding="utf-8")
+
+          p = "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
+          replace_once(p, 'updated: 2026-07-30T13:00:00+02:00\nlast_verified_commit: "b3a8f74fce051580af520bd21d977ef6ac039d97"', 'updated: 2026-07-30T13:15:00+02:00\nlast_verified_commit: "f015a51eccb9caa57f4fde432b6f55a0523ca251"')
+          replace_once(p, "No active OWA task remains after OWA-003A feature PR #1031 merged. Lifecycle PR #1032 archives its task and releases ownership; downstream OWA-003 work starts only after a fresh retained-evidence preflight.", "OWA-003B is active as a blocked retained-evidence preflight in draft PR #1033 under task `CAN-20260730-owa-003b-downstream-evidence-preflight`. First failure: `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`. It creates no downstream implementation or substitute evidence.")
+          replace_once(p, "| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged via #1031; downstream retained-evidence preflight required | stable TCR-011 routing + QA-016 consumed by stable freshness-impact contract; later QA-008/002/007/006 evidence owned downstream | medium | Run one bounded read-only retained-evidence preflight. If no exact OWA-003A impact plus canonical downstream chain exists, record the first external-evidence blocker without building a wrapper or synthetic evidence. |", "| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked — `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT` in #1033 | one retained executed OWA-003A impact before any QA-008/002/007/006 compatibility evaluation | medium | An owning evidence workflow must retain or explicitly reference one executed freshness impact with exact file/report/manifest/routing/provenance/BOM identities; then re-enter in a fresh bounded task. |")
+          replace_once(p, "7. **OWA-003 downstream preflight** — next bounded package: determine whether one exact retained OWA-003A impact and canonical QA-008/002/007/006 evidence chain exists; never synthesize missing inputs from TCR.", "7. **OWA-003B** — blocked preflight in #1033. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility is not evaluated.")
+          replace_once(p, "Downstream QA execution/assurance evidence remains unproven and separately owned pending a fresh retained-evidence preflight.", "Downstream QA execution/assurance evidence remains unproven and separately owned. OWA-003B stops at the first missing executed freshness-impact input and records the exact external-evidence re-entry requirement.")
+          replace_once(p, "The programme therefore remains active: OWA-006 condition 6 is unproven and OWA-003A alone does not complete the downstream QA-008/002/007/006 chain.", "The programme therefore remains active: OWA-006 condition 6 is unproven and OWA-003B is blocked before downstream QA-008/002/007/006 evaluation by `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`.")
+          replace_once(p, "- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. Later QA-008/002/007/006 stages remain separate and require an exact retained OWA-003A impact plus canonical map-change, dependency, execution, health and certification evidence rather than TCR-derived substitutes.", "- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. OWA-003B preflight in #1033 is blocked at `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`; no later QA-008/002/007/006 compatibility is claimed or evaluated.")
+          replace_once(p, "OWA-003 downstream QA-008/002/007/006 evidence remains separate and unproven", "OWA-003B downstream evidence preflight is blocked on a retained executed OWA-003A impact; QA-008/002/007/006 remain unevaluated")
+          replace_once(p, "- The next bounded action is a fresh retained-evidence preflight for one exact OWA-003A impact and canonical QA-008/002/007/006 chain; missing evidence must be recorded as a blocker rather than synthesized from TCR.", "- OWA-003 downstream re-entry requires one retained executed OWA-003A impact with exact artifact/path, size, file SHA-256, report SHA-256, manifest identity, routing identity, QA-016 provenance identity, BOM identities and review/invocation evidence. Only then may a fresh task evaluate QA-008/002/007/006 in order.")
+
+          r = "docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md"
+          replace_once(r, "**Priority: OWA-003A stable/merged; downstream evidence-gated.**", "**Priority: OWA-003A stable/merged; OWA-003B blocked external evidence.**")
+          replace_once(r, "OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. The next action is a separate read-only retained-evidence preflight before any downstream implementation.", "OWA-003A records QA-008/002/007 as `not-evaluated` and QA-006 as `not-refreshed`; it does not create those inputs or invoke those owners. Lifecycle PR #1032 archives the feature task. OWA-003B preflight PR #1033 found no retained executed freshness impact with sufficient exact provenance and stops at `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`.")
+          replace_once(r, "## Hard boundaries", "## OWA-003B preflight disposition\n\n```text\nBLOCKED_EXTERNAL_EVIDENCE\nOWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT\n```\n\nThe merged producer contract, schemas and synthetic test fixtures are not an executed operational impact. Re-entry requires one durable impact reference with file/report/manifest/routing/provenance/BOM and review/invocation identities. QA-008/002/007/006 compatibility remains unevaluated until that first exact input exists.\n\n## Hard boundaries")
+          PY
+          rm .github/workflows/owa003b-preflight-sync.yml .github/workflows/owa003b-preflight-sync-fix.yml
+      - name: Commit programme reconciliation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md .github/workflows/owa003b-preflight-sync.yml .github/workflows/owa003b-preflight-sync-fix.yml
+          git commit -m "docs(otbm): reconcile OWA-003B blocked preflight"
+          git push origin HEAD:docs/CAN-20260730-owa-003b-downstream-evidence-preflight
