@@ -7,6 +7,7 @@ on:
       - "tools/ai-agent/tibia_reference_adoption_router_tool.py"
       - "tools/ai-agent/test_tibia_reference_adoption_router.py"
       - "tools/ai-agent/test_tibia_reference_adoption_router_output_safety.py"
+      - "tools/ai-agent/test_tibia_reference_adoption_router_schema.py"
       - "docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTER.md"
       - "docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING_REQUEST.schema.json"
       - "docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING.schema.json"
@@ -42,6 +43,7 @@ jobs:
           tools/ai-agent/tibia_reference_adoption_router_tool.py
           tools/ai-agent/test_tibia_reference_adoption_router.py
           tools/ai-agent/test_tibia_reference_adoption_router_output_safety.py
+          tools/ai-agent/test_tibia_reference_adoption_router_schema.py
       - name: Validate schemas
         run: |
           python -m json.tool docs/ai-agent/TIBIA_REFERENCE_ADOPTION_ROUTING_REQUEST.schema.json >/dev/null
