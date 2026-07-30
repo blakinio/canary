@@ -7,8 +7,8 @@ agent: chatgpt
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 base_branch: main
 created: 2026-07-30T12:05:00+02:00
-updated: 2026-07-30T12:28:00+02:00
-last_verified_commit: "8477faa7d260212371619bee0659bc2e88b8a18a"
+updated: 2026-07-30T12:35:00+02:00
+last_verified_commit: "e6c58bd3d4e5d86e31030200c270c0369449ab4c"
 risk: medium
 related_issue: ""
 related_pr: "1031"
@@ -66,7 +66,7 @@ Add the smallest deterministic read-only OWA-003A composition that verifies an e
 - [x] Keep unrelated QA-016 dimensions current/not-compared and never broaden staleness beyond the reviewed mapping.
 - [x] Emit revalidation requirements without selecting validators, generating Semantic Diff, invoking QA-008/002/007, running Physical E2E or refreshing QA-006.
 - [x] Add deterministic core, CLI, schemas, output safety and schema/code inventory tests.
-- [ ] Reconcile the OWA programme, roadmap, module catalogue and changelog without marking full OWA-003 complete.
+- [x] Reconcile the OWA programme, roadmap, module catalogue and changelog without marking full OWA-003 complete.
 - [ ] Pass exact-final-head CI and merge.
 
 # Design boundary
@@ -77,11 +77,11 @@ OWA-003A consumes stable reports only. It never opens TCR client inputs, parses 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T12:28:00+02:00
-head: 8477faa7d260212371619bee0659bc2e88b8a18a
+updated_at: 2026-07-30T12:35:00+02:00
+head: e6c58bd3d4e5d86e31030200c270c0369449ab4c
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 pr: 1031
-status: implementing
+status: ready-for-exact-head-gate
 context_routes:
   - agent-governance
   - otbm
@@ -102,41 +102,45 @@ owned_paths:
   - docs/agents/CHANGELOG.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
 proven:
-  - TCR-011 feature and lifecycle PRs 1029/1030 merged as 094523da1c07eaebcc7096606b690a25cf3474a9 and 292681e424b21bcf938ba204c86f17c864d95393.
-  - The OWA programme marks OWA-003 dependency-ready and requires re-derivation from stable merged TCR contracts.
-  - QA-016 already owns dependency-scoped staleness and does not rerun validators, Semantic Diff or Physical E2E.
-  - QA-002 requires canonical Semantic Diff and QA-007 requires exact executed validator/E2E evidence, so TCR evidence cannot synthesize either contract.
-  - The bounded core, CLI, schemas, documentation, output-safety tests and schema inventory are present on PR 1031.
-  - Empty-list defaults, one duplicate fixture mapping ID, a signature-sensitive determinism assertion and one mechanical indentation defect were corrected without weakening production validation.
+  - TCR-011 feature/lifecycle PRs 1029/1030 merged as 094523da1c07eaebcc7096606b690a25cf3474a9 and 292681e424b21bcf938ba204c86f17c864d95393.
+  - The package validates exact signed TCR-011 and QA-016 identities, complete route/target coverage, exact extract pins, changed non-removed components, stale non-removed dimensions and exact aggregate changed-dependency equality.
+  - Unsupported/blocked routes remain targetless review-required outcomes; QA-008/002/007 stay not-evaluated and QA-006 stays not-refreshed.
+  - Focused workflow 30534847199 passed unit tests, Python compilation, both schemas and CLI on connector-authored head e1474d39d51c14bc1d2d016e35c7a7de970be4bd.
+  - The final diff is restricted to the declared fourteen exclusive/shared paths; all temporary correction workflows self-deleted.
+  - Programme, roadmap, module catalogue and changelog preserve downstream OWA-003 and OWA-006 blockers without claiming full completion.
 derived:
-  - The smallest safe first slice is exact TCR-011-to-QA-016 dependency verification plus an explicit downstream revalidation-required state.
+  - OWA-003A can close after exact-final-head validation; any downstream QA-008/002/007/006 integration requires a fresh bounded evidence preflight.
 unknown:
-  - Exact final implementation head and workflow evidence are not yet available.
+  - Exact final-head workflow results and merge SHA are not yet available.
 conflicts: []
 first_failure:
   marker: fixture-default-signature-and-indentation
-  evidence: focused runs 30534457196 and 30534666711; failures were isolated to test fixtures/import formatting before production assertions executed.
+  evidence: focused runs 30534457196 and 30534666711; defects were test-fixture/import formatting only and were corrected without weakening production validation.
 rejected_hypotheses:
   - TCR drift can be converted directly into QA-002 or QA-007 evidence: rejected because those contracts require canonical map-change and executed result inputs owned elsewhere.
   - OWA should rediscover dependencies from TCR names or identifiers: rejected because QA-008 and OWA both require explicit reviewed dependency mappings.
 changed_paths:
+  - .github/workflows/otbm-tcr-qa-freshness.yml
+  - docs/agents/CHANGELOG.md
+  - docs/agents/MODULE_CATALOG.md
+  - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/agents/tasks/active/CAN-20260730-owa-003a-tcr-qa-freshness.md
+  - docs/ai-agent/OTBM_TCR_QA_FRESHNESS.md
+  - docs/ai-agent/OTBM_TCR_QA_FRESHNESS.schema.json
+  - docs/ai-agent/OTBM_TCR_QA_FRESHNESS_MANIFEST.schema.json
+  - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
   - tools/ai-agent/otbm_tcr_qa_freshness.py
   - tools/ai-agent/otbm_tcr_qa_freshness_tool.py
   - tools/ai-agent/test_otbm_tcr_qa_freshness.py
   - tools/ai-agent/test_otbm_tcr_qa_freshness_output_safety.py
   - tools/ai-agent/test_otbm_tcr_qa_freshness_schema.py
-  - docs/ai-agent/OTBM_TCR_QA_FRESHNESS.md
-  - docs/ai-agent/OTBM_TCR_QA_FRESHNESS_MANIFEST.schema.json
-  - docs/ai-agent/OTBM_TCR_QA_FRESHNESS.schema.json
-  - .github/workflows/otbm-tcr-qa-freshness.yml
 validation:
   - command: repository, programme and ownership preflight
     result: PASS
     evidence: main 292681e424b21bcf938ba204c86f17c864d95393; no existing OWA-003 branch/PR and no overlapping open PR found.
-  - command: focused workflow fixture correction
-    result: CORRECTED
-    evidence: runs 30534457196 and 30534666711; temporary correction workflows self-deleted and final diff remains bounded.
+  - command: focused OTBM TCR QA Freshness workflow
+    result: PASS
+    evidence: run 30534847199 on e1474d39d51c14bc1d2d016e35c7a7de970be4bd.
 blockers: []
-next_action: Run the focused workflow on this connector-authored checkpoint, then reconcile the four shared programme/discovery paths and execute the exact-final-head gate.
+next_action: Run the full exact-final-head workflow set on the next connector-authored SHA, audit reviews/diff/mergeability, then mark ready and squash-merge only if unchanged and fully green.
 ```
