@@ -90,13 +90,20 @@ public:
 	NpcInfo info;
 
 	void loadShop(const std::shared_ptr<NpcType> &npcType, ShopBlock shopBlock);
+	void addRegistrationSource(const std::string &source);
+	[[nodiscard]] const std::set<std::string> &getRegistrationSources() const noexcept;
 
 	bool loadCallback(LuaScriptInterface* scriptInterface);
 	bool canSpawn(const Position &pos) const;
+
+private:
+	std::set<std::string> registrationSources;
 };
 
 class Npcs {
 public:
+	using Registry = std::map<std::string, std::shared_ptr<NpcType>>;
+
 	Npcs() = default;
 	// non-copyable
 	Npcs(const Npcs &) = delete;
@@ -105,6 +112,7 @@ public:
 	static Npcs &getInstance();
 
 	std::shared_ptr<NpcType> getNpcType(const std::string &name, bool create = false);
+	[[nodiscard]] const Registry &getNpcTypes() const noexcept;
 
 	// Reset npcs informations on reload
 	bool load(bool loadLibs = true, bool loadNpcs = true, bool reloading = false) const;
@@ -112,7 +120,7 @@ public:
 
 private:
 	std::unique_ptr<LuaScriptInterface> scriptInterface;
-	std::map<std::string, std::shared_ptr<NpcType>> npcs;
+	Registry npcs;
 };
 
 constexpr auto g_npcs = Npcs::getInstance;
