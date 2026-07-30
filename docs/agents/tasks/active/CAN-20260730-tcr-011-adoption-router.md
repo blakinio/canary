@@ -2,13 +2,13 @@
 task_id: CAN-20260730-tcr-011-adoption-router
 program_id: CAN-PROGRAM-OTBM-TIBIA-CLIENT-REFERENCE
 coordination_id: TCR-011
-status: validating
+status: ready
 agent: chatgpt
 branch: feat/CAN-20260730-tcr-011-adoption-router
 base_branch: main
 created: 2026-07-30T10:30:00+02:00
-updated: 2026-07-30T11:10:00+02:00
-last_verified_commit: "3d46961067d8e43dd78a5e0811d50046288bb7ca"
+updated: 2026-07-30T11:15:00+02:00
+last_verified_commit: "b2e40a6997ad90b2cef74e534e648f57435f96a8"
 risk: medium
 related_issue: ""
 related_pr: "1029"
@@ -78,11 +78,11 @@ The request is reviewer-authored and exact-hash pinned. The router does not infe
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T11:10:00+02:00
-head: 3d46961067d8e43dd78a5e0811d50046288bb7ca
+updated_at: 2026-07-30T11:15:00+02:00
+head: b2e40a6997ad90b2cef74e534e648f57435f96a8
 branch: feat/CAN-20260730-tcr-011-adoption-router
 pr: 1029
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - otbm
@@ -103,23 +103,25 @@ owned_paths:
   - docs/agents/CHANGELOG.md
 proven:
   - TCR-005, TCR-006, TCR-007, TCR-009 and TCR-010 are stable/merged on main 4b2d6f432d92628c42bde1d95daed6ae0d0eb88f.
-  - PR 1029 exists on the dedicated branch and no open PR overlaps the exclusive paths.
+  - PR 1029 exists on the dedicated branch, carries ci:final-gate and no open PR overlaps the exclusive paths.
   - OTBM-QA-003 remains the sole supported map-repair capability classifier; TCR-011 never addresses writers/materializers directly.
   - The router validates the exact executed gateway report and embedded evidence bundle hashes, covers every extract exactly once and binds file hashes to the same bytes parsed by the CLI.
   - The fixed code/schema target inventory excludes direct Phase 8 and area-materializer writer capabilities.
   - Programme, module catalogue and changelog describe TCR-011 as active/in-review without promoting it to stable before merge.
+  - On parent head b2e40a6997ad90b2cef74e534e648f57435f96a8, CI 30529582618, TCR drift 30529582207 and TCR evidence gateway 30529582231 passed.
 derived:
-  - The bounded implementation and documentation package is complete; only final-gate evidence, readiness and merge remain.
+  - The bounded implementation and documentation package is complete; the current commit must pass the exact-final-head gate before readiness and merge.
 unknown:
-  - Exact final implementation head and final-gate workflow evidence are not yet available.
+  - Exact current-head workflow conclusions and squash-merge SHA are not yet available.
 conflicts: []
 first_failure:
-  marker: Agent Task Ownership / Validate changed active task checkpoints
-  evidence: run 30528225261 job 90824075575; related_pr was empty while the current PR is 1029.
+  marker: Agent Task Ownership / active-task frontmatter status
+  evidence: run 30529582329 job 90828462746 rejected status validating in tasks/active; corrected to ready in this final checkpoint commit.
 rejected_hypotheses:
   - TCR-011 should derive mutation targets from TCR fragments: rejected because TCR-005/006/007/009/010 preserve review evidence and grant no target-state or mutation authority.
   - The first CI failure indicates a router implementation defect: rejected because the dedicated router, CI and AI Agent Tools workflows passed; only task related_pr metadata failed.
   - Parsing and hashing inputs in separate reads is sufficient: rejected because a path could change between reads; the CLI now hashes the exact bytes it parsed and rejects non-finite JSON numbers.
+  - Frontmatter validating is an active-task status: rejected by Agent Task Ownership run 30529582329; active task readiness uses status ready while the checkpoint retains exact validation state.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260730-tcr-011-adoption-router.md
   - tools/ai-agent/tibia_reference_adoption_router.py
@@ -135,18 +137,18 @@ changed_paths:
   - docs/agents/MODULE_CATALOG.md
   - docs/agents/CHANGELOG.md
 validation:
-  - command: Tibia Reference Adoption Router workflow
+  - command: focused router tests, schema validation, Python compilation and CLI smoke
     result: PASS
-    evidence: run 30528222169 on 8845e58e1bb18340ad1eaa52b22c49d858fee1f3; later exact-head validation pending.
+    evidence: Tibia Reference Adoption Router run 30529402211 completed the implementation and exact-input hardening package successfully.
   - command: CI
     result: PASS
-    evidence: run 30528222229 on 8845e58e1bb18340ad1eaa52b22c49d858fee1f3; later exact-head validation pending.
-  - command: AI Agent Tools
+    evidence: run 30529582618 on parent b2e40a6997ad90b2cef74e534e648f57435f96a8.
+  - command: TCR drift and evidence gateway compatibility
     result: PASS
-    evidence: run 30528221999 on 8845e58e1bb18340ad1eaa52b22c49d858fee1f3; later exact-head validation pending.
-  - command: Agent Task Ownership
-    result: PASS
-    evidence: run 30529014358 after related_pr correction; later exact-head validation pending.
+    evidence: runs 30529582207 and 30529582231 on parent b2e40a6997ad90b2cef74e534e648f57435f96a8.
+  - command: exact-final-head workflow set
+    result: NOT_RUN
+    evidence: this final checkpoint commit must emit and pass the full ci:final-gate workflow set before merge.
 blockers: []
-next_action: Apply the ci:final-gate label, write one final checkpoint commit with its exact parent evidence, then make no further commits before merge.
+next_action: Verify every required workflow on the exact current head, then mark PR 1029 ready and squash-merge without creating another commit.
 ```
