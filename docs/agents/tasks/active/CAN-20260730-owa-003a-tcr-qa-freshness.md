@@ -7,8 +7,8 @@ agent: chatgpt
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 base_branch: main
 created: 2026-07-30T12:05:00+02:00
-updated: 2026-07-30T12:25:00+02:00
-last_verified_commit: "02fd828563ec2c2ff861c358b588bb63ebb667fd"
+updated: 2026-07-30T12:28:00+02:00
+last_verified_commit: "8477faa7d260212371619bee0659bc2e88b8a18a"
 risk: medium
 related_issue: ""
 related_pr: "1031"
@@ -77,8 +77,8 @@ OWA-003A consumes stable reports only. It never opens TCR client inputs, parses 
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T12:25:00+02:00
-head: 02fd828563ec2c2ff861c358b588bb63ebb667fd
+updated_at: 2026-07-30T12:28:00+02:00
+head: 8477faa7d260212371619bee0659bc2e88b8a18a
 branch: feat/CAN-20260730-owa-003a-tcr-qa-freshness
 pr: 1031
 status: implementing
@@ -107,15 +107,15 @@ proven:
   - QA-016 already owns dependency-scoped staleness and does not rerun validators, Semantic Diff or Physical E2E.
   - QA-002 requires canonical Semantic Diff and QA-007 requires exact executed validator/E2E evidence, so TCR evidence cannot synthesize either contract.
   - The bounded core, CLI, schemas, documentation, output-safety tests and schema inventory are present on PR 1031.
-  - The first workflow failure was fixture-only; empty-list defaults, a duplicate fixture mapping ID and a signature-sensitive determinism assertion were corrected without weakening production validation.
+  - Empty-list defaults, one duplicate fixture mapping ID, a signature-sensitive determinism assertion and one mechanical indentation defect were corrected without weakening production validation.
 derived:
   - The smallest safe first slice is exact TCR-011-to-QA-016 dependency verification plus an explicit downstream revalidation-required state.
 unknown:
   - Exact final implementation head and workflow evidence are not yet available.
 conflicts: []
 first_failure:
-  marker: fixture-default-and-signature-expectation
-  evidence: OTBM TCR QA Freshness run 30534457196; production contract tests reached the intended fail-closed paths after fixture corrections.
+  marker: fixture-default-signature-and-indentation
+  evidence: focused runs 30534457196 and 30534666711; failures were isolated to test fixtures/import formatting before production assertions executed.
 rejected_hypotheses:
   - TCR drift can be converted directly into QA-002 or QA-007 evidence: rejected because those contracts require canonical map-change and executed result inputs owned elsewhere.
   - OWA should rediscover dependencies from TCR names or identifiers: rejected because QA-008 and OWA both require explicit reviewed dependency mappings.
@@ -134,9 +134,9 @@ validation:
   - command: repository, programme and ownership preflight
     result: PASS
     evidence: main 292681e424b21bcf938ba204c86f17c864d95393; no existing OWA-003 branch/PR and no overlapping open PR found.
-  - command: first focused workflow
-    result: FIXTURE_FAILURE_CORRECTED
-    evidence: run 30534457196 exposed four test-fixture expectation defects; no production validation was relaxed.
+  - command: focused workflow fixture correction
+    result: CORRECTED
+    evidence: runs 30534457196 and 30534666711; temporary correction workflows self-deleted and final diff remains bounded.
 blockers: []
 next_action: Run the focused workflow on this connector-authored checkpoint, then reconcile the four shared programme/discovery paths and execute the exact-final-head gate.
 ```
