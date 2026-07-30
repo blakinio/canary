@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-owa-003c-executed-evidence
 base_branch: main
 created: 2026-07-30T22:35:00+02:00
-updated: 2026-07-30T22:35:00+02:00
-last_verified_commit: "9704087e3d6fc7b434938b343a546c14a23a447e"
+updated: 2026-07-30T22:40:00+02:00
+last_verified_commit: "85c482939a02581316a70fda73fc956e2a18cdf2"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "1035"
 depends_on:
   - TCR-009 stable retained exact snapshot A/B and drift identities
   - TCR-010 stable evidence gateway contracts
@@ -61,7 +61,7 @@ Produce and retain one real executed OWA-003A freshness impact with exact TCR-01
 
 # Acceptance criteria
 
-- [ ] Revalidate exact current `main`, ownership, open PRs and branches.
+- [x] Revalidate exact current `main`, ownership, open PRs and branches.
 - [ ] Recover or deterministically rematerialize the exact retained TCR input/report chain without committing proprietary client payloads.
 - [ ] Execute TCR-010 and TCR-011 over exact retained real evidence, preserving unsupported and blocked outcomes.
 - [ ] Author one explicit reviewed route/component/dimension mapping from exact evidence only; no name/proximity/ID guessing.
@@ -75,10 +75,10 @@ Produce and retain one real executed OWA-003A freshness impact with exact TCR-01
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-30T22:35:00+02:00
-head: 9704087e3d6fc7b434938b343a546c14a23a447e
+updated_at: 2026-07-30T22:40:00+02:00
+head: 85c482939a02581316a70fda73fc956e2a18cdf2
 branch: feat/CAN-20260730-owa-003c-executed-evidence
-pr: null
+pr: 1035
 status: active
 context_routes:
   - agent-governance
@@ -89,7 +89,8 @@ owned_paths:
   - .github/workflows/owa-003c-executed-evidence.yml
   - docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md
 proven:
-  - Current main is 9704087e3d6fc7b434938b343a546c14a23a447e and no open OWA/TCR/QA PR or OWA/candidate branch owns this scope.
+  - Current main is 9704087e3d6fc7b434938b343a546c14a23a447e and no pre-existing open OWA/TCR/QA PR or OWA/candidate branch owned this scope.
+  - Draft PR 1035 now owns the bounded OWA-003C executed-evidence package.
   - TCR-009 completed two exact retained snapshots and drift: A manifest 6096b021..., B manifest 54646c3f..., retained summary 6224a175..., drift be0593cb... with 27 findings.
   - TCR-010, TCR-011 and OWA-003A contracts are stable, but their exact-head workflows retained no executed operational artifacts.
   - The previously supplied snapshot B was version 15.31.69f220 with package SHA-256 95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8; its local binary is not mounted in the current runtime.
@@ -109,5 +110,5 @@ rejected_hypotheses:
   - Infer reviewer mappings from names, visual proximity or guessed identifier equivalence.
 validation: []
 blockers: []
-next_action: Open the draft PR, bind its number into this task, then add a trusted exact-input rematerialization workflow and inspect its retained artifact.
+next_action: Add the trusted exact-input rematerialization workflow, inspect its retained artifact and continue from the first exact result.
 ```
