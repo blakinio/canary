@@ -2,13 +2,13 @@
 task_id: CAN-20260731-rtec-006-refresh-drift-planner
 program_id: CAN-PROGRAM-REAL-TIBIA-EVIDENCE-COLLECTION
 coordination_id: RTEC-006
-status: active
+status: implementing
 agent: "GPT-5.6 Thinking"
 branch: feat/rtec-006-refresh-drift-planner-20260731
 base_branch: main
 created: 2026-07-31T00:17:45+02:00
-updated: 2026-07-31T00:19:30+02:00
-last_verified_commit: "20d2bd85cbda2e51363822b059f8ad506090e4eb"
+updated: 2026-07-31T00:31:30+02:00
+last_verified_commit: "04c61e987b374743e626c82e17bbaa3f1b52d6ee"
 risk: medium
 related_issue: ""
 related_pr: "1038"
@@ -60,17 +60,17 @@ Implement the bounded RTEC-006 read-only planner that deterministically selects 
 
 # Acceptance criteria
 
-- [ ] Add a Python 3.12 standard-library CLI with an explicit `--as-of` date and deterministic JSON output.
-- [ ] Reuse the validated publication view; never publish or act on prepublication records.
-- [ ] Select inclusive freshness warning/invalidation boundaries and explicit `STALE` state without mutating records.
-- [ ] Select exact target-version deltas across the canonical version axes while preserving historical-version records as historical evidence.
-- [ ] Select changed repository paths and source identifiers from exact evidence provenance.
-- [ ] Produce stable priorities, reasons, input identity and plan digest independent of argument order.
-- [ ] Fail closed on malformed selectors, invalid corpus state, unsafe paths and duplicate/conflicting target axes.
-- [ ] Exclude rejected and superseded evidence from actionable output.
-- [ ] Add focused positive, negative, determinism and no-mutation tests.
-- [ ] Document the operator workflow, output contract, priority rules and nonclaims.
-- [ ] Change no global evidence index, owner request, dossier module or RTEC programme file.
+- [x] Add a Python 3.12 standard-library CLI with an explicit `--as-of` date and deterministic JSON output.
+- [x] Reuse the validated publication view; never publish or act on prepublication records.
+- [x] Select inclusive freshness warning/invalidation boundaries and explicit `STALE` state without mutating records.
+- [x] Select exact target-version deltas across the canonical version axes while preserving historical-version records as historical evidence.
+- [x] Select changed repository paths and source identifiers from exact evidence provenance.
+- [x] Produce stable priorities, reasons, input identity and plan digest independent of argument order.
+- [x] Fail closed on malformed selectors, invalid corpus state, unsafe paths and duplicate/conflicting target axes.
+- [x] Exclude rejected and superseded evidence from actionable output.
+- [x] Add focused positive, negative, determinism and no-mutation tests.
+- [x] Document the operator workflow, output contract, priority rules and nonclaims.
+- [x] Change no global evidence index, owner request, dossier module or RTEC programme file.
 - [ ] Pass focused local/CI validation on the exact final head, then squash-merge the source PR.
 - [ ] Archive this task in a separate lifecycle PR and merge it.
 
@@ -84,8 +84,8 @@ This task only plans future review work. It does not refresh evidence, change ev
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:19:30+02:00
-head: 20d2bd85cbda2e51363822b059f8ad506090e4eb
+updated_at: 2026-07-31T00:31:30+02:00
+head: 04c61e987b374743e626c82e17bbaa3f1b52d6ee
 branch: feat/rtec-006-refresh-drift-planner-20260731
 pr: 1038
 status: implementing
@@ -101,30 +101,46 @@ proven:
   - current main is dcc09b1d012cbf4462aecc9970ae8540353ea8e3
   - PR 1038 targets blakinio/canary main from the dedicated RTEC-006 branch
   - no earlier live PR or branch claimed RTEC-006 or the three implementation paths
-  - RTEC-006 is planned to add deterministic stale/version-delta selection
-  - the existing corpus exposes validated publication filtering, canonical version axes and deterministic stale rows
-  - global evidence indexes, owner requests, dossier modules and the RTEC programme are forbidden for this task
+  - implementation is limited to the four exclusive paths
+  - planner uses explicit as_of, validated publication filtering, exact version anchors and exact provenance selectors
+  - planner emits deterministic input and plan SHA-256 identities and performs no corpus writes
+  - focused source and test files pass local Python bytecode compilation
+  - isolated synthetic smoke test passed selection, priority and plan digest verification
+  - CI, Real Tibia Module Registry and Upstream Intelligence passed on 04c61e987b374743e626c82e17bbaa3f1b52d6ee
+  - Agent Task Ownership first failed because frontmatter status active is not a valid active lifecycle status
+  - global evidence indexes, owner requests, dossier modules and the RTEC programme remain unchanged
   - docs/agents/PROJECT_STATE.md is absent on current main
   - docs/agents/prompts/RTEC_COMMON_AGENT_RULES.md is absent on current main
   - the dedicated Real Tibia workflow discovers test_real_tibia*.py but its path trigger does not currently list the new planner files
 derived:
-  - the smallest complete implementation is a read-only planner over the existing validated publication view
+  - frontmatter status must be implementing to match the implementing checkpoint
 unknown:
+  - focused integration test result on a complete repository checkout is not yet established
   - missing RTEC common rules cannot be evaluated because the current repository has no such file
   - missing project state cannot be evaluated because the current repository has no such file
 conflicts: []
 first_failure:
-  marker: none
-  evidence: startup, ownership and draft-PR preflight passed
+  marker: Agent Task Ownership / Validate changed active task checkpoints
+  evidence: "record under tasks/active has non-active status 'active'"
 rejected_hypotheses:
+  - planner code caused the first CI failure: the failing job completed its own 63 focused tests and rejected only task status metadata
   - the planner should edit evidence or shared indexes: user scope and programme boundaries forbid those writes
   - historical evidence should become stale solely because a newer target version exists: historical-version records preserve bounded historical facts
 changed_paths:
+  - docs/agents/real-tibia/REFRESH_OPERATION.md
   - docs/agents/tasks/active/CAN-20260731-rtec-006-refresh-drift-planner.md
+  - tools/agents/real_tibia_refresh_plan.py
+  - tools/agents/test_real_tibia_refresh_plan.py
 validation:
-  - command: live GitHub main, branch, PR and overlap preflight
+  - command: python -m py_compile /mnt/data/real_tibia_refresh_plan.py /mnt/data/test_real_tibia_refresh_plan.py
     result: PASS
-    evidence: main dcc09b1d012cbf4462aecc9970ae8540353ea8e3; PR 1038; no owned-path overlap
+    evidence: Python 3 bytecode compilation completed without diagnostics
+  - command: isolated synthetic planner smoke
+    result: PASS
+    evidence: version/path/source selection, high priority and plan digest verification passed
+  - command: GitHub Actions on 04c61e987b374743e626c82e17bbaa3f1b52d6ee
+    result: PARTIAL
+    evidence: CI, registry and upstream passed; ownership failed on frontmatter status only
 blockers: []
-next_action: Implement the planner, focused tests and operator documentation on PR 1038.
+next_action: Re-run ownership validation after the status correction, then execute focused integration tests and final-head review.
 ```
