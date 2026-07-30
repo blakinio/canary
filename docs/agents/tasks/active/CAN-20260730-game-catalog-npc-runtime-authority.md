@@ -2,13 +2,13 @@
 task_id: CAN-20260730-game-catalog-npc-runtime-authority
 program_id: GAME-CATALOG-PRODUCTION-COMPLETION
 coordination_id: GAME-CATALOG-SCHEMA-1.3-NPC-SHOPS
-status: review
+status: ready
 agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-game-catalog-npc-runtime-authority
 base_branch: main
 created: 2026-07-30T23:44:00+02:00
-updated: 2026-07-31T00:14:00+02:00
-last_verified_commit: "3bff1e1ed6504a91c02c8d1de0909899ca79ee76"
+updated: 2026-07-31T00:20:00+02:00
+last_verified_commit: "c73421f36820007f6d66df6566e0e7b3e576305e"
 risk: high
 related_issue: ""
 related_pr: "1037"
@@ -58,7 +58,7 @@ Identify and document the authoritative final Canary runtime boundary for NPC en
 - [x] Specify focused unit/runtime-smoke evidence required before implementing schema `1.3.0` production.
 - [x] Record every unavailable or ambiguous fact as unknown rather than inferring it.
 - [x] Do not change exporter behavior, schema bytes, datapack content, production configuration or deployment state in this audit task.
-- [ ] Pass exact-head governance and documentation checks, then merge and archive this audit before producer implementation.
+- [x] Pass governance and documentation checks and enter the exact-head final gate before merge.
 
 # Result
 
@@ -70,11 +70,11 @@ The static producer may use only the final `Npcs::npcs` registry, final `NpcType
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T00:14:00+02:00
-head: 3bff1e1ed6504a91c02c8d1de0909899ca79ee76
+updated_at: 2026-07-31T00:20:00+02:00
+head: c73421f36820007f6d66df6566e0e7b3e576305e
 branch: feat/CAN-20260730-game-catalog-npc-runtime-authority
 pr: 1037
-status: validating
+status: ready
 context_routes:
   - agent-governance
   - cpp-runtime
@@ -94,6 +94,8 @@ proven:
   - Platform PR 338 pins schema 1.3.0 SHA-256 0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8 and shared-fixture SHA-256 c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7.
   - The paired fixture maps itemBuyPrice semantics to npc_buy_offer and itemSellPrice semantics to npc_sell_offer, with exact zero-based nested runtime paths.
   - Current NpcType records do not retain source provenance and Npcs has no const enumeration interface; both are bounded implementation requirements for the producer task.
+  - Agent Task Ownership run 30585933285 and CI run 30585933411 passed on reviewed head c73421f36820007f6d66df6566e0e7b3e576305e.
+  - PR 1037 is documentation-only, mergeable, has no review threads and carries the ci:final-gate label before this final checkpoint commit.
 derived:
   - The producer can safely load the configured npc directory through the existing Lua execution boundary without loading the complete datapack script tree, provided the no-database/no-network runtime smoke remains fail closed.
   - Static output can remain deterministic by canonical-key sorting and final per-NPC vector order when duplicate registry provenance across different files is rejected.
@@ -125,12 +127,15 @@ validation:
   - command: paired Platform schema and fixture review
     result: PASS
     evidence: exact schema 1.3 NPC/currency/shop fields, canonical identity patterns and fixture direction semantics were verified on Platform PR 338.
-  - command: CI run 30585829940 on head 3bff1e1ed6504a91c02c8d1de0909899ca79ee76
+  - command: Agent Task Ownership run 30585933285 on head c73421f36820007f6d66df6566e0e7b3e576305e
     result: PASS
-    evidence: repository CI completed successfully; ownership failed only because the frontmatter status used a value outside the lifecycle status enum.
-  - command: exact-head PR checks
+    evidence: changed active task checkpoint and ownership declarations validated.
+  - command: CI run 30585933411 on head c73421f36820007f6d66df6566e0e7b3e576305e
+    result: PASS
+    evidence: repository CI completed successfully.
+  - command: exact-head final gate after this checkpoint commit
     result: NOT_RUN
-    evidence: GitHub Actions has not yet completed on the corrected review-status head.
+    evidence: ci:final-gate is applied and the synchronize event from this commit must produce the exact-head evidence before merge.
 blockers: []
-next_action: Validate PR 1037 on its exact corrected documentation head, mark the audit ready and merge it if all repository gates pass, then create the separate schema 1.3.0 producer task from current main.
+next_action: Merge PR 1037 only after the exact final checkpoint head passes Agent Task Ownership and full CI, then verify automated archival and start the separate schema 1.3.0 producer task from current main.
 ```
