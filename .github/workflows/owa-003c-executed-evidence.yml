@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - ".github/workflows/owa-003c-executed-evidence.yml"
-      - ".github/owa-003c/**"
       - "docs/agents/tasks/active/CAN-20260730-owa-003c-executed-evidence.md"
       - "docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md"
       - "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
@@ -12,36 +11,64 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  rematerialize-snapshot-b:
+  reconcile-terminal-state:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Compile exact rematerializer
-        run: python -m py_compile .github/owa-003c/rematerialize.py
+      - name: Reconcile OWA programme and roadmap
+        run: |
+          python - <<'PY'
+          from pathlib import Path
 
-      - name: Rematerialize exact snapshot B inputs
-        env:
-          EXPECTED_PACKAGE_VERSION: 15.31.69f220
-          OWA003C_OUTPUT: .owa-003c-evidence
-        run: python .github/owa-003c/rematerialize.py
+          def replace_exact(path: str, old: str, new: str) -> None:
+              file_path = Path(path)
+              text = file_path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one exact anchor in {path}, found {count}: {old[:120]!r}")
+              file_path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
-      - name: Validate audit JSON
-        run: python -m json.tool .owa-003c-evidence/input-audit.json >/dev/null
+          program = "docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md"
+          roadmap = "docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md"
 
-      - name: Upload exact rematerialized inputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: owa-003c-snapshot-b-${{ github.event.pull_request.head.sha || github.sha }}
-          path: .owa-003c-evidence
-          if-no-files-found: error
-          retention-days: 90
-          compression-level: 0
+          replace_exact(program, 'updated: 2026-07-30T13:35:00+02:00\nlast_verified_commit: "535c2fad31772af616c1c5d03cd1d570b4bf2a2b"', 'updated: 2026-07-30T23:00:00+02:00\nlast_verified_commit: "9704087e3d6fc7b434938b343a546c14a23a447e"')
+          replace_exact(program, 'No active OWA task remains after OWA-003B preflight PR #1033 merged. Lifecycle PR #1034 archives the blocked task and releases ownership without converting the external-evidence blocker into completion.', 'OWA-003C is active as a blocked exact-evidence recovery in draft PR #1035 under task `CAN-20260730-owa-003c-executed-evidence`. It owns only recovery/preflight evidence and creates no substitute TCR, QA, candidate or runtime proof.')
+          replace_exact(program, '| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked preflight merged #1033, lifecycle #1034 — `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT` | one retained executed OWA-003A impact before any QA-008/002/007/006 compatibility evaluation | medium | Re-enter only after an owning evidence workflow retains or explicitly references one executed freshness impact with exact file/report/manifest/routing/provenance/BOM and review/invocation identities. |', '| OWA-003 | TCR-to-QA Drift and Freshness Integration | OWA-003A stable/merged; OWA-003B blocked/lifecycle-closed; OWA-003C recovery blocked in #1035 — `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` | exact snapshot-B bytes or the complete retained TCR-009 report chain before TCR-010/011/QA-016/OWA-003A execution | medium | Re-enter only after exact recoverable snapshot-B or report-chain bytes reproduce the accepted TCR-009 identities; hashes and summaries alone are not executable report payloads. |')
+          replace_exact(program, '7. **OWA-003B** — blocked preflight merged via #1033 and lifecycle-closed via #1034. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility remains unevaluated.\n\nAll currently executable OWA work has been performed. OWA-006 is not functionally complete and may resume only when its missing real candidate producer evidence exists. The TCR dependency and OWA-003A freshness integration are complete. Downstream QA execution/assurance evidence remains unproven and separately owned. OWA-003B stops at the first missing executed freshness-impact input and records the exact external-evidence re-entry requirement.', '7. **OWA-003B** — blocked preflight merged via #1033 and lifecycle-closed via #1034. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility remains unevaluated.\n8. **OWA-003C** — exact-evidence recovery in #1035 exhausted retained Actions artifacts, official-launcher rematerialization and the public exact-tag mirror. It stops at `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` without reconstructing report bytes from hashes or summaries.\n\nAll currently executable OWA recovery work has been performed. OWA-006 remains independently blocked on a real candidate chain. OWA-003 downstream remains blocked before TCR-010 because exact recoverable snapshot-B/report-chain bytes are absent; QA-008/002/007/006 remain unevaluated.')
+          replace_exact(program, 'OWA never parses `staticdata`, `staticmapdata`, proficiency or minimap files and never guesses identifier mappings. OWA-003A does not invoke QA-008, generate Semantic Diff or QA-002 selection, create QA-007 execution evidence, run validators/Physical E2E or refresh QA-006. Those stages require their canonical downstream inputs and separate ownership.\n\n## OWA-004 — Runtime Incident to OTBM Evidence Bridge', 'OWA never parses `staticdata`, `staticmapdata`, proficiency or minimap files and never guesses identifier mappings. OWA-003A does not invoke QA-008, generate Semantic Diff or QA-002 selection, create QA-007 execution evidence, run validators/Physical E2E or refresh QA-006. Those stages require their canonical downstream inputs and separate ownership.\n\n### OWA-003C exact-evidence recovery\n\nPR #1035 records a bounded recovery attempt after OWA-003B. The accepted TCR-009 lifecycle proves exact A/B manifest and drift hashes, but the corresponding snapshot-B/report bytes remain external. Final and diagnostic TCR workflow artifacts retain no executable report chain; official launcher requests are Cloudflare-blocked from GitHub-hosted runners; the public client mirror has no exact `15.31.69f220` tag. Stable hashes, task prose and evidence summaries are not reconstructed into report payloads.\n\nThe first failure is `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN`. Re-entry requires either exact snapshot-B bytes reproducing final manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 manifest/index/drift bytes. Only then may canonical TCR-010, TCR-011, QA-016 and OWA-003A execute.\n\n## OWA-004 — Runtime Incident to OTBM Evidence Bridge')
+          replace_exact(program, 'The programme therefore remains active: OWA-006 condition 6 is unproven and OWA-003B is blocked before downstream QA-008/002/007/006 evaluation by `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`.', 'The programme therefore remains active: OWA-006 condition 6 is unproven and OWA-003C confirms that OWA-003 cannot yet execute the missing impact because exact snapshot-B/report-chain bytes are not recoverable from current evidence.')
+          replace_exact(program, '- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. OWA-003B preflight merged via #1033 and lifecycle-closed via #1034 with blocker `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`; no later QA-008/002/007/006 compatibility is claimed or evaluated.', '- OWA-003A is stable/merged via PR #1031 and lifecycle PR #1032. OWA-003B is lifecycle-closed with `OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT`. OWA-003C recovery in #1035 identifies the earlier executable-input gap as `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN`; no downstream compatibility is claimed or evaluated.')
+          replace_exact(program, 'all currently executable OWA work completed\nOWA-006 operational adoption remains blocked on retained reviewed real candidate/change evidence\nOWA-003A exact TCR-to-QA-016 freshness verification is stable/merged via PR #1031\nOWA-003B preflight/lifecycle are closed with blocker OWA003B_NO_RETAINED_EXECUTED_TCR_QA_FRESHNESS_IMPACT; QA-008/002/007/006 remain unevaluated', 'all currently executable OWA recovery work completed\nOWA-006 operational adoption remains blocked on retained reviewed real candidate/change evidence\nOWA-003A exact TCR-to-QA-016 freshness verification is stable/merged via PR #1031\nOWA-003C recovery is blocked by OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN; QA-008/002/007/006 remain unevaluated')
+          replace_exact(program, '- OWA-003 downstream re-entry requires one retained executed OWA-003A impact with exact artifact/path, size, file SHA-256, report SHA-256, manifest identity, routing identity, QA-016 provenance identity, BOM identities and review/invocation evidence. Only then may a fresh task evaluate QA-008/002/007/006 in order.', '- OWA-003 recovery first requires exact snapshot-B bytes reproducing accepted manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 manifest/index/drift bytes. Then TCR-010/011, QA-016 and OWA-003A must execute and retain the full artifact/review/invocation identity before QA-008/002/007/006 may be evaluated.')
+
+          replace_exact(roadmap, '**Priority: OWA-003A stable/merged; OWA-003B preflight/lifecycle closed, blocked external evidence.**', '**Priority: OWA-003A stable/merged; OWA-003B lifecycle-closed; OWA-003C exact-evidence recovery blocked external evidence.**')
+          replace_exact(roadmap, 'The merged producer contract, schemas and synthetic test fixtures are not an executed operational impact. Re-entry requires one durable impact reference with file/report/manifest/routing/provenance/BOM and review/invocation identities. QA-008/002/007/006 compatibility remains unevaluated until that first exact input exists.\n\n## Hard boundaries', 'The merged producer contract, schemas and synthetic test fixtures are not an executed operational impact. Re-entry requires one durable impact reference with file/report/manifest/routing/provenance/BOM and review/invocation identities. QA-008/002/007/006 compatibility remains unevaluated until that first exact input exists.\n\n## OWA-003C terminal recovery disposition — PR #1035\n\n```text\nBLOCKED_EXTERNAL_EVIDENCE\nOWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN\n```\n\nTCR-009 proves prior exact snapshot A/B and drift identities, but generated payloads remained outside Git. OWA-003C found no executable report chain in final or diagnostic Actions artifacts. Official-launcher rematerialization was repeatedly Cloudflare-blocked before bytes were accepted, and the public client mirror contains no exact `15.31.69f220` tag. Hashes and summaries cannot be reconstructed into source reports.\n\nRe-entry requires exact snapshot-B bytes reproducing accepted final manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 final/bootstrap manifests, six indexes and drift report. Canonical TCR-010/011, QA-016 and OWA-003A must then execute before any downstream stage.\n\n## Hard boundaries')
+          PY
+
+          git diff --check
+          git diff -- docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
+
+      - name: Commit terminal reconciliation
+        run: |
+          if git diff --quiet; then
+            echo "No reconciliation changes required."
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
+          git commit -m "docs(otbm): reconcile OWA-003C recovery blocker"
+          test -n "${GITHUB_HEAD_REF:-}"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
