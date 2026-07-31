@@ -7,11 +7,11 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260731-owa-003d-exact-execution
 base_branch: main
 created: 2026-07-31T09:15:00+02:00
-updated: 2026-07-31T09:15:00+02:00
-last_verified_commit: "95b276db311cf6e9acd58b847f1fb0ca6697b137"
+updated: 2026-07-31T09:25:00+02:00
+last_verified_commit: "11c42faace4b70247387f57e22f8d16875bc52f3"
 risk: high
 related_issue: ""
-related_pr: ""
+related_pr: "1044"
 depends_on:
   - TCR-009 merged stable client-reference drift producer
   - TCR-010 merged stable evidence gateway
@@ -76,10 +76,10 @@ Use the exact externally supplied snapshot-B package to deterministically remate
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T09:15:00+02:00
-head: 95b276db311cf6e9acd58b847f1fb0ca6697b137
+updated_at: 2026-07-31T09:25:00+02:00
+head: 11c42faace4b70247387f57e22f8d16875bc52f3
 branch: feat/CAN-20260731-owa-003d-exact-execution
-pr: null
+pr: 1044
 status: implementing
 context_routes:
   - agent-governance
@@ -93,11 +93,13 @@ owned_paths:
   - .github/workflows/owa-003d-exact-execution.yml
 proven:
   - Current main is 95b276db311cf6e9acd58b847f1fb0ca6697b137.
+  - Draft PR 1044 targets blakinio/canary main from the same repository task branch.
   - No open OWA, TCR, QA-016 or Semantic Diff PR overlaps this bounded scope.
   - Supplied snapshot B SHA-256 is 95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8.
   - Supplied snapshot B package version is 15.31.69f220.
   - These values exactly match the accepted TCR-009 snapshot-B identity recorded by the prior lifecycle.
   - Supplied snapshot A remains available outside Git as version 15.25.bd5a04.
+  - Temporary workflow run 30612690907 owns a read-only export of current and accepted-parser owner sources; proprietary packages are not uploaded.
 derived:
   - The OWA003C missing-snapshot-B blocker is no longer valid for this runtime.
 unknown:
@@ -107,18 +109,19 @@ unknown:
 conflicts: []
 first_failure:
   marker: none
-  evidence: Exact package identity is present; operational rematerialization has not yet run.
+  evidence: Exact package identity is present; source export and operational rematerialization are in progress.
 rejected_hypotheses:
   - Commit proprietary package bytes.
   - Replace the existing client-reference parser, drift producer, gateway, router or freshness tool.
   - Treat hashes or task prose as report payloads.
   - Infer route, component or dimension IDs heuristically.
 changed_paths:
+  - .github/workflows/owa-003d-exact-execution.yml
   - docs/agents/tasks/active/CAN-20260731-owa-003d-exact-execution.md
 validation:
   - command: sha256sum and package.json inspection of supplied snapshot B
     result: PASS
     evidence: SHA-256 and version exactly match accepted snapshot-B identity.
 blockers: []
-next_action: Open the draft PR, bind the task to it and retrieve the exact current owner implementations for local deterministic execution.
+next_action: Download the owner-source artifact from workflow 30612690907 and execute the existing producers locally against the exact A/B packages.
 ```
