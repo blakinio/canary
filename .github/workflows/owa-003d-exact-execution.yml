@@ -17,46 +17,68 @@ jobs:
     name: Retain exact operational evidence
     runs-on: ubuntu-latest
     env:
-      EVIDENCE_BLOB_SHA: 9011cd11936f62300b5580f7df8f8d8a66375eaf
-      EVIDENCE_ARCHIVE_SHA256: a6eee52e88db1012b2cdc1555892fca56aa3db69c0ec486a18b65841f99c0fc0
+      IMPACT_BLOB_SHA: 14565e4243a6f20cb00054c6960b3b60768b116d
+      IMPACT_FILE_SHA256: 6c0334f18cd35524dd85465a0a7d6cf0c8a6e9c959d29c3dbf7352cbb673e241
     steps:
-      - name: Materialize uncommitted evidence archive
+      - name: Materialize uncommitted impact artifact
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/git/blobs/${EVIDENCE_BLOB_SHA}" --jq .content \
+          gh api "repos/${GITHUB_REPOSITORY}/git/blobs/${IMPACT_BLOB_SHA}" --jq .content \
             | tr -d '\n' \
             | base64 --decode \
-            > owa-003d-operational-evidence.tar.gz
-          printf '%s  %s\n' "${EVIDENCE_ARCHIVE_SHA256}" owa-003d-operational-evidence.tar.gz \
+            > owa003a-freshness-impact.json
+          printf '%s  %s\n' "${IMPACT_FILE_SHA256}" owa003a-freshness-impact.json \
             | sha256sum --check --strict
 
-      - name: Record workflow execution identity
+      - name: Record associated execution identities
         shell: bash
         run: |
           set -euo pipefail
-          cat > workflow-execution.json <<EOF
+          cat > execution-metadata.json <<EOF
           {
             "artifactName": "owa-003d-operational-evidence",
-            "archiveSha256": "${EVIDENCE_ARCHIVE_SHA256}",
-            "evidenceBlobSha": "${EVIDENCE_BLOB_SHA}",
+            "baseCommit": "95b276db311cf6e9acd58b847f1fb0ca6697b137",
+            "driftFileSha256": "5006bf1cac1b9b0da91c500debedc15270224801abcf5202b01b938d5f691fbb",
+            "driftFindingCount": 27,
+            "freshnessImpactByteSize": 5316,
+            "freshnessImpactFileSha256": "${IMPACT_FILE_SHA256}",
+            "freshnessImpactReportSha256": "8dbec4bac254a53d4138a50baebce1167993329d50217e9e0d1e9f51250e372c",
+            "freshnessManifestCanonicalSha256": "b3a98430c22ce9e7d94742249975907113efd21a24d2e9496544c973f669b7a0",
+            "freshnessManifestFileSha256": "95b5be1dfc130a766ee75473db5b7f113c20cf151bf963e0dc6f8a159d5649c8",
             "headSha": "${GITHUB_SHA}",
+            "impactBlobSha": "${IMPACT_BLOB_SHA}",
+            "parserRevision": "b68fbf7bf26b57f0cf716abffb52cfa951fa66ce",
+            "pr": 1044,
+            "qa016CurrentBomSha256": "a1743f9203cac5679b4be7e5b094822d07638b6f95f16e223035f205f0eed6c6",
+            "qa016PreviousBomSha256": "92e82bd868da5b279f36aca4f3429e9831c82892fde7acd0077c2bb075f6dada",
+            "qa016ProvenanceFileSha256": "dab40d9317d262eda7bd5b667d9a480c89f1f64212d0650feebc276acd5f44c0",
+            "qa016ProvenanceReportSha256": "e4ed44bc2bb2fa08c232f7d02db1b23143cd75f6610085abbc94b079e7dc7f96",
             "repository": "${GITHUB_REPOSITORY}",
+            "reviewId": "owa003d.owa003a.review.20260731",
+            "reviewStatement": "Exact reviewed mapping binds the routed package-manifest and proficiency-reference extracts to the matching changed QA-016 components and their sole stale dimensions; both unsupported StaticData routes remain targetless and unmapped.",
+            "routingFileSha256": "21345ba21a1bad3f0f08e259663cd10abb9101e5a9db1e50e1f63793dbe8600e",
+            "routingReportSha256": "83466a8e8377876e067e535e492ea2998fac9158dfae96585c520451e8cde800",
             "runAttempt": "${GITHUB_RUN_ATTEMPT}",
+            "snapshotAArchiveSha256": "01c45146e2fcec3f4087844e0cbc1817fb1d60b310a35ac5d88c07aab6f73d1a",
+            "snapshotBArchiveSha256": "95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8",
+            "sourceMapSha256": "a80de1dda6a9aca3956a9d5b7fb2e0caebb451570d26853fc21beb40d5f31da2",
+            "tcr010GatewayFileSha256": "04fb4447be7e8a263d2808908e94528178447afcbf06fedcf3e4da54c0646776",
+            "tcr010GatewayReportSha256": "9de775ee19304140c26b7f80e80b477589a8e4f58460fe87649c2f5e60f4d782",
             "workflowRunId": "${GITHUB_RUN_ID}"
           }
           EOF
-          sha256sum owa-003d-operational-evidence.tar.gz workflow-execution.json > SHA256SUMS
+          sha256sum owa003a-freshness-impact.json execution-metadata.json > SHA256SUMS
 
       - name: Upload retained operational evidence
         uses: actions/upload-artifact@v4
         with:
           name: owa-003d-operational-evidence
           path: |
-            owa-003d-operational-evidence.tar.gz
-            workflow-execution.json
+            owa003a-freshness-impact.json
+            execution-metadata.json
             SHA256SUMS
           if-no-files-found: error
           retention-days: 90
