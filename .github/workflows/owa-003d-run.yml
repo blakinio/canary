@@ -35,9 +35,12 @@ jobs:
           except ValueError as exc:
               raise SystemExit(f'reconciliation script marker missing: {exc}')
           lines = source[start:end]
-          if not lines or any(line and not line.startswith('          ') for line in lines):
-              raise SystemExit('unexpected reconciliation script indentation')
-          script = '\n'.join(line[10:] if line else '' for line in lines) + '\n'
+          if not lines:
+              raise SystemExit('empty reconciliation script')
+          script = '\n'.join(
+              line[10:] if line.startswith('          ') else line
+              for line in lines
+          ) + '\n'
           Path('/tmp/owa003d-reconcile.py').write_text(script, encoding='utf-8')
           PY
           python3 /tmp/owa003d-reconcile.py
