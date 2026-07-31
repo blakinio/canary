@@ -146,9 +146,16 @@ Npcs &Npcs::getInstance() {
 
 std::shared_ptr<NpcType> Npcs::getNpcType(const std::string &name, bool create /* = false*/) {
 	const std::string key = asLowerCaseString(name);
-	const auto registrationSource = g_scripts().getScriptInterface().getLoadingFile();
-	auto it = npcs.find(key);
+	std::string registrationSource;
+	if (create) {
+		const auto* scriptEnvironment = Lua::getScriptEnv();
+		const auto* scriptInterface = scriptEnvironment ? scriptEnvironment->getScriptInterface() : nullptr;
+		if (scriptInterface) {
+			registrationSource = scriptInterface->getLoadingFile();
+		}
+	}
 
+	auto it = npcs.find(key);
 	if (it != npcs.end()) {
 		if (create) {
 			it->second->addRegistrationSource(registrationSource);
