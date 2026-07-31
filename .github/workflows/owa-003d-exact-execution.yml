@@ -1,0 +1,58 @@
+name: OWA-003D Exact Execution
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/owa-003d-exact-execution.yml"
+      - "docs/agents/tasks/active/CAN-20260731-owa-003d-exact-execution.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-owner-sources:
+    name: Export exact owner sources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current task head
+        uses: actions/checkout@v4
+        with:
+          path: current
+          fetch-depth: 0
+
+      - name: Checkout accepted parser revision
+        uses: actions/checkout@v4
+        with:
+          ref: b68fbf7bf26b57f0cf716abffb52cfa951fa66ce
+          path: parser-revision
+          fetch-depth: 1
+
+      - name: Build deterministic source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/current bundle/parser-revision
+          cp -a current/tools/ai-agent bundle/current/
+          cp -a current/docs/ai-agent bundle/current/
+          cp -a current/docs/agents/tasks/archive bundle/current/task-archive
+          cp -a current/.github/workflows bundle/current/workflows
+          cp -a parser-revision/tools/ai-agent bundle/parser-revision/
+          cp -a parser-revision/docs/ai-agent bundle/parser-revision/
+          printf '%s\n' "${GITHUB_SHA}" > bundle/current-head.txt
+          printf '%s\n' 'b68fbf7bf26b57f0cf716abffb52cfa951fa66ce' > bundle/parser-revision.txt
+          find bundle -type f -print0 | sort -z | xargs -0 sha256sum > bundle/SHA256SUMS
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf owa-003d-owner-sources.tar.gz bundle
+          sha256sum owa-003d-owner-sources.tar.gz > owa-003d-owner-sources.tar.gz.sha256
+
+      - name: Upload source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: owa-003d-owner-sources
+          path: |
+            owa-003d-owner-sources.tar.gz
+            owa-003d-owner-sources.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
