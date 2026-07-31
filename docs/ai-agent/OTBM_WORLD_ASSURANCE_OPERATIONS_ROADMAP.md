@@ -147,7 +147,7 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: OWA-003D exact operational impact retained; downstream QA-008/map-change chain blocked external evidence.**
+**Priority: OWA-003D operational impact retained and lifecycle-closed; downstream QA-008/map-change chain blocked external evidence.**
 
 ## Goal
 
@@ -200,7 +200,7 @@ TCR-009 proves prior exact snapshot A/B and drift identities, but generated payl
 Re-entry requires exact snapshot-B bytes reproducing accepted final manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 final/bootstrap manifests, six indexes and drift report. Canonical TCR-010/011, QA-016 and OWA-003A must then execute before any downstream stage.
 
 
-## OWA-003D executed operational evidence — draft PR #1044
+## OWA-003D executed operational evidence — feature #1044 merged; lifecycle #1046
 
 ```text
 EXECUTED_OPERATIONAL_EVIDENCE
@@ -212,6 +212,8 @@ Exact snapshot B version `15.31.69f220` and archive SHA-256 `95093b15462573cc413
 The retained impact is bound to workflow run `30614565219`, artifact `8786807858`, artifact digest `sha256:48c79f9ecff88782d4711bb0de7e312d008dca058975123ed4a9a5b55f2d24ea`, impact file SHA-256 `6c0334f18cd35524dd85465a0a7d6cf0c8a6e9c959d29c3dbf7352cbb673e241` and report SHA-256 `8dbec4bac254a53d4138a50baebce1167993329d50217e9e0d1e9f51250e372c`.
 
 Two exact routed dimensions are stale: `qa006.tcr-client-manifest` and `qa006.tcr-proficiency-reference`. Two StaticData routes remain targetless unsupported outcomes.
+
+Feature PR #1044 squash-merged as `c59f8071349ca08b27f1afd934ab39132dd959c0`. Lifecycle PR #1046 releases active ownership while preserving the retained impact and exact re-entry contract.
 
 The next boundary is:
 

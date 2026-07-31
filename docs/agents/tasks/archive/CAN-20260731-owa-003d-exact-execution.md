@@ -12,7 +12,7 @@ last_verified_commit: "c59f8071349ca08b27f1afd934ab39132dd959c0"
 risk: high
 related_issue: ""
 related_pr: "1044"
-lifecycle_pr: ""
+lifecycle_pr: "1046"
 depends_on:
   - TCR-009 merged stable client-reference drift producer
   - TCR-010 merged stable evidence gateway
@@ -132,8 +132,8 @@ checkpoint_version: 1
 updated_at: 2026-07-31T10:45:00+02:00
 head: c59f8071349ca08b27f1afd934ab39132dd959c0
 branch: docs/owa-003d-lifecycle
-pr: null
-status: blocked-lifecycle-closing
+pr: 1046
+status: blocked-lifecycle-closed
 context_routes:
   - agent-governance
   - otbm
@@ -167,5 +167,5 @@ validation:
 blockers:
   - OWA003D_NO_REVIEWED_QA008_ROOT_AND_CANONICAL_MAP_CHANGE_CHAIN
   - OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN
-next_action: Open lifecycle PR, bind it here, reconcile programme/roadmap, pass exact-head and readiness gates, then squash-merge.
+next_action: Pass exact-head and protected readiness gates for lifecycle PR 1046, squash-merge, then preserve the retained impact until exact external re-entry evidence exists.
 ```
