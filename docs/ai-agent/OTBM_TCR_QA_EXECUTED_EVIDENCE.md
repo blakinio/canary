@@ -1,6 +1,15 @@
 # OWA-003C — Executed TCR-to-QA Evidence Recovery
 
-## Disposition
+
+## Superseding operational status — OWA-003D
+
+The exact snapshot-B package was supplied on 2026-07-31 and matches version `15.31.69f220` with archive SHA-256 `95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8`. OWA-003D therefore supersedes the OWA-003C missing-payload blocker for this execution runtime.
+
+Existing TCR-009/010/011, QA-016 and OWA-003A owners produced and retained one real operational impact in workflow run `30614565219`, artifact `8786807858`. Exact identities, review statement, validation and the new downstream fail-closed boundary are recorded in [OTBM_TCR_QA_OPERATIONAL_EXECUTION.md](OTBM_TCR_QA_OPERATIONAL_EXECUTION.md).
+
+The remaining blocker is no longer missing snapshot B. It is `OWA003D_NO_REVIEWED_QA008_ROOT_AND_CANONICAL_MAP_CHANGE_CHAIN`. The OWA-003C record below is preserved as historical recovery evidence.
+
+## Historical OWA-003C disposition
 
 ```text
 BLOCKED_EXTERNAL_EVIDENCE

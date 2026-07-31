@@ -147,7 +147,7 @@ An operator can inspect reviewed certification/coverage state spatially and trac
 
 # OWA-003 — TCR-to-QA Drift and Freshness Integration
 
-**Priority: OWA-003A stable/merged; OWA-003B lifecycle-closed; OWA-003C recovery/lifecycle closed, blocked external evidence.**
+**Priority: OWA-003D exact operational impact retained; downstream QA-008/map-change chain blocked external evidence.**
 
 ## Goal
 
@@ -198,6 +198,29 @@ OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN
 TCR-009 proves prior exact snapshot A/B and drift identities, but generated payloads remained outside Git. Lifecycle PR #1036 archives the blocked recovery task without converting the blocker into completion. OWA-003C found no executable report chain in final or diagnostic Actions artifacts. Official-launcher rematerialization was repeatedly Cloudflare-blocked before bytes were accepted, and the public client mirror contains no exact `15.31.69f220` tag. Hashes and summaries cannot be reconstructed into source reports.
 
 Re-entry requires exact snapshot-B bytes reproducing accepted final manifest `54646c3f71cc98c53049c63a49a331ec08acb71a37c551f5c592f55645be7e53` or the complete retained TCR-009 final/bootstrap manifests, six indexes and drift report. Canonical TCR-010/011, QA-016 and OWA-003A must then execute before any downstream stage.
+
+
+## OWA-003D executed operational evidence — draft PR #1044
+
+```text
+EXECUTED_OPERATIONAL_EVIDENCE
+OWA003D_RETAINED_TCR_QA_FRESHNESS_IMPACT
+```
+
+Exact snapshot B version `15.31.69f220` and archive SHA-256 `95093b15462573cc413fc7752d99ab258f97b58734bc59a8f6ef34cc1921a0f8` were supplied. Existing TCR-009/010/011, QA-016 and OWA-003A owners executed without adding parallel infrastructure.
+
+The retained impact is bound to workflow run `30614565219`, artifact `8786807858`, artifact digest `sha256:48c79f9ecff88782d4711bb0de7e312d008dca058975123ed4a9a5b55f2d24ea`, impact file SHA-256 `6c0334f18cd35524dd85465a0a7d6cf0c8a6e9c959d29c3dbf7352cbb673e241` and report SHA-256 `8dbec4bac254a53d4138a50baebce1167993329d50217e9e0d1e9f51250e372c`.
+
+Two exact routed dimensions are stale: `qa006.tcr-client-manifest` and `qa006.tcr-proficiency-reference`. Two StaticData routes remain targetless unsupported outcomes.
+
+The next boundary is:
+
+```text
+BLOCKED_EXTERNAL_EVIDENCE
+OWA003D_NO_REVIEWED_QA008_ROOT_AND_CANONICAL_MAP_CHANGE_CHAIN
+```
+
+QA-008 needs a reviewer-declared graph and compatible QA-001/QA-002 evidence. No distinct reviewed map candidate/change chain exists; client drift is not a Semantic OTBM Diff. QA-008, Semantic Diff, QA-002, validators, Physical E2E, QA-007 and QA-006 refresh therefore remain separate and unevaluated/not-refreshed.
 
 ## Hard boundaries
 
