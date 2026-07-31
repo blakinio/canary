@@ -2,6 +2,10 @@
 
 These rules apply to `docs/agents/**` and supplement the root `AGENTS.md` and repository-wide `README.md` in this directory.
 
+## Prompt authoring and owner advisory
+
+Before advising the repository owner or writing a prompt for another agent, read `PROMPTING_HANDOVER.md`. Return a direct recommendation in Polish, a compact reason, and one ready-to-paste worker prompt that follows its task-shape, execution-mode, validation, durable-state, stop-condition, and response contracts.
+
 ## Autonomous program startup
 
 Before selecting or creating work in a long-lived autonomous workstream:
