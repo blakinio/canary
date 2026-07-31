@@ -1,9 +1,11 @@
 name: OWA-003D Reconciliation Runner
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/CAN-20260731-owa-003d-exact-execution
+      - main
+    paths:
+      - ".github/workflows/owa-003d-run.yml"
 
 permissions:
   contents: write
