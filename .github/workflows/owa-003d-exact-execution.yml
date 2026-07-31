@@ -13,46 +13,50 @@ permissions:
   contents: read
 
 jobs:
-  export-owner-sources:
-    name: Export exact owner sources
+  retain-operational-evidence:
+    name: Retain exact operational evidence
     runs-on: ubuntu-latest
+    env:
+      EVIDENCE_BLOB_SHA: 9011cd11936f62300b5580f7df8f8d8a66375eaf
+      EVIDENCE_ARCHIVE_SHA256: a6eee52e88db1012b2cdc1555892fca56aa3db69c0ec486a18b65841f99c0fc0
     steps:
-      - name: Checkout current task head
-        uses: actions/checkout@v4
-        with:
-          path: current
-          fetch-depth: 0
+      - name: Materialize uncommitted evidence archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/git/blobs/${EVIDENCE_BLOB_SHA}" --jq .content \
+            | tr -d '\n' \
+            | base64 --decode \
+            > owa-003d-operational-evidence.tar.gz
+          printf '%s  %s\n' "${EVIDENCE_ARCHIVE_SHA256}" owa-003d-operational-evidence.tar.gz \
+            | sha256sum --check --strict
 
-      - name: Checkout accepted parser revision
-        uses: actions/checkout@v4
-        with:
-          ref: b68fbf7bf26b57f0cf716abffb52cfa951fa66ce
-          path: parser-revision
-          fetch-depth: 1
-
-      - name: Build deterministic source bundle
+      - name: Record workflow execution identity
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p bundle/current bundle/parser-revision
-          cp -a current/tools/ai-agent bundle/current/
-          cp -a current/docs/ai-agent bundle/current/
-          cp -a current/docs/agents/tasks/archive bundle/current/task-archive
-          cp -a current/.github/workflows bundle/current/workflows
-          cp -a parser-revision/tools/ai-agent bundle/parser-revision/
-          cp -a parser-revision/docs/ai-agent bundle/parser-revision/
-          printf '%s\n' "${GITHUB_SHA}" > bundle/current-head.txt
-          printf '%s\n' 'b68fbf7bf26b57f0cf716abffb52cfa951fa66ce' > bundle/parser-revision.txt
-          find bundle -type f -print0 | sort -z | xargs -0 sha256sum > bundle/SHA256SUMS
-          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf owa-003d-owner-sources.tar.gz bundle
-          sha256sum owa-003d-owner-sources.tar.gz > owa-003d-owner-sources.tar.gz.sha256
+          cat > workflow-execution.json <<EOF
+          {
+            "artifactName": "owa-003d-operational-evidence",
+            "archiveSha256": "${EVIDENCE_ARCHIVE_SHA256}",
+            "evidenceBlobSha": "${EVIDENCE_BLOB_SHA}",
+            "headSha": "${GITHUB_SHA}",
+            "repository": "${GITHUB_REPOSITORY}",
+            "runAttempt": "${GITHUB_RUN_ATTEMPT}",
+            "workflowRunId": "${GITHUB_RUN_ID}"
+          }
+          EOF
+          sha256sum owa-003d-operational-evidence.tar.gz workflow-execution.json > SHA256SUMS
 
-      - name: Upload source bundle
+      - name: Upload retained operational evidence
         uses: actions/upload-artifact@v4
         with:
-          name: owa-003d-owner-sources
+          name: owa-003d-operational-evidence
           path: |
-            owa-003d-owner-sources.tar.gz
-            owa-003d-owner-sources.tar.gz.sha256
+            owa-003d-operational-evidence.tar.gz
+            workflow-execution.json
+            SHA256SUMS
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
