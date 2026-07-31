@@ -1,0 +1,58 @@
+name: OWA-003D Reconciliation Runner
+
+on:
+  push:
+    branches:
+      - feat/CAN-20260731-owa-003d-exact-execution
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/CAN-20260731-owa-003d-exact-execution
+          fetch-depth: 0
+
+      - name: Extract and run fail-closed reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path('.github/workflows/owa-003d-exact-execution.yml').read_text(encoding='utf-8').splitlines()
+          start_marker = "          python3 - <<'PY'"
+          end_marker = "          PY"
+          try:
+              start = source.index(start_marker) + 1
+              end = source.index(end_marker, start)
+          except ValueError as exc:
+              raise SystemExit(f'reconciliation script marker missing: {exc}')
+          lines = source[start:end]
+          if not lines or any(line and not line.startswith('          ') for line in lines):
+              raise SystemExit('unexpected reconciliation script indentation')
+          script = '\n'.join(line[10:] if line else '' for line in lines) + '\n'
+          Path('/tmp/owa003d-reconcile.py').write_text(script, encoding='utf-8')
+          PY
+          python3 /tmp/owa003d-reconcile.py
+
+      - name: Commit terminal documentation and remove temporary workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/owa-003d-exact-execution.yml \
+                 .github/workflows/owa-003d-run.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md \
+                  docs/agents/tasks/active/CAN-20260731-owa-003d-exact-execution.md \
+                  docs/ai-agent/OTBM_TCR_QA_EXECUTED_EVIDENCE.md \
+                  docs/ai-agent/OTBM_TCR_QA_OPERATIONAL_EXECUTION.md \
+                  docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
+          git diff --cached --check
+          git commit -m "docs(otbm): retain exact OWA-003 operational evidence"
+          git push origin HEAD:feat/CAN-20260731-owa-003d-exact-execution
