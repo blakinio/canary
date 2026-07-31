@@ -3,5 +3,6 @@ target_sources(
     PRIVATE catalog_export_options.cpp
             game_catalog_manifest.cpp
             game_catalog_exporter.cpp
+            game_catalog_v13.cpp
             catalog_runtime.cpp
 )
