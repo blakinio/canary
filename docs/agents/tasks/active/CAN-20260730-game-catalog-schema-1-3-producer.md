@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: feat/CAN-20260730-game-catalog-schema-1-3-producer
 base_branch: main
 created: 2026-07-31T00:59:00+02:00
-updated: 2026-07-31T01:08:00+02:00
-last_verified_commit: "da84057b43f9a3451c70fe06eb52c6e589715959"
+updated: 2026-07-31T09:12:00+02:00
+last_verified_commit: "37b35a7a9a2c7dc0eeaec52a0748cb9a4d507671"
 risk: high
 related_issue: ""
 related_pr: "1040"
@@ -26,9 +26,12 @@ owned_paths:
     - src/creatures/npcs/npcs.hpp
     - src/creatures/npcs/npcs.cpp
     - src/lua/functions/creatures/npc/npc_type_functions.cpp
+    - src/game/catalog/CMakeLists.txt
     - src/game/catalog/catalog_runtime.cpp
     - src/game/catalog/game_catalog_exporter.hpp
     - src/game/catalog/game_catalog_exporter.cpp
+    - src/game/catalog/game_catalog_v13.hpp
+    - src/game/catalog/game_catalog_v13.cpp
     - src/game/catalog/game_catalog_manifest.hpp
     - src/game/catalog/game_catalog_manifest.cpp
     - tools/game-catalog/validate_snapshot.py
@@ -68,23 +71,23 @@ Implement the deterministic Canary producer for the exact pinned `oteryn.game-ca
 
 # Acceptance criteria
 
-- [ ] Copy the exact Platform PR #338 schema and fixture bytes and pin SHA-256 `0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8` and `c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7`.
+- [x] Copy the exact Platform PR #338 schema and fixture bytes and pin SHA-256 `0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8` and `c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7`.
 - [ ] Preserve schema `1.0.0`-`1.2.0` bytes and old-version output behavior.
-- [ ] Load only the configured datapack NPC directory through the existing Lua runtime boundary in export mode.
-- [ ] Expose a bounded const final NPC registry view and retain normalized source provenance at `NpcType(name)` registration.
+- [x] Load only the configured datapack NPC directory through the existing Lua runtime boundary in export mode.
+- [x] Expose a bounded const final NPC registry view and retain normalized source provenance at `NpcType(name)` registration.
 - [ ] Reject ambiguous provenance, unsafe paths, canonical collisions, excessive nesting and missing endpoints fail closed.
-- [ ] Emit deterministic NPC entities and exact static buy/sell relations from final `NpcType::info.shopItemVector`.
-- [ ] Exclude per-player shop windows, instance currency changes and callback-computed offers.
+- [x] Emit deterministic NPC entities and exact static buy/sell relations from final `NpcType::info.shopItemVector`.
+- [x] Exclude per-player shop windows, instance currency changes and callback-computed offers.
 - [ ] Add explicit C++ and Python typed validation and focused unit/runtime-smoke tests.
 - [ ] Prove generated artifacts pass the exact Platform PR #338 inactive consumer lifecycle.
-- [ ] Do not import, activate, deploy or start a normal world in staging or production.
+- [x] Do not import, activate, deploy or start a normal world in staging or production.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-07-31T01:08:00+02:00
-head: 71ffc77b75293cfc99a04d8542a41f90cc199d58
+updated_at: 2026-07-31T09:12:00+02:00
+head: 14143f77e83ed4bb1c3132090a07ac5123ce0b3d
 branch: feat/CAN-20260730-game-catalog-schema-1-3-producer
 pr: 1040
 status: implementing
@@ -101,9 +104,12 @@ owned_paths:
   - src/creatures/npcs/npcs.hpp
   - src/creatures/npcs/npcs.cpp
   - src/lua/functions/creatures/npc/npc_type_functions.cpp
+  - src/game/catalog/CMakeLists.txt
   - src/game/catalog/catalog_runtime.cpp
   - src/game/catalog/game_catalog_exporter.hpp
   - src/game/catalog/game_catalog_exporter.cpp
+  - src/game/catalog/game_catalog_v13.hpp
+  - src/game/catalog/game_catalog_v13.cpp
   - src/game/catalog/game_catalog_manifest.hpp
   - src/game/catalog/game_catalog_manifest.cpp
   - tools/game-catalog/validate_snapshot.py
@@ -112,24 +118,23 @@ owned_paths:
   - .github/workflows/game-catalog.yml
   - .github/workflows/game-catalog-v13.yml
 proven:
-  - Producer branch is based on Canary main da84057b43f9a3451c70fe06eb52c6e589715959.
-  - Audit PR 1037 merged as acd2825999d56bb90f03ae21022593fc01ed3874 and defines final Npcs/NpcType/shopItemVector authority.
-  - Audit lifecycle PR 1039 merged as f71d3b844adfc5cc4fbfa62b8e7f4e223fd3eb4f and released audit ownership.
-  - No overlapping open Canary schema 1.3 producer PR or branch was found during bounded preflight.
-  - Exact Platform schema and fixture bytes are committed with pinned SHA-256 values 0282c0ce4b995e4aded440b148dd4eb8a96a441e9924da182a2df2a0f2eef8a8 and c4fd9b187e001065f68d90f93dc67f71bb2ff745fc43c3e73110d49b23407ce7.
-  - Manifest dispatch now accepts schema 1.3.0 and retains schema 1.2.0 dynamic loot-threshold semantics.
-  - Python validation now registers the exact 1.3 schema hash and type-dispatches loot and NPC shop relations with endpoint, currency and canonical identity checks.
+  - Audit PR 1037 and lifecycle PRs 1039 and 1042 are merged and ownership is released.
+  - Exact Platform schema and fixture bytes are pinned and pass the dedicated contract workflow.
+  - Manifest dispatch and Python validation accept schema 1.3.0 while retaining earlier registered schemas.
+  - NPC registry enumeration and runtime registration provenance are implemented.
+  - Provenance is read from the active Lua ScriptEnvironment, removing the npclib startup segfault; exact-head CI and ownership passed at 37b35a7a9a2c7dc0eeaec52a0748cb9a4d507671.
+  - Schema 1.3 uses an isolated adapter over the existing schema 1.2 document builder; earlier schemas keep the original build and publish path.
 derived:
-  - Old schemas must not serialize NPC records or otherwise change produced bytes.
-  - Registration provenance can be captured from LuaScriptInterface::getLoadingFile at luaNpcTypeCreate.
+  - Old schemas must not load datapack NPC definitions or serialize NPC records.
+  - Only final NpcType shopItemVector state is exportable; dynamic player shop windows remain excluded.
 unknown:
-  - Whether the exact schema and fixture pass the new validator on GitHub Actions.
-  - Whether every production NPC script executes under bounded export-only startup without top-level persistent-state access.
-  - The first C++ compilation or runtime-smoke failure.
+  - First compilation result for the isolated C++ schema 1.3 adapter.
+  - Runtime behavior of the bounded synthetic NPC datapack smoke.
+  - Exact inactive Platform consumer compatibility result.
 conflicts: []
 first_failure:
   marker: none
-  evidence: Current exact-head checks are queued after reopening draft PR 1040.
+  evidence: Exact-head workflows are queued for the initial schema 1.3 adapter implementation.
 rejected_hypotheses:
   - Parse NPC scripts independently from Canary runtime registration.
   - Use global ItemType buy/sell maxima as per-NPC authority.
@@ -138,16 +143,25 @@ changed_paths:
   - .github/workflows/game-catalog-v13.yml
   - docs/agents/tasks/active/CAN-20260730-game-catalog-schema-1-3-producer.md
   - schemas/game-catalog/v1.3/game-catalog-snapshot.schema.json
+  - src/creatures/npcs/npcs.cpp
+  - src/creatures/npcs/npcs.hpp
+  - src/game/catalog/CMakeLists.txt
+  - src/game/catalog/catalog_runtime.cpp
   - src/game/catalog/game_catalog_manifest.cpp
+  - src/game/catalog/game_catalog_v13.cpp
+  - src/game/catalog/game_catalog_v13.hpp
   - tests/game_catalog/fixtures/v1.3/minimal-snapshot.json
   - tools/game-catalog/validate_snapshot.py
 validation:
-  - command: bounded producer preflight
+  - command: Game Catalog 1.3 Producer exact contract workflow
     result: PASS
-    evidence: current main, merged audit lifecycle, Platform hashes and absence of overlapping producer work were verified.
-  - command: exact contract workflow
-    result: NOT_RUN
-    evidence: Game Catalog 1.3 Producer workflow has been registered and is awaiting the current head.
+    evidence: Exact schema and fixture SHA-256 checks and all registered fixture validations passed at 37b35a7a9a2c7dc0eeaec52a0748cb9a4d507671.
+  - command: CI and Agent Task Ownership
+    result: PASS
+    evidence: Compilation and ownership passed at 37b35a7a9a2c7dc0eeaec52a0748cb9a4d507671 after the provenance fix.
+  - command: schema 1.3 C++ adapter build and runtime smoke
+    result: RUNNING
+    evidence: Exact-head workflows are running after activation of game_catalog_v13.
 blockers: []
-next_action: Validate exact schema and fixture bytes, then add final NPC registry enumeration and registration provenance before serializer changes.
+next_action: Fix the first exact-head C++ or runtime failure, then add bounded synthetic NPC runtime smoke and Platform inactive-consumer proof.
 ```
