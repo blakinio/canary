@@ -11,6 +11,7 @@
 #include "game/catalog/catalog_export_options.hpp"
 #include "game/catalog/game_catalog_exporter.hpp"
 #include "game/catalog/game_catalog_manifest.hpp"
+#include "game/catalog/game_catalog_v13.hpp"
 #include "game/game.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "items/item.hpp"
@@ -183,19 +184,39 @@ int CanaryServer::exportGameCatalogOnDispatcher(const game_catalog::ExportOption
 		const auto dataDirectory = std::filesystem::path(g_configManager().getString(DATA_DIRECTORY));
 		const auto manifestDirectory = options.manifestDirectory.empty() ? dataDirectory / "catalog" : options.manifestDirectory;
 		const auto manifest = game_catalog::loadCatalogManifest(manifestDirectory);
+		if (manifest.schemaVersion == "1.3.0" && !g_npcs().load(false, true)) {
+			throw std::runtime_error("Cannot load runtime NPC definitions for Game Catalog schema 1.3.0.");
+		}
+
 		const auto appearancesPath = std::filesystem::path(g_configManager().getString(CORE_DIRECTORY)) / "items" / "appearances.dat";
 		const auto appearancesSha256 = transformToSHA256(readBinaryFile(appearancesPath));
 		const auto generatedAt = resolveGeneratedAt(options);
 		const auto canaryCommitSha = resolveCanaryCommitSha(options);
-		const auto document = game_catalog::buildSnapshotDocument(
-			manifest,
-			Item::items,
-			g_monsters(),
-			generatedAt,
-			canaryCommitSha,
-			appearancesSha256
-		);
-		const auto result = game_catalog::publishSnapshotDocument(document, options.outputPath);
+
+		game_catalog::ExportResult result;
+		if (manifest.schemaVersion == "1.3.0") {
+			const auto document = game_catalog::buildV13SnapshotDocument(
+				manifest,
+				Item::items,
+				g_monsters(),
+				g_npcs(),
+				generatedAt,
+				canaryCommitSha,
+				appearancesSha256
+			);
+			result = game_catalog::publishV13SnapshotDocument(document, options.outputPath);
+		} else {
+			const auto document = game_catalog::buildSnapshotDocument(
+				manifest,
+				Item::items,
+				g_monsters(),
+				generatedAt,
+				canaryCommitSha,
+				appearancesSha256
+			);
+			result = game_catalog::publishSnapshotDocument(document, options.outputPath);
+		}
+
 		logger.info(
 			"Game Catalog export completed: {} (sha256 {}, {} entities, {} relations).",
 			result.outputPath.generic_string(),
