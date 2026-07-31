@@ -4,8 +4,8 @@ name: OTBM World Assurance Operations
 status: active
 owner: OTBM analysis tooling / world assurance operations
 created: 2026-07-23T14:25:00+02:00
-updated: 2026-07-31T10:00:00+02:00
-last_verified_commit: "a68ee8c032415591a07334e663affee930764d35"
+updated: 2026-07-31T10:50:00+02:00
+last_verified_commit: "c59f8071349ca08b27f1afd934ab39132dd959c0"
 primary_paths:
   - docs/agents/programs/OTBM_WORLD_ASSURANCE_OPERATIONS_PROGRAM.md
   - docs/ai-agent/OTBM_WORLD_ASSURANCE_OPERATIONS_ROADMAP.md
@@ -88,9 +88,7 @@ Included:
 
 # Active tasks
 
-OWA-003D exact operational execution is active in draft PR #1044. The exact snapshot-B package removed the OWA-003C recovery blocker; TCR-009/010/011, QA-016 and OWA-003A have executed and a real freshness-impact artifact is retained. The package is terminally validating the first downstream boundary without inventing a map change.
-
-OWA-006 remains independently blocked by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`; the current map is not a candidate.
+No active OWA task remains after feature PR #1044 and lifecycle PR #1046. OWA-003D executed and retained one exact TCR-to-QA freshness impact, then stopped at `OWA003D_NO_REVIEWED_QA008_ROOT_AND_CANONICAL_MAP_CHANGE_CHAIN`. OWA-006 remains independently blocked by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDIDATE_CHAIN`.
 # Queue
 
 | ID | Scope | Status | Dependencies | Risk | Exact next action |
@@ -112,7 +110,7 @@ OWA-006 remains independently blocked by `OWA006_NO_RETAINED_REVIEWED_REAL_CANDI
 6. **OWA-003A** — completed via #1031; lifecycle closes in #1032. Exact TCR-011-to-existing-QA-016 freshness verification is stable/merged.
 7. **OWA-003B** — blocked preflight merged via #1033 and lifecycle-closed via #1034. Current retained repository/task/PR evidence does not identify one executed OWA-003A impact with sufficient exact provenance, so QA-008/002/007/006 compatibility remains unevaluated.
 8. **OWA-003C** — exact-evidence recovery merged via #1035 and lifecycle-closed via #1036. It exhausted retained Actions artifacts, official-launcher rematerialization and the public exact-tag mirror, then stopped at `OWA003C_NO_RECOVERABLE_EXACT_TCR009_SNAPSHOT_B_PAYLOAD_OR_RETAINED_REPORT_CHAIN` without reconstructing report bytes from hashes or summaries.
-9. **OWA-003D** — exact snapshot B supplied; existing TCR-009/010/011, QA-016 and OWA-003A owners executed; workflow run `30614565219`, artifact `8786807858` retains the exact impact. Downstream stops before QA-008 at `OWA003D_NO_REVIEWED_QA008_ROOT_AND_CANONICAL_MAP_CHANGE_CHAIN` because no reviewed dependency root or distinct canonical map-change chain exists.
+9. **OWA-003D** — exact snapshot B supplied; existing TCR-009/010/011, QA-016 and OWA-003A owners executed; workflow run `30614565219`, artifact `8786807858` retains the exact impact. Downstream stops before QA-008 at `OWA003D_NO_REVIEWED_QA008_ROOT_AND_CANONICAL_MAP_CHANGE_CHAIN` because no reviewed dependency root or distinct canonical map-change chain exists. Feature PR #1044 squash-merged as `c59f8071349ca08b27f1afd934ab39132dd959c0`; lifecycle PR #1046 archives ownership and preserves the external-evidence re-entry boundary.
 
 The previously missing exact snapshot-B input has now been supplied and the executable TCR-to-QA chain has been performed. OWA-003 downstream remains fail-closed before QA-008 because no reviewer-authored graph root and no distinct canonical map-change chain exist; QA-008/002/007/006 remain unevaluated/not-refreshed. OWA-006 remains independently blocked on a real candidate chain.
 
