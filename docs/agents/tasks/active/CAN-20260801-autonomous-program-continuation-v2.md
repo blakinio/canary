@@ -2,13 +2,13 @@
 task_id: CAN-20260801-autonomous-program-continuation-v2
 program_id: CAN-PROGRAM-AGENT-GOVERNANCE
 coordination_id: AUTONOMOUS-PROGRAM-CONTINUATION-V2
-status: active
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: docs/autonomous-program-continuation-v2-20260801
 base_branch: main
 created: 2026-08-01T23:10:00+02:00
-updated: 2026-08-01T23:22:00+02:00
-last_verified_commit: "e3fc827d1913e94accf48e6e4e9e2ad5bf56e0d0"
+updated: 2026-08-01T23:25:00+02:00
+last_verified_commit: "84848e5cbf958f79689587ae5ce0437a2eea4437"
 risk: low
 related_issue: ""
 related_pr: "1050"
@@ -64,8 +64,8 @@ Documentation and agent-governance contracts only. No runtime, production, upstr
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-01T23:22:00+02:00
-head: e3fc827d1913e94accf48e6e4e9e2ad5bf56e0d0
+updated_at: 2026-08-01T23:25:00+02:00
+head: 84848e5cbf958f79689587ae5ce0437a2eea4437
 branch: docs/autonomous-program-continuation-v2-20260801
 pr: 1050
 status: validating
@@ -89,15 +89,16 @@ proven:
   - The autonomous contract requires terminal task finalization, archival, barrier review, and continuation with the next READY task.
   - The handover routes resolvable short commands into execution rather than returning a prompt.
   - Repository safety, ownership, merge, and no-wait rules remain authoritative.
-  - CI run 30718852016 passed and ownership run 30718852016 failed only because the initial task lacked required front matter.
+  - CI runs succeeded on both prior heads.
+  - The ownership validator accepted the front-matter shape and rejected only the literal status active, which is not an accepted active lifecycle status.
 derived:
   - One short programme command can drive long foreground work without treating each checkpoint or completed task as an owner-interaction boundary.
 unknown:
-  - Required exact-head checks after the front-matter repair.
+  - Required exact-head checks after the lifecycle-status repair.
 conflicts: []
 first_failure:
-  marker: active-task-front-matter-missing
-  evidence: Agent Task Ownership run 30718852016 job 91419087106 rejected the initial task before ownership rendering.
+  marker: active-task-lifecycle-status
+  evidence: Agent Task Ownership run 30718968243 job 91419405714 required a phase status such as validating for a record under tasks/active.
 rejected_hypotheses:
   - weaken worker stop conditions to obtain long programme continuation
   - treat checkpoints as mandatory pauses
@@ -111,12 +112,12 @@ validation:
   - command: compare main...docs/autonomous-program-continuation-v2-20260801
     result: PASS
     evidence: four authorized documentation/governance paths only
-  - command: CI run 30718852116
+  - command: CI run 30718968329
     result: PASS
-    evidence: repository CI succeeded on the pre-front-matter head
-  - command: Agent Task Ownership run 30718852016 job 91419087106
+    evidence: repository CI succeeded on head 84848e5cbf958f79689587ae5ce0437a2eea4437
+  - command: Agent Task Ownership run 30718968243 job 91419405714
     result: FAIL
-    evidence: first relevant failure was missing opening front matter delimiter; this commit repairs that exact defect
+    evidence: front matter parsed successfully; only non-accepted active status remained and is corrected here
 blockers: []
 next_action: verify required exact-head checks for PR 1050 and complete the repository merge gate
 ```
