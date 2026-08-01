@@ -6,6 +6,8 @@ These rules apply to `docs/agents/**` and supplement the root `AGENTS.md` and re
 
 Before advising the repository owner or writing a prompt for another agent, read `PROMPTING_HANDOVER.md` and the normative `PROMPTING_STANDARD.md`. Use the handover to inspect live repository state and use the standard to construct the prompt. Return a direct recommendation in Polish, a compact reason, and one ready-to-paste worker prompt.
 
+Before substantial implementation, product-facing validation, audit, E2E, PR cleanup, or task closeout, read and follow `DELIVERY_COMPLETENESS_AND_CLOSEOUT.md`. It is mandatory for prompt eval discipline, trust boundaries, delivery classification, frontend/backend or producer/consumer completeness, independent audit, real E2E, exact-head validation, terminal PR states, and archival. A worker summary is not terminal evidence.
+
 ## Autonomous program startup
 
 Before selecting or creating work in a long-lived autonomous workstream:
@@ -31,9 +33,14 @@ Before selecting or creating work in a long-lived autonomous workstream:
 
 A program may create many task PRs. After each task reaches a final state:
 
+- perform the independent audit and required E2E from `DELIVERY_COMPLETENESS_AND_CLOSEOUT.md`;
+- reconcile every related or superseded PR to an intentional terminal state;
 - archive its task record using the existing repository lifecycle;
+- release ownership, leases, temporary branches and worktrees where policy permits;
 - update the program record with the result, merge commit, remaining queue, and exact handoff;
 - select the next task only after repeating the ownership and overlap preflight.
+
+A user-facing or cross-layer capability is not complete while a required backend, frontend/client, integration or consumer layer is missing.
 
 ## E2E lifecycle
 
@@ -41,6 +48,7 @@ A program may create many task PRs. After each task reaches a final state:
 - Feature agents own only their suite-specific scenarios and assertions.
 - A generic platform change and a feature scenario change use separate task records and PRs when both are required.
 - Use `templates/E2E_SCENARIO.md` for new physical-client scenarios.
+- Backend/API checks do not replace real client/frontend E2E for user-facing work.
 
 ## Resilient worker execution
 
@@ -54,6 +62,7 @@ Before creating, claiming, resuming, updating, handing off, or closing any task 
 6. do not remain active while waiting for CI, dependencies, external evidence, deployment, or a user reply;
 7. on a blocker, preserve coherent work, record `status`, evidence, blocker and exactly one `next_action`, then end the session;
 8. record `execution_mode` and let the worker decide whether Chat/GitHub or Codex is appropriate;
-9. at a synchronization barrier, run `python tools/agents/control_room.py --format markdown` and escalate only material decisions.
+9. at a synchronization barrier, run `python tools/agents/control_room.py --format markdown` and escalate only material decisions;
+10. before `completed`, verify independent audit PASS, required E2E PASS, exact-head required CI PASS, zero unresolved review threads, zero unintentionally open related PRs, terminal task state and released ownership.
 
 When rules overlap, follow the more restrictive safety requirement.
