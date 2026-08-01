@@ -4,7 +4,7 @@ These rules apply to `docs/agents/**` and supplement the root `AGENTS.md` and re
 
 ## Prompt authoring and owner advisory
 
-Before advising the repository owner or writing a prompt for another agent, read `PROMPTING_HANDOVER.md`. Return a direct recommendation in Polish, a compact reason, and one ready-to-paste worker prompt that follows its task-shape, execution-mode, validation, durable-state, stop-condition, and response contracts.
+Before advising the repository owner or writing a prompt for another agent, read `PROMPTING_HANDOVER.md` and the normative `PROMPTING_STANDARD.md`. Use the handover to inspect live repository state and use the standard to construct the prompt. Return a direct recommendation in Polish, a compact reason, and one ready-to-paste worker prompt.
 
 ## Autonomous program startup
 
