@@ -2,16 +2,16 @@
 task_id: CAN-20260802-delivery-closeout-v21
 program_id: CAN-PROGRAM-AGENT-GOVERNANCE
 coordination_id: DELIVERY-CLOSEOUT-V21
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/agent-closeout-vertical-slice-v21-20260802
 base_branch: main
 created: 2026-08-02T00:14:00+02:00
-updated: 2026-08-02T00:14:00+02:00
-last_verified_commit: "unknown"
+updated: 2026-08-02T00:22:00+02:00
+last_verified_commit: "06dd31eb614ad4f33ea9ae25771a9b4c4be3eabc"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "1054"
 depends_on: []
 blocks: []
 owned_paths:
@@ -30,10 +30,10 @@ reuses:
   - checkpoint and task lifecycle contracts
 public_interfaces: []
 cross_repo_tasks:
-  - blakinio/freqtrade
-  - blakinio/Oteryn-Platform
-  - blakinio/Otheryn
-  - blakinio/otclient
+  - blakinio/freqtrade#989
+  - blakinio/Oteryn-Platform#445
+  - blakinio/Otheryn#301
+  - blakinio/otclient#164
 ---
 
 # Delivery completeness and closeout v2.1
@@ -57,12 +57,12 @@ Require eval-driven prompt governance, explicit trust boundaries, complete produ
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T00:14:00+02:00
-head: unknown
+updated_at: 2026-08-02T00:22:00+02:00
+head: 06dd31eb614ad4f33ea9ae25771a9b4c4be3eabc
 branch: docs/agent-closeout-vertical-slice-v21-20260802
-pr: ""
-status: implementing
-phase: implement
+pr: 1054
+status: validating
+phase: validate
 session_id: chat-20260802-delivery-closeout-v21
 session_role: coordinator
 execution_mode: chat
@@ -79,14 +79,15 @@ owned_paths:
 proven:
   - The new contract defines prompt evals, trust boundaries, vertical-slice completeness, audit, E2E and PR hygiene.
   - Nested agent instructions require the contract before substantial work and closeout.
+  - Cross-repository governance PRs are open with three documentation-only paths each.
 derived:
   - Future agents cannot truthfully mark user-facing work complete on backend evidence alone.
 unknown:
-  - Exact PR number and required workflow results.
+  - Exact-head workflow results after PR binding.
 conflicts: []
 first_failure:
   marker: none
-  evidence: validation not started
+  evidence: validation pending
 rejected_hypotheses:
   - treat worker narrative as completion evidence
   - leave superseded PRs open after replacement
@@ -96,5 +97,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260802-delivery-closeout-v21.md
 validation: []
 blockers: []
-next_action: open the governance PR and verify exact-head checks
+next_action: verify exact-head checks for PR 1054
 ```
