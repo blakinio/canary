@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/agent-quality-closeout-v21-20260802
 base_branch: main
 created: 2026-08-02T00:20:00+02:00
-updated: 2026-08-02T00:24:00+02:00
-last_verified_commit: "75ea987d040e0ef1543dd277d2004049ac0c71ac"
+updated: 2026-08-02T00:27:00+02:00
+last_verified_commit: "34f04488d3f73e490917b203410e8a764eccd572"
 risk: low
 related_issue: ""
 related_pr: "1053"
@@ -55,8 +55,8 @@ Make outcome-based evals, trust boundaries, full-stack vertical slices, independ
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T00:24:00+02:00
-head: 75ea987d040e0ef1543dd277d2004049ac0c71ac
+updated_at: 2026-08-02T00:27:00+02:00
+head: 34f04488d3f73e490917b203410e8a764eccd572
 branch: docs/agent-quality-closeout-v21-20260802
 pr: 1053
 status: validating
@@ -68,6 +68,8 @@ run_scope: autonomous_program
 continuation_policy: continue_until_real_stop
 task_completion_policy: finalize_archive_and_continue
 user_communication: low_noise
+context_routes:
+  - agent-governance
 owned_paths:
   - docs/agents/AGENT_QUALITY_AND_CLOSEOUT.md
   - docs/agents/PROMPTING_HANDOVER.md
@@ -75,16 +77,29 @@ owned_paths:
 proven:
   - The v2.1 contract exists and the handover makes it mandatory.
   - PR 1053 owns exactly the governance contract, handover integration, and task record.
+  - Full CI passed on head 34f04488d3f73e490917b203410e8a764eccd572.
 derived:
   - Future substantial work must pass the integrated quality and closeout gate.
 unknown:
-  - Exact-head ownership and CI results after this PR binding update.
+  - Ownership result after adding the required checkpoint schema fields.
 conflicts: []
+first_failure:
+  marker: checkpoint-required-fields
+  evidence: ownership run 30721020808 required context_routes, first_failure, and rejected_hypotheses.
+rejected_hypotheses:
+  - weaken the quality contract to satisfy lifecycle validation
+  - remove the active task instead of completing its required schema
 changed_paths:
   - docs/agents/AGENT_QUALITY_AND_CLOSEOUT.md
   - docs/agents/PROMPTING_HANDOVER.md
   - docs/agents/tasks/active/CAN-20260802-agent-quality-closeout-v21.md
-validation: []
+validation:
+  - command: CI run 30721020917
+    result: PASS
+    evidence: full repository CI succeeded on the prior exact head
+  - command: Agent Task Ownership run 30721020808
+    result: FAIL
+    evidence: only the three required checkpoint schema fields were missing; this commit adds them
 blockers: []
 next_action: verify exact-head ownership and CI for PR 1053, then complete the merge and archive gates
 ```
