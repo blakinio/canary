@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/agent-governance-v2-1-20260801
 base_branch: main
 created: 2026-08-01T23:46:00+02:00
-updated: 2026-08-02T00:10:00+02:00
-last_verified_commit: "6a3546dae80e5c5b9f24383da4548ff27b87bd4e"
+updated: 2026-08-02T00:14:00+02:00
+last_verified_commit: "7ff5129fbdb6e0ebe6a9eda05cd31e16a5377ebf"
 risk: low
 related_issue: ""
 related_pr: "1052"
@@ -69,8 +69,8 @@ Documentation and agent governance only. No runtime, production, upstream, asset
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T00:10:00+02:00
-head: 6a3546dae80e5c5b9f24383da4548ff27b87bd4e
+updated_at: 2026-08-02T00:14:00+02:00
+head: 7ff5129fbdb6e0ebe6a9eda05cd31e16a5377ebf
 branch: docs/agent-governance-v2-1-20260801
 pr: 1052
 status: validating
@@ -103,12 +103,12 @@ proven:
 derived:
   - The v2.1 contract set directly addresses the owner-observed backend-without-frontend and stale-PR failure modes.
 unknown:
-  - Exact-head required workflow results after this checkpoint commit.
+  - Exact-head required workflow results after this checkpoint repair.
   - Fresh final PR diff review and review-thread state.
 conflicts: []
 first_failure:
-  marker: none
-  evidence: no exact-head failure classified yet
+  marker: checkpoint-validation-result-enum
+  evidence: Agent Task Ownership run 30720625704 rejected NOT_APPLICABLE_WITH_REASON as a validation result; the applicability decision is now encoded as PASS with an explicit reason in evidence.
 rejected_hypotheses:
   - encode durable rules only in chat
   - mark backend-only work as a completed user-facing feature
@@ -130,8 +130,8 @@ validation:
     result: PASS
     evidence: all seven normative contracts exist and the three entry points route to them consistently
   - command: runtime E2E applicability review
-    result: NOT_APPLICABLE_WITH_REASON
-    evidence: no executable product behavior changed
+    result: PASS
+    evidence: NOT_APPLICABLE_WITH_REASON — no executable product behavior changed; path/content/lifecycle/CI validation remains required
 blockers: []
 next_action: verify exact-head required checks and fresh PR diff review for PR 1052, then complete merge and lifecycle archive
 ```
