@@ -2,16 +2,16 @@
 task_id: CAN-20260802-agent-quality-closeout-v21
 program_id: CAN-PROGRAM-AGENT-GOVERNANCE
 coordination_id: AGENT-QUALITY-CLOSEOUT-V21
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/agent-quality-closeout-v21-20260802
 base_branch: main
 created: 2026-08-02T00:20:00+02:00
-updated: 2026-08-02T00:20:00+02:00
-last_verified_commit: "7f7cc107328048912cb6165988fbfacd7d3a9114"
+updated: 2026-08-02T00:24:00+02:00
+last_verified_commit: "75ea987d040e0ef1543dd277d2004049ac0c71ac"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "1053"
 depends_on: []
 blocks: []
 owned_paths:
@@ -30,10 +30,10 @@ reuses:
   - checkpoint and task lifecycle contracts
 public_interfaces: []
 cross_repo_tasks:
-  - blakinio/freqtrade
-  - blakinio/Oteryn-Platform
-  - blakinio/Otheryn
-  - blakinio/otclient
+  - blakinio/freqtrade#988
+  - blakinio/Oteryn-Platform#443
+  - blakinio/Otheryn#299
+  - blakinio/otclient#162
 ---
 
 # CAN-20260802 — Agent quality and closeout v2.1
@@ -55,12 +55,12 @@ Make outcome-based evals, trust boundaries, full-stack vertical slices, independ
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T00:20:00+02:00
-head: 7f7cc107328048912cb6165988fbfacd7d3a9114
+updated_at: 2026-08-02T00:24:00+02:00
+head: 75ea987d040e0ef1543dd277d2004049ac0c71ac
 branch: docs/agent-quality-closeout-v21-20260802
-pr: none
-status: implementing
-phase: integrate
+pr: 1053
+status: validating
+phase: validate
 session_id: chat-20260802-quality-v21
 session_role: coordinator
 execution_mode: chat
@@ -73,11 +73,12 @@ owned_paths:
   - docs/agents/PROMPTING_HANDOVER.md
   - docs/agents/tasks/active/CAN-20260802-agent-quality-closeout-v21.md
 proven:
-  - The v2.1 contract exists and is mandatory in the handover.
+  - The v2.1 contract exists and the handover makes it mandatory.
+  - PR 1053 owns exactly the governance contract, handover integration, and task record.
 derived:
   - Future substantial work must pass the integrated quality and closeout gate.
 unknown:
-  - Exact-head workflow results and PR number.
+  - Exact-head ownership and CI results after this PR binding update.
 conflicts: []
 changed_paths:
   - docs/agents/AGENT_QUALITY_AND_CLOSEOUT.md
@@ -85,5 +86,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260802-agent-quality-closeout-v21.md
 validation: []
 blockers: []
-next_action: open the governance PR, record its exact identity, and validate the final head
+next_action: verify exact-head ownership and CI for PR 1053, then complete the merge and archive gates
 ```
