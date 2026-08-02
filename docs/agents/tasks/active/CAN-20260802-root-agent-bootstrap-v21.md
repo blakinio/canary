@@ -2,16 +2,16 @@
 task_id: CAN-20260802-root-agent-bootstrap-v21
 program_id: CAN-PROGRAM-AGENT-GOVERNANCE
 coordination_id: ROOT-AGENT-BOOTSTRAP-V21
-status: implementing
+status: review
 agent: "GPT-5.6 Thinking"
 branch: docs/root-agent-bootstrap-v21-20260802
 base_branch: main
 created: 2026-08-02T08:57:00+02:00
-updated: 2026-08-02T08:57:00+02:00
-last_verified_commit: "aa5887b047dd4c32e2dd6ef43c231bbe3d1b9521"
+updated: 2026-08-02T09:03:00+02:00
+last_verified_commit: "18dcf0c0019694b7d725d9c7406c7ddb3124c1b8"
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "1057"
 depends_on: []
 blocks: []
 owned_paths:
@@ -57,12 +57,12 @@ Make the automatically loaded repository-root instruction entry point force ever
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T08:57:00+02:00
-head: aa5887b047dd4c32e2dd6ef43c231bbe3d1b9521
+updated_at: 2026-08-02T09:03:00+02:00
+head: 18dcf0c0019694b7d725d9c7406c7ddb3124c1b8
 branch: docs/root-agent-bootstrap-v21-20260802
-pr: null
-status: implementing
-phase: implementation
+pr: 1057
+status: validating
+phase: validate
 session_id: chat-20260802-root-agent-bootstrap-v21
 session_role: coordinator
 execution_mode: chat
@@ -76,11 +76,12 @@ owned_paths:
   - AGENTS.override.md
   - docs/agents/tasks/active/CAN-20260802-root-agent-bootstrap-v21.md
 proven:
-  - Root override now contains the mandatory bootstrap and short-command contract.
+  - Root override contains the mandatory bootstrap and short-command contract.
+  - PR 1057 contains only the root bootstrap and its task record before this checkpoint update.
 derived:
   - A new Codex invocation from the repository root will receive the bootstrap automatically.
 unknown:
-  - Exact-head required workflow outcome after PR creation.
+  - Exact-head required workflow outcome after this checkpoint update.
 conflicts: []
 first_failure:
   marker: none
@@ -92,5 +93,5 @@ changed_paths:
   - docs/agents/tasks/active/CAN-20260802-root-agent-bootstrap-v21.md
 validation: []
 blockers: []
-next_action: open the feature PR and verify exact-head checks
+next_action: verify exact-head checks for PR 1057
 ```
