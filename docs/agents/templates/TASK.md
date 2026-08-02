@@ -130,7 +130,7 @@ updated_at: YYYY-MM-DDTHH:MM:SSZ
 head: <commit-sha-or-UNKNOWN>
 branch: <branch>
 pr: <number-or-none>
-status: investigating|implementing|validating|ready|waiting|blocked|completed
+status: investigating # investigating|implementing|validating|ready|waiting|blocked|completed
 context_routes:
   - <route>
 owned_paths:
@@ -152,7 +152,7 @@ changed_paths:
   - <path>
 validation:
   - command: <command/workflow/job>
-    result: PASS|FAIL|BLOCKED|NOT_RUN|NOT_APPLICABLE
+    result: NOT_RUN # PASS|FAIL|BLOCKED|NOT_RUN|NOT_APPLICABLE
     evidence: <short reference; concrete reason required for NOT_APPLICABLE>
 blockers:
   - <blocker or none>
