@@ -2,7 +2,7 @@
 task_id: CAN-20260802-agent-governance-sync
 program_id: ""
 coordination_id: PORTFOLIO-AGENT-GOVERNANCE-20260802
-status: validating
+status: review
 agent: chat-github
 branch: docs/CAN-20260802-agent-governance-sync
 base_branch: main
