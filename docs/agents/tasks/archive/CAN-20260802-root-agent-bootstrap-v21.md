@@ -7,14 +7,14 @@ agent: "GPT-5.6 Thinking"
 branch: main
 base_branch: main
 created: 2026-08-02T08:57:00+02:00
-updated: 2026-08-02T09:12:00+02:00
-completed: 2026-08-02T09:12:00+02:00
+updated: 2026-08-02T09:13:00+02:00
+completed: 2026-08-02T09:13:00+02:00
 last_verified_commit: "282b6e4521c3fb74c9b7453d65a5412fe5cdfe96"
 risk: low
 related_issue: ""
 related_pr: "1057"
 merge_commit: "282b6e4521c3fb74c9b7453d65a5412fe5cdfe96"
-archive_pr: "pending"
+archive_pr: "1058"
 depends_on: []
 blocks: []
 owned_paths:
@@ -33,7 +33,7 @@ public_interfaces: []
 
 ## Terminal result
 
-PR #1057 merged the mandatory root Codex bootstrap to `main` as `282b6e4521c3fb74c9b7453d65a5412fe5cdfe96`. This archive change removes the active task and releases ownership.
+PR #1057 merged the mandatory root Codex bootstrap to `main` as `282b6e4521c3fb74c9b7453d65a5412fe5cdfe96`. PR #1058 removes the active task, archives this terminal record and releases ownership.
 
 ## Closeout
 
@@ -67,10 +67,10 @@ pull_requests:
   unresolved_review_threads: 0
   terminal_prs:
     - blakinio/canary#1057 merged as 282b6e4521c3fb74c9b7453d65a5412fe5cdfe96
-  archive_pr: pending
+  archive_pr: blakinio/canary#1058
 task_archived_or_terminal: true
 ownership_released: true
 stale_branches_reconciled: true
 ```
 
-No material finding or blocker remains. The archive PR is the sole intentionally open related PR until it merges.
+No material finding or blocker remains. PR #1058 is the sole intentionally open related PR and becomes terminal when merged.
