@@ -122,13 +122,15 @@ Never write `passed` without verification on the stated commit.
 
 ## Context checkpoint
 
+Checkpoint structure remains version 1. Policy revision 2 adds `waiting`, `completed`, and `NOT_APPLICABLE` without invalidating existing checkpoints. `ROTATE` is an invocation result, never a task status.
+
 ```yaml
 checkpoint_version: 1
 updated_at: YYYY-MM-DDTHH:MM:SSZ
 head: <commit-sha-or-UNKNOWN>
 branch: <branch>
 pr: <number-or-none>
-status: investigating|implementing|validating|blocked|ready
+status: investigating|implementing|validating|ready|waiting|blocked|completed
 context_routes:
   - <route>
 owned_paths:
@@ -150,18 +152,18 @@ changed_paths:
   - <path>
 validation:
   - command: <command/workflow/job>
-    result: PASS|FAIL|BLOCKED|NOT_RUN
-    evidence: <short reference>
+    result: PASS|FAIL|BLOCKED|NOT_RUN|NOT_APPLICABLE
+    evidence: <short reference; concrete reason required for NOT_APPLICABLE>
 blockers:
   - <blocker or none>
 next_action: <one concrete next step>
 ```
 
-This `## Context checkpoint` is the authoritative machine-readable continuation state. Keep exactly one concrete top-level `next_action` and update the checkpoint after material state changes.
+This `## Context checkpoint` is authoritative machine-readable continuation state. Keep exactly one concrete top-level `next_action` and update the checkpoint after material state changes. Before returning invocation result `ROTATE`, persist task status `ready`, `waiting`, or `blocked`.
 
 # Handoff
 
-This section is optional human-readable context only. It does not replace or override the authoritative `## Context checkpoint` above.
+This section is optional human-readable context only. It does not replace or override the authoritative checkpoint.
 
 ## Start here
 
