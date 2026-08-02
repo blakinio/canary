@@ -7,11 +7,11 @@ agent: chat-github
 branch: fix/CAN-20260802-active-task-lifecycle-isolation
 base_branch: main
 created: 2026-08-02T13:38:00Z
-updated: 2026-08-02T13:38:00Z
-last_verified_commit: b33048677befeb88bc1365c0f3a7b268eb4b0aec
+updated: 2026-08-02T13:42:00Z
+last_verified_commit: a818d4af5f262c0bd7a28046012506627dcc7cec
 risk: low
 related_issue: ""
-related_pr: ""
+related_pr: "1064"
 depends_on:
   - ACO-005 feature PR 623 merged as cf0d4fcb1c7d44d6633037b2d4cac761383a9f4e
 blocks:
@@ -42,21 +42,21 @@ Isolate and repair the stale active-task lifecycle state left after ACO-005 PR #
 
 # Acceptance criteria
 
-- [ ] Move the terminal ACO-005 task from active to archive with ownership released.
-- [ ] Mark ACO-005 completed in the orchestration programme and remove the stale current-task handoff.
+- [x] Move the terminal ACO-005 task from active to archive with ownership released.
+- [x] Mark ACO-005 completed in the orchestration programme and remove the stale current-task handoff.
 - [ ] Confirm focused context/resume tests pass unchanged.
 - [ ] Pass Agent Task Ownership and required CI on the exact final head.
-- [ ] Keep changes limited to task/program lifecycle records.
+- [x] Keep changes limited to task/program lifecycle records.
 
 ## Context checkpoint
 
 ```yaml
 checkpoint_version: 1
-updated_at: 2026-08-02T13:38:00Z
-head: b33048677befeb88bc1365c0f3a7b268eb4b0aec
+updated_at: 2026-08-02T13:42:00Z
+head: a818d4af5f262c0bd7a28046012506627dcc7cec
 branch: fix/CAN-20260802-active-task-lifecycle-isolation
-pr: null
-status: implementing
+pr: 1064
+status: validating
 context_routes:
   - agent-governance
   - ci-repair
@@ -67,24 +67,28 @@ owned_paths:
   - docs/agents/programs/AGENT_CONTEXT_ORCHESTRATION_PROGRAM.md
 proven:
   - PR 623 merged ACO-005 as cf0d4fcb1c7d44d6633037b2d4cac761383a9f4e.
-  - The ACO-005 task remains under tasks/active and still claims tools/agents/checkpoint.py exclusively.
-  - Agent Task Ownership run 30749784797 for governance PR 1063 fails on that stale ownership claim and an empty programme ID in the governance task.
+  - The stale ACO-005 active task was replaced by a terminal archive record with empty ownership.
+  - The orchestration programme now marks ACO-005 and the programme completed.
+  - Agent Task Ownership run 30749784797 for governance PR 1063 failed after focused unit tests passed, on stale ownership plus an empty programme ID in the governance task.
 derived:
-  - Archiving the already-merged ACO-005 task is the smallest independent repair for the ownership half of the governance failure.
+  - This PR removes the independent stale-ownership blocker without changing resume or ownership tooling.
 unknown:
-  - Exact-head focused context/resume and ownership workflow results for this isolation task.
+  - Exact-final-head Agent Task Ownership and CI conclusions for PR 1064.
 conflicts: []
 first_failure:
   marker: Agent Task Ownership validate active ownership
-  evidence: run 30749784797 job 91501650172 reports stale checkpoint.py ownership overlap
+  evidence: run 30749784797 job 91501650172 reported stale checkpoint.py ownership overlap
 rejected_hypotheses:
   - The latest governance failure is ResumePromptTests.test_generate_prompt_is_bounded; the focused unit-test step passed before ownership validation failed.
 changed_paths:
   - docs/agents/tasks/active/CAN-20260802-active-task-lifecycle-isolation.md
+  - docs/agents/tasks/active/CAN-20260720-agent-context-efficiency.md
+  - docs/agents/tasks/archive/CAN-20260720-agent-context-efficiency.md
+  - docs/agents/programs/AGENT_CONTEXT_ORCHESTRATION_PROGRAM.md
 validation:
   - command: Agent Task Ownership workflow
     result: NOT_RUN
-    evidence: draft PR not opened yet
+    evidence: final-gate label applied; exact-final-head run pending after this checkpoint commit
 blockers: []
-next_action: archive the terminal ACO-005 task and update the programme record
+next_action: verify exact-final-head Agent Task Ownership and CI for PR 1064, then merge if every gate is green
 ```
