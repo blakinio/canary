@@ -6,7 +6,7 @@ status: completed
 feature_pr: 1061
 feature_head: d388e24bc5da2c14649c8b488483c2f6b41a82c0
 merge_commit: 2163e77195b5dd6aa4c4594faec21937ab97d6ec
-archive_pr: pending
+archive_pr: 1062
 completed: 2026-08-02T12:10:00+02:00
 owned_paths: []
 ---
@@ -15,7 +15,7 @@ owned_paths: []
 
 ## Terminal result
 
-PR #1061 merged the mandatory GitHub-only execution contract, root bootstrap routing, local agent routing, and gated autonomous merge/auto-merge authority to `main` as `2163e77195b5dd6aa4c4594faec21937ab97d6ec`.
+PR #1061 merged the mandatory GitHub-only execution contract, root bootstrap routing, local agent routing, and gated autonomous merge/auto-merge authority to `main` as `2163e77195b5dd6aa4c4594faec21937ab97d6ec`. PR #1062 archives this terminal record and releases ownership.
 
 ## Closeout
 
@@ -47,7 +47,7 @@ final_ci:
 pull_requests:
   terminal_prs:
     - blakinio/canary#1061 merged as 2163e77195b5dd6aa4c4594faec21937ab97d6ec
-  archive_pr: pending
+  archive_pr: blakinio/canary#1062
   unresolved_review_threads: 0
 task_archived_or_terminal: true
 ownership_released: true
