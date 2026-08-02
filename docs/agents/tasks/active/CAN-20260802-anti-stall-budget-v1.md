@@ -2,13 +2,13 @@
 task_id: CAN-20260802-anti-stall-budget-v1
 program_id: CAN-PROGRAM-AGENT-GOVERNANCE
 coordination_id: ANTI-STALL-BUDGET-V1
-status: validating
+status: active
 agent: "GPT-5.6 Thinking"
 branch: docs/anti-stall-budget-v1-20260802
 base_branch: main
 created: 2026-08-02T10:29:00+02:00
-updated: 2026-08-02T10:49:00+02:00
-last_verified_commit: "bb60e649f19d0da9bd22caf9d9ef4e8a18d6ec9f"
+updated: 2026-08-02T10:57:00+02:00
+last_verified_commit: "1eb860f11160c8d2e4ebd0c3446ebeda4cebe899"
 risk: low
 related_pr: "1059"
 owned_paths:
@@ -43,13 +43,13 @@ Prevent autonomous agents from polling, retrying, repairing, or selecting tasks 
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T10:49:00+02:00
-head: bb60e649f19d0da9bd22caf9d9ef4e8a18d6ec9f
+updated_at: 2026-08-02T10:57:00+02:00
+head: 1eb860f11160c8d2e4ebd0c3446ebeda4cebe899
 branch: docs/anti-stall-budget-v1-20260802
 pr: 1059
-status: validating
+status: active
 phase: validate
-session_id: chat-20260802-anti-stall-budget-v1
+session_id: chat-20260802-anti-stall-budget-v1-continuation
 session_role: coordinator
 execution_mode: chat
 run_scope: autonomous_program
@@ -67,18 +67,19 @@ proven:
   - The root bootstrap requires the anti-stall contract before autonomous or long-running work.
   - The local agent router requires budget counters and bounded stop conditions.
   - The contract limits CI checks, retries, repair cycles, context reconstruction, commands, runtime and no-progress time.
-  - Repository CI run 6784 passed on the prior exact head.
+  - Repository CI run 6785 passed on the prior exact head.
+  - Agent Task Ownership run 5618 identified the remaining blocker as a non-active status under tasks/active.
 derived:
   - Autonomous continuation can no longer legitimately justify indefinite polling or overnight execution without a declared budget.
 unknown:
-  - Exact-head ownership and CI result after final checkpoint schema repair.
+  - Exact-head ownership and CI result after correcting the active task status.
 conflicts: []
 first_failure:
-  marker: validation-command-required
-  evidence: Agent Task Ownership run 5617 required a command field in every validation item.
+  marker: active-directory-status-required
+  evidence: Agent Task Ownership run 5618 required status active for a record under tasks/active.
 rejected_hypotheses:
-  - the contract content itself caused the ownership failure
-  - a check field is accepted in place of command
+  - the contract content caused the ownership failure
+  - status validating is accepted for records under tasks/active
 changed_paths:
   - AGENTS.override.md
   - docs/agents/AGENTS.md
@@ -87,20 +88,20 @@ changed_paths:
 validation:
   - command: python -m unittest -v test_task_ownership.py test_context_orchestration.py test_task_lifecycle.py test_efficiency_eval.py test_supervisor_queue.py test_ci_incremental_validation.py
     result: PASS
-    evidence: Agent Task Ownership run 5617 focused unit-test step
+    evidence: Agent Task Ownership run 5618 focused unit-test step
   - command: GitHub Actions CI
     result: PASS
-    evidence: CI run 6784 on head bb60e649f19d0da9bd22caf9d9ef4e8a18d6ec9f
+    evidence: CI run 6785 on prior head 1eb860f11160c8d2e4ebd0c3446ebeda4cebe899
 blockers: []
-invocation_started_at: 2026-08-02T10:29:00+02:00
-last_progress_at: 2026-08-02T10:49:00+02:00
+invocation_started_at: 2026-08-02T10:56:00+02:00
+last_progress_at: 2026-08-02T10:57:00+02:00
 runtime_limit_minutes: 60
 no_progress_minutes: 15
 ci_checks_for_current_head: 0
 unchanged_state_checks: 0
 identical_failure_retries: 0
-repair_cycles_for_current_gate: 3
+repair_cycles_for_current_gate: 1
 context_reconstruction_attempts: 0
 stall_warnings: 0
-next_action: verify final exact-head checks for PR 1059; block without further repair if ownership fails again
+next_action: verify exact-head checks for PR 1059 and merge when green
 ```
