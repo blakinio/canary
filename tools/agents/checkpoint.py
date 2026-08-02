@@ -9,8 +9,22 @@ from pathlib import Path
 from typing import Iterable
 
 CHECKPOINT_HEADING = "## Context checkpoint"
-ALLOWED_STATUSES = {"investigating", "implementing", "validating", "blocked", "ready"}
-ALLOWED_VALIDATION_RESULTS = {"PASS", "FAIL", "BLOCKED", "NOT_RUN"}
+ALLOWED_STATUSES = {
+    "investigating",
+    "implementing",
+    "validating",
+    "ready",
+    "waiting",
+    "blocked",
+    "completed",
+}
+ALLOWED_VALIDATION_RESULTS = {
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_RUN",
+    "NOT_APPLICABLE",
+}
 
 SCALAR_KEYS = {
     "checkpoint_version",

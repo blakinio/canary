@@ -1,47 +1,56 @@
 # Agent Context Handoff
 
-This document defines how an agent preserves work when the conversation becomes slow, the context window is close to exhaustion, a model/session must be replaced, or another agent must continue the same task.
+This document defines how an agent preserves work when context is under pressure, a session must be replaced, or another agent continues the same task.
 
 ## Principle
 
-Chat history is disposable. Git, the task record, the PR, and deterministic evidence are the durable state.
+Chat history is disposable. Git, the task record, the live PR, and deterministic evidence are durable state. A continuation agent must be able to resume without reading the previous conversation.
 
-A continuation agent must be able to resume without reading the previous conversation.
+## Contract revision
+
+Checkpoint structure remains version 1. Policy revision 2 is backward-compatible and adds task statuses `waiting` and `completed`, validation result `NOT_APPLICABLE`, and a formal distinction between task status and terminal invocation result. Existing valid version 1 checkpoints remain valid.
+
+Checkpoint task statuses:
+
+```text
+investigating | implementing | validating | ready | waiting | blocked | completed
+```
+
+Terminal invocation results:
+
+```text
+DONE | WAITING | BLOCKED | ROTATE
+```
+
+`ROTATE` is never a checkpoint task status. Before returning it, persist `ready`, `waiting`, or `blocked` with exactly one concrete `next_action`.
 
 ## When to checkpoint
 
-Update the active task record immediately when any of these occurs:
+Update the active task record when:
 
 - a root cause or blocker is proven;
 - a hypothesis is rejected by evidence;
 - files are modified;
-- a test or CI result changes the task state;
-- the current head changes;
-- review feedback changes the required work;
-- the agent notices degraded response quality, repeated rereading, loss of earlier facts, or excessive context growth;
-- before deliberate compaction, session replacement, or context exhaustion.
+- validation or CI changes task state;
+- branch, head, or PR state changes;
+- review feedback changes required work;
+- context quality degrades or grows excessively;
+- before compaction, session replacement, or context exhaustion.
 
-Do not wait until the final tokens of a session.
+Do not wait until the end of the session.
 
 ## Context pressure protocol
 
-When context pressure is suspected:
-
-1. Stop broad exploration.
-2. Do not start a new unrelated subtask.
-3. Verify current branch/head and working-tree state.
-4. Update the active task record using the checkpoint schema below.
-5. Validate the checkpoint when the tooling is available.
-6. Ensure the PR body contains the current high-level status when externally visible state changed.
-7. Commit/push only coherent work that is safe to preserve; otherwise record uncommitted paths explicitly.
-8. Generate a compact resume bundle when another session/mode/agent will continue.
-9. End the current agent after writing one precise `next_action`.
-
-The next agent starts from the checkpoint, current Git state, current PR, and routed context. It must not reconstruct state from old chat messages.
+1. Stop broad exploration and do not start an unrelated subtask.
+2. Verify current branch, head, PR, and working-tree state.
+3. Update the active task checkpoint.
+4. Validate the checkpoint when tooling is available.
+5. Preserve only coherent work; otherwise record uncommitted paths.
+6. Generate a compact resume bundle when another session or agent continues.
+7. Leave exactly one concrete `next_action`.
+8. End or rotate the current worker; do not rely on previous chat.
 
 ## Checkpoint schema
-
-Every substantial active task should maintain a compact `## Context checkpoint` section with this shape:
 
 ```yaml
 checkpoint_version: 1
@@ -49,7 +58,7 @@ updated_at: YYYY-MM-DDTHH:MM:SSZ
 head: <commit-sha-or-UNKNOWN>
 branch: <branch>
 pr: <number-or-none>
-status: investigating|implementing|validating|blocked|ready
+status: investigating|implementing|validating|ready|waiting|blocked|completed
 context_routes:
   - <route>
 owned_paths:
@@ -71,133 +80,69 @@ changed_paths:
   - <path>
 validation:
   - command: <command/workflow/job>
-    result: PASS|FAIL|BLOCKED|NOT_RUN
-    evidence: <short reference>
+    result: PASS|FAIL|BLOCKED|NOT_RUN|NOT_APPLICABLE
+    evidence: <short reference; concrete reason required for NOT_APPLICABLE>
 blockers:
   - <blocker or none>
 next_action: <one concrete next step>
 ```
 
-Omit empty historical detail; preserve only what a new agent needs to continue correctly.
+Use `waiting` when an external event is pending and no worker should remain active. Use `blocked` for a real decision, permission, safety, resource, or exhausted-repair barrier. Use `ready` when a fresh session can execute `next_action`. Use `completed` only after repository closeout gates pass.
 
-The `## Context checkpoint` section is the authoritative machine-readable continuation state. Any additional prose `# Handoff` section is optional human-readable context and must not replace or override the checkpoint.
+The `## Context checkpoint` section is authoritative machine-readable continuation state. Optional prose handoff sections must not replace or override it.
 
-### Checkpoint compactness ceilings
+## Compactness and validation
 
-`tools/agents/checkpoint.py` enforces generous hard ceilings on checkpoint list fields because continuation agents read the task record before the routed resume bundle can trim it. `docs/agents/CONTEXT_ROUTES.json` applies tighter limits to the generated evidence bundle.
+`tools/agents/checkpoint.py` enforces required fields, accepted states and results, evidence-state overlap, compactness ceilings, and one concrete top-level `next_action`.
 
-When a checkpoint approaches a ceiling, replace superseded history with the current proven conclusion and exact references. Do not preserve chronological diaries, repeated CI outcomes, stale changed-path inventories, or every rejected hypothesis. Never remove a current blocker, unresolved conflict, first-failure marker, or evidence required to justify the next action merely to satisfy compactness.
-
-Validate a checkpoint with:
+Validate with:
 
 ```sh
 python tools/agents/checkpoint.py <active-task-path> --require-checkpoint
 ```
 
-The validator checks required fields, supported states/results, evidence-state overlap, compactness ceilings, and the requirement for one concrete top-level `next_action`. It does not replace live Git/PR/CI verification.
+When a checkpoint approaches a ceiling, replace superseded history with the current proven conclusion and exact references. Never remove a current blocker, unresolved conflict, first-failure marker, or evidence required for `next_action` merely to satisfy compactness.
+
+The validator checks structure only; live Git, PR, CI, ownership, and evidence still require verification.
 
 ## Evidence rules
 
-Use these states consistently:
-
-- `PROVEN`: directly supported by source, deterministic tool output, logs, artifacts, tests, or live GitHub state;
-- `DERIVED`: conclusion that follows from listed proven facts;
-- `UNKNOWN`: not established; never replace with a guess;
+- `PROVEN`: directly supported by source, deterministic tool output, logs, artifacts, tests, or live GitHub state.
+- `DERIVED`: conclusion that follows from listed proven facts.
+- `UNKNOWN`: not established; never replace with a guess.
 - `CONFLICT`: authoritative evidence disagrees and must be resolved.
 
-For failures, record the first unmet marker/check and the evidence-backed cause when known. Do not retain speculative root causes as facts.
-
-A continuation worker must not spend context rediscovering PROVEN facts unless current Git/PR evidence has changed.
+Record the first unmet marker and evidence-backed cause when known. A continuation worker must not rediscover `PROVEN` facts unless live evidence changed.
 
 ## Starting a continuation agent
 
-The continuation prompt should be short. Prefer generating it from repository state:
+Prefer generating a bounded prompt from repository state:
 
 ```sh
 python tools/agents/resume.py --task <active-task-path> --task-text "<bounded next task>"
 ```
 
-Repository-relative `--task` and `--config` paths are resolved from the repository root, not the caller's current working directory. Absolute paths remain unchanged. The same command therefore works from the repository root and from subdirectories such as `tools/agents/`.
+Add capability flags only when true. The new agent verifies repository identity, branch/head, PR and CI, ownership conflicts, and validity of `next_action` before changing state.
 
-Add capability flags only when they are true, for example:
-
-```sh
-# local edit/build/test/runtime loop
-python tools/agents/resume.py --task <task> --needs-local-execution
-
-# broad multi-source research package
-python tools/agents/resume.py --task <task> --broad-research --large-deliverable
-```
-
-The generated prompt follows this operating contract:
-
-```text
-Continue task <task-id> from the repository state.
-Read only the routed required context, checkpoint, and current PR/head.
-Verify head, PR, CI, ownership and next_action before changing state.
-Do not rediscover PROVEN facts unless live evidence changed.
-Do not rely on previous chat history.
-```
-
-The new agent must first verify:
-
-1. repository is `blakinio/canary`;
-2. branch/head still match the checkpoint or record the change;
-3. PR state and required CI are current;
-4. ownership has not developed a new conflict;
-5. `next_action` is still valid against current evidence.
-
-## Legacy checkpoint-less recovery
-
-Legacy active task records may predate the checkpoint contract. They remain invalid under strict checkpoint validation; `resume.py` does not silently make them compliant.
-
-When no `## Context checkpoint` exists, the context/resume tooling instead provides a bounded recovery prompt:
-
-- emits an explicit `WARNING: CHECKPOINT_MISSING` line;
-- derives only `head`, `branch`, `pr`, and `status` from explicit task frontmatter (`last_verified_commit`, `branch`, normalized `related_pr`, `status`);
-- leaves PROVEN/UNKNOWN/CONFLICT evidence lists empty rather than reconstructing claims from prose;
-- uses one safe recovery `next_action`: reconstruct and write a valid checkpoint from current Git, PR, and task evidence before substantive implementation;
-- normalizes the PR reference once so REQUIRED_READS and EVIDENCE_BUNDLE use the same PR identity.
-
-This fallback is a recovery mechanism, not evidence that the legacy task is current. The continuation agent must verify live Git/PR state before relying on the frontmatter values and should write a compliant checkpoint before substantive implementation.
+Legacy checkpoint-less task records require a bounded recovery action: reconstruct and write a valid checkpoint from current Git, PR, CI, ownership, and task evidence before substantive implementation.
 
 ## Mode-aware handoff
 
-Use `docs/agents/EXECUTION_MODE_ROUTING.md` for CHAT/CODEX/WORK selection.
-
-Default is `minimize_agentic_usage`:
-
-- CHAT remains the coordinator while connector-based analysis, GitHub, PR and CI work is sufficient;
-- CODEX receives only a bounded execution bundle when local edit/build/test/runtime capability is necessary;
-- WORK receives only a bounded research/deliverable bundle when broad multi-source work is necessary;
-- after the bounded CODEX or WORK package finishes, checkpoint the result and return coordination to CHAT unless another bounded agentic step is still required.
-
-Do not pass full previous conversations into CODEX or WORK. The task checkpoint and generated evidence bundle are the handoff boundary.
+Use `EXECUTION_MODE_ROUTING.md` for Chat, Codex, and Work selection. Pass only the bounded task checkpoint and routed evidence bundle, never the full previous conversation.
 
 ## Handoff quality gate
 
-A handoff is incomplete if the next agent would need to ask any of these before continuing:
+A handoff is incomplete if the next agent cannot determine:
 
-- Which branch/PR/head am I on?
-- What exactly failed first?
-- Which facts are proven versus assumed?
-- What files have already changed?
-- What validation has run and with what result?
-- What blocker remains?
-- What is the next concrete action?
+- current branch, PR, and head;
+- proven, derived, unknown, and conflicting facts;
+- first failure, if any;
+- changed paths;
+- validation results;
+- current task status;
+- remaining blocker;
+- the single next action.
 
-If any answer is missing, update the checkpoint before ending the session.
+## Anti-bloat
 
-## Anti-bloat rules
-
-Do not paste into the checkpoint or escalation bundle:
-
-- full logs;
-- full diffs;
-- entire artifact contents;
-- long chat summaries;
-- source files already available in Git;
-- whole-repository inventories;
-- unrelated optional documentation.
-
-Store references and exact identifiers instead: commit SHA, PR number, workflow/job, artifact name, path, line/symbol, test command, first failed marker.
+Do not paste full logs, full diffs, whole source files, artifact contents, long chat summaries, whole-repository inventories, or unrelated documentation into checkpoints. Store exact identifiers and references instead.
