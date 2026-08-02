@@ -6,7 +6,7 @@ status: completed
 feature_pr: 1059
 feature_head: 0b31d1954994ad223b3be1d185cab50815f0c22b
 merge_commit: 92ece59586d39b109b2454e9e1466e9fc5cdf60d
-archive_pr: pending
+archive_pr: 1060
 completed: 2026-08-02T11:07:00+02:00
 owned_paths: []
 ---
@@ -15,7 +15,7 @@ owned_paths: []
 
 ## Terminal result
 
-PR #1059 merged the mandatory anti-stall contract, root bootstrap routing and local agent routing to `main` as `92ece59586d39b109b2454e9e1466e9fc5cdf60d`.
+PR #1059 merged the mandatory anti-stall contract, root bootstrap routing and local agent routing to `main` as `92ece59586d39b109b2454e9e1466e9fc5cdf60d`. PR #1060 archives this terminal record and releases ownership.
 
 ## Closeout
 
@@ -47,7 +47,7 @@ final_ci:
 pull_requests:
   terminal_prs:
     - blakinio/canary#1059 merged as 92ece59586d39b109b2454e9e1466e9fc5cdf60d
-  archive_pr: pending
+  archive_pr: blakinio/canary#1060
   unresolved_review_threads: 0
 task_archived_or_terminal: true
 ownership_released: true
@@ -70,4 +70,4 @@ normal_command_timeout_minutes: 20
 heavy_command_timeout_minutes: 45
 ```
 
-No material finding or blocker remains. The archive PR is the sole related PR until it merges.
+No material finding or blocker remains. PR #1060 is the sole related PR and becomes terminal when merged.
