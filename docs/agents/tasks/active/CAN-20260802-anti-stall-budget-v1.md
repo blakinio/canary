@@ -2,14 +2,15 @@
 task_id: CAN-20260802-anti-stall-budget-v1
 program_id: CAN-PROGRAM-AGENT-GOVERNANCE
 coordination_id: ANTI-STALL-BUDGET-V1
-status: implementing
+status: validating
 agent: "GPT-5.6 Thinking"
 branch: docs/anti-stall-budget-v1-20260802
 base_branch: main
 created: 2026-08-02T10:29:00+02:00
-updated: 2026-08-02T10:29:00+02:00
+updated: 2026-08-02T10:40:00+02:00
+last_verified_commit: "2a38f06d5ebe0f886765249e1e431bc2bdf15e28"
 risk: low
-related_pr: ""
+related_pr: "1059"
 owned_paths:
   exclusive:
     - AGENTS.override.md
@@ -37,18 +38,62 @@ Prevent autonomous agents from polling, retrying, repairing, or selecting tasks 
 - [ ] Pass exact-head governance and CI.
 - [ ] Merge and archive.
 
-## Budget checkpoint
+## Context checkpoint
 
 ```yaml
+checkpoint_version: 1
+policy_version: 2
+updated_at: 2026-08-02T10:40:00+02:00
+head: 2a38f06d5ebe0f886765249e1e431bc2bdf15e28
+branch: docs/anti-stall-budget-v1-20260802
+pr: 1059
+status: validating
+phase: validate
+session_id: chat-20260802-anti-stall-budget-v1
+session_role: coordinator
+execution_mode: chat
+run_scope: autonomous_program
+continuation_policy: continue_until_real_stop
+task_completion_policy: finalize_archive_and_continue
+user_communication: low_noise
+context_routes:
+  - agent-governance
+owned_paths:
+  - AGENTS.override.md
+  - docs/agents/AGENTS.md
+  - docs/agents/ANTI_STALL_AND_EXECUTION_BUDGET.md
+  - docs/agents/tasks/active/CAN-20260802-anti-stall-budget-v1.md
+proven:
+  - The root bootstrap requires the anti-stall contract before autonomous or long-running work.
+  - The local agent router requires budget counters and bounded stop conditions.
+  - The contract limits CI checks, retries, repair cycles, context reconstruction, commands, runtime and no-progress time.
+derived:
+  - Autonomous continuation can no longer legitimately justify indefinite polling or overnight execution without a declared budget.
+unknown:
+  - Exact-head CI result after this checkpoint repair.
+conflicts: []
+first_failure:
+  marker: missing-context-checkpoint
+  evidence: Agent Task Ownership run 5615 rejected the initial task record.
+rejected_hypotheses:
+  - the contract content itself caused the ownership failure
+changed_paths:
+  - AGENTS.override.md
+  - docs/agents/AGENTS.md
+  - docs/agents/ANTI_STALL_AND_EXECUTION_BUDGET.md
+  - docs/agents/tasks/active/CAN-20260802-anti-stall-budget-v1.md
+validation:
+  - focused agent tooling unit tests passed in run 5615
+blockers: []
 invocation_started_at: 2026-08-02T10:29:00+02:00
-last_progress_at: 2026-08-02T10:29:00+02:00
+last_progress_at: 2026-08-02T10:40:00+02:00
 runtime_limit_minutes: 60
 no_progress_minutes: 15
 ci_checks_for_current_head: 0
 unchanged_state_checks: 0
 identical_failure_retries: 0
-repair_cycles_for_current_gate: 0
+repair_cycles_for_current_gate: 1
 context_reconstruction_attempts: 0
 stall_warnings: 0
-next_action: open the implementation PR and verify exact-head checks
+next_action: verify exact-head checks for PR 1059
 ```
