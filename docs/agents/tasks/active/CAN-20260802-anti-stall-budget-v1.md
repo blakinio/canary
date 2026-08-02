@@ -7,8 +7,8 @@ agent: "GPT-5.6 Thinking"
 branch: docs/anti-stall-budget-v1-20260802
 base_branch: main
 created: 2026-08-02T10:29:00+02:00
-updated: 2026-08-02T10:57:00+02:00
-last_verified_commit: "1eb860f11160c8d2e4ebd0c3446ebeda4cebe899"
+updated: 2026-08-02T11:01:00+02:00
+last_verified_commit: "f1bc0159af718a6c0e9c85d52d6fa363ce4c6e8a"
 risk: low
 related_pr: "1059"
 owned_paths:
@@ -43,11 +43,11 @@ Prevent autonomous agents from polling, retrying, repairing, or selecting tasks 
 ```yaml
 checkpoint_version: 1
 policy_version: 2
-updated_at: 2026-08-02T10:57:00+02:00
-head: 1eb860f11160c8d2e4ebd0c3446ebeda4cebe899
+updated_at: 2026-08-02T11:01:00+02:00
+head: f1bc0159af718a6c0e9c85d52d6fa363ce4c6e8a
 branch: docs/anti-stall-budget-v1-20260802
 pr: 1059
-status: active
+status: validating
 phase: validate
 session_id: chat-20260802-anti-stall-budget-v1-continuation
 session_role: coordinator
@@ -67,19 +67,19 @@ proven:
   - The root bootstrap requires the anti-stall contract before autonomous or long-running work.
   - The local agent router requires budget counters and bounded stop conditions.
   - The contract limits CI checks, retries, repair cycles, context reconstruction, commands, runtime and no-progress time.
-  - Repository CI run 6785 passed on the prior exact head.
-  - Agent Task Ownership run 5618 identified the remaining blocker as a non-active status under tasks/active.
+  - Repository CI run 6786 passed on the prior exact head.
+  - Agent Task Ownership run 5619 confirmed frontmatter status active and required checkpoint status validating.
 derived:
   - Autonomous continuation can no longer legitimately justify indefinite polling or overnight execution without a declared budget.
 unknown:
-  - Exact-head ownership and CI result after correcting the active task status.
+  - Exact-head ownership and CI result after aligning the checkpoint status.
 conflicts: []
 first_failure:
-  marker: active-directory-status-required
-  evidence: Agent Task Ownership run 5618 required status active for a record under tasks/active.
+  marker: checkpoint-status-domain
+  evidence: Agent Task Ownership run 5619 accepts active for task frontmatter but requires validating for the checkpoint state.
 rejected_hypotheses:
-  - the contract content caused the ownership failure
-  - status validating is accepted for records under tasks/active
+  - frontmatter and checkpoint must use the same status value
+  - checkpoint status active is supported
 changed_paths:
   - AGENTS.override.md
   - docs/agents/AGENTS.md
@@ -88,19 +88,19 @@ changed_paths:
 validation:
   - command: python -m unittest -v test_task_ownership.py test_context_orchestration.py test_task_lifecycle.py test_efficiency_eval.py test_supervisor_queue.py test_ci_incremental_validation.py
     result: PASS
-    evidence: Agent Task Ownership run 5618 focused unit-test step
+    evidence: Agent Task Ownership run 5619 focused unit-test step
   - command: GitHub Actions CI
     result: PASS
-    evidence: CI run 6785 on prior head 1eb860f11160c8d2e4ebd0c3446ebeda4cebe899
+    evidence: CI run 6786 on prior head f1bc0159af718a6c0e9c85d52d6fa363ce4c6e8a
 blockers: []
 invocation_started_at: 2026-08-02T10:56:00+02:00
-last_progress_at: 2026-08-02T10:57:00+02:00
+last_progress_at: 2026-08-02T11:01:00+02:00
 runtime_limit_minutes: 60
 no_progress_minutes: 15
 ci_checks_for_current_head: 0
 unchanged_state_checks: 0
 identical_failure_retries: 0
-repair_cycles_for_current_gate: 1
+repair_cycles_for_current_gate: 2
 context_reconstruction_attempts: 0
 stall_warnings: 0
 next_action: verify exact-head checks for PR 1059 and merge when green
