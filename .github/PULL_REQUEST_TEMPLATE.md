@@ -42,6 +42,28 @@
 
 <!-- Record failures caused by this PR and root-cause fixes. Use `None` when no failures occurred. -->
 
+# Projects Operations metadata
+
+### Parent issue
+
+<!-- Full GitHub Issue URL or None. -->
+
+### Programme
+
+<!-- Exact value: Canary / Upstream, Server, Content, Infrastructure, or Audit & Repair. -->
+
+### Priority
+
+<!-- Exact value: P0, P1, P2, or P3. -->
+
+### Risk
+
+<!-- Exact value: Low, Medium, High, or Critical. -->
+
+### Blocked by
+
+<!-- Full GitHub Issue URLs, one per line, or None. -->
+
 # Autonomous merge checklist
 
 - [ ] Base/head repositories and branches are correct; upstream is not targeted
@@ -53,4 +75,5 @@
 - [ ] No secrets, private data, forbidden binaries, generated output, or unrelated files
 - [ ] All required checks pass at the current head
 - [ ] No unresolved requested changes, review threads, blockers, or atomic cross-repo hold
+- [ ] Task archival and ownership release are complete when required
 - [ ] PR is safe for autonomous squash merge
