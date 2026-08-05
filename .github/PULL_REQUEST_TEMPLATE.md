@@ -75,5 +75,11 @@
 - [ ] No secrets, private data, forbidden binaries, generated output, or unrelated files
 - [ ] All required checks pass at the current head
 - [ ] No unresolved requested changes, review threads, blockers, or atomic cross-repo hold
-- [ ] Task archival and ownership release are complete when required
+- [ ] Required post-merge task archival and ownership release have an explicit closeout action
 - [ ] PR is safe for autonomous squash merge
+
+# Post-merge closeout
+
+- [ ] Archive the terminal task record when required.
+- [ ] Release ownership and leases.
+- [ ] Verify resulting state and linked programme dependencies.
