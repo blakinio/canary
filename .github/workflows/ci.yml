@@ -2,13 +2,7 @@
 name: CI
 
 on:
-  workflow_dispatch:
-    inputs:
-      run_windows:
-        description: Run Windows build
-        required: false
-        type: boolean
-        default: false
+  workflow_dispatch: {}
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
@@ -53,7 +47,6 @@ jobs:
       final_gate: ${{ steps.final_gate.outputs.active || 'false' }}
       linux: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.linux == 'true') }}
       full_matrix: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.engine == 'true') }}
-      windows: ${{ github.event_name == 'workflow_dispatch' && inputs.run_windows == true }}
       run_canary_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && (steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.canary_datapack == 'true')) }}
       run_global_smoke: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.final_gate.outputs.active == 'true' || (steps.incremental.outputs.reuse_parent != 'true' && (steps.filter.outputs.engine == 'true' || steps.filter.outputs.shared_datapack == 'true' || steps.filter.outputs.global_datapack == 'true')) }}
       docker: ${{ (github.event_name == 'workflow_dispatch' || steps.final_gate.outputs.active == 'true') && 'true' || (steps.incremental.outputs.reuse_parent != 'true' && steps.filter.outputs.docker) }}
@@ -188,20 +181,9 @@ jobs:
       run_global_smoke: ${{ needs.changes.outputs.run_global_smoke == 'true' }}
     secrets: inherit
 
-  build-windows:
-    name: Build - Windows
-    needs: [changes, checks, tests-lua]
-    if: needs.changes.outputs.windows == 'true' && needs.checks.result == 'success' && needs.tests-lua.result == 'success'
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/reusable-build-windows.yml
-    with:
-      run_canary_smoke: ${{ needs.changes.outputs.run_canary_smoke == 'true' }}
-    secrets: inherit
-
-  # macOS compilation is intentionally suspended. The reusable workflow is
-  # retained for an explicit future re-enable task, but normal CI does not call it.
+  # Windows and macOS compilation are intentionally suspended. Their reusable
+  # workflows are retained for an explicit future re-enable task, but CI does
+  # not call them.
 
   build-docker:
     name: Build - Docker
@@ -229,7 +211,6 @@ jobs:
       - checks
       - tests-lua
       - build-linux
-      - build-windows
       - build-docker
       - docker-quickstart-smoke
     runs-on: ubuntu-latest
@@ -263,7 +244,7 @@ jobs:
                   rejected[name] = f"expected {sorted(allowed)}, got {result}"
 
           scopes = jobs["changes"].get("outputs", {})
-          for scope in ("linux", "full_matrix", "windows", "docker", "docker_quickstart"):
+          for scope in ("linux", "full_matrix", "docker", "docker_quickstart"):
               if scopes.get(scope) not in {"true", "false"}:
                   rejected[f"scope:{scope}"] = (
                       f"expected true or false, got {scopes.get(scope)!r}"
@@ -271,7 +252,6 @@ jobs:
 
           required_builds = {
               "build-linux": scopes.get("linux") == "true",
-              "build-windows": scopes.get("windows") == "true",
               "build-docker": scopes.get("docker") == "true",
               "docker-quickstart-smoke": (
                   scopes.get("docker") == "true"
