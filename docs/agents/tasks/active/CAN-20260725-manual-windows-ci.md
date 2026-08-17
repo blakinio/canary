@@ -3,12 +3,12 @@ task_id: CAN-20260725-manual-windows-ci
 program_id: none
 status: implementing
 agent: "GPT-5.6 Thinking"
-branch: ci/manual-windows-build-20260725
+branch: ci/linux-docker-only-builds
 base_branch: main
 created: 2026-07-25T23:00:00+02:00
-updated: 2026-07-25T23:53:00+02:00
+updated: 2026-08-17T09:18:00+02:00
 risk: medium
-related_pr: "946"
+related_pr: ""
 depends_on: []
 blocks: []
 owned_paths:
@@ -16,86 +16,81 @@ owned_paths:
     - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
   shared:
     - .github/workflows/ci.yml
+    - .github/workflows/release.yml
+    - docs/agents/BUILD_TEST_MATRIX.md
   read_only:
     - .github/workflows/reusable-build-windows.yml
+    - .github/workflows/reusable-build-macos.yml
 modules_touched:
   - ci
-reuses:
-  - reusable-build-windows workflow
 public_interfaces:
-  - CI workflow_dispatch input run_windows
+  - CI workflow jobs
+  - Release workflow jobs
 cross_repo_tasks: []
 ---
 
 # Goal
 
-Keep Canary Docker/Linux validation as the normal CI path and run the Windows build only when explicitly requested from the manual CI workflow dispatch form.
+Correct the earlier Windows manual-opt-in policy from PR #946. Canary automated builds must use Linux and Docker only: no Windows or macOS build job may run from the normal `CI` workflow or the `Release` workflow.
 
 # Scope
 
-- Add a boolean manual-dispatch input for Windows validation.
-- Stop selecting the Windows build on pull requests and pushes to `main`.
-- Keep the existing reusable Windows workflow unchanged.
-- Keep the stable `Required` aggregator active and require Windows success only when the manual input selects it.
-- Do not change Linux, Docker, Lua, formatting or runtime-smoke implementation.
+- Remove the `run_windows` manual-dispatch selector from `.github/workflows/ci.yml`.
+- Remove the `build-windows` caller job and its `Required`-aggregator mapping from normal CI.
+- Keep the existing macOS CI caller absent.
+- Remove Windows and macOS build jobs from `.github/workflows/release.yml` and stop publishing their artifacts.
+- Keep Linux and Docker build paths active.
+- Keep reusable Windows/macOS workflow definitions unchanged and dormant so platform builds can be re-enabled explicitly in a future policy change without consuming runner capacity now.
+- Update `docs/agents/BUILD_TEST_MATRIX.md` to match the enforced workflow policy.
+- Do not change runtime, datapack, protocol, database, assets, Lua behavior, Linux build implementation, or Docker build implementation.
 
 # Acceptance criteria
 
-- [x] Ordinary pull requests do not run `Build - Windows`.
-- [x] Pushes to `main` do not run `Build - Windows`.
-- [x] Manual `CI` dispatch exposes a `run_windows` boolean input, disabled by default.
-- [x] Manual dispatch with `run_windows=true` selects the existing Windows workflow.
-- [x] `Required` accepts a skipped Windows job unless Windows was explicitly selected.
-- [x] YAML and exact check-name logic are reviewed.
-- [ ] Current-head CI passes before merge.
+- [ ] `CI` has no Windows or macOS build caller job.
+- [ ] `workflow_dispatch` cannot select a Windows/macOS build.
+- [ ] `Required` evaluates only build jobs that can actually be selected by the workflow.
+- [ ] `Release` has no Windows or macOS build job.
+- [ ] Release artifact publishing does not request Windows/macOS build artifacts.
+- [ ] Linux and Docker build jobs remain active.
+- [ ] Reusable Windows/macOS workflow definitions remain unchanged and uncalled by `CI`/`Release`.
+- [ ] YAML parses successfully for both changed workflow files.
+- [ ] Exact emitted check names and final-head GitHub Actions runs are inspected before merge.
 
 ## Context checkpoint
 
 ```yaml
-checkpoint_version: 1
-updated_at: 2026-07-25T23:53:00+02:00
-head: e11abfb66f5a1109d78261c24ec3435a5ce9d9bd
-branch: ci/manual-windows-build-20260725
-pr: "946"
-status: validating
+checkpoint_version: 2
+updated_at: 2026-08-17T09:18:00+02:00
+base_head: d1b7c6c9abe58d8e4e192ece3bb143c7141573e4
+branch: ci/linux-docker-only-builds
+status: implementing
 context_routes:
   - agent-governance
-owned_paths:
-  - .github/workflows/ci.yml
-  - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
+  - ci
 proven:
-  - current CI invokes reusable-build-windows.yml through the build-windows job
-  - run_windows is a boolean workflow_dispatch input with default false
-  - build-windows now depends on the dedicated windows scope instead of full_matrix
-  - the Required aggregator maps build-windows to the dedicated windows scope
-  - PR run 30176156378 passed and Build - Windows was skipped while Required succeeded
-  - changed files are limited to ci.yml and this task record
-  - changed-task checkpoint validation passed on ownership runs 30176305440 and 30176394780
+  - PR 946 merged a manual opt-in Windows CI policy rather than disabling Windows completely
+  - current main CI still exposes workflow_dispatch input run_windows and can call reusable-build-windows.yml
+  - current main release workflow still contains build-windows and build-macos jobs
+  - current main release publishing still requests Windows and macOS artifacts
+  - macOS caller is already absent from the normal CI workflow
+  - stale CAN-20260712-required-ci-gate task corresponded to merged PR 197 and has been archived on this correction branch to release obsolete ci.yml ownership
 derived:
-  - pull requests and main pushes cannot select Windows because the windows scope is true only for workflow_dispatch with run_windows true
-  - Linux full_matrix behavior remains independent from the Windows selector
+  - the owner-requested Linux/Docker-only policy is not satisfied until both CI and Release stop invoking Windows/macOS builds
 unknown:
-  - post-merge manual run_windows true runtime evidence
+  - final-head GitHub Actions result after implementation
 conflicts: []
 rejected_hypotheses:
-  - keep Windows coupled to full_matrix and rely on path filters
-  - claim exclusive ownership of the shared primary CI workflow
+  - keep Windows available through manual workflow_dispatch
+  - remove only the CI Windows caller while leaving Windows/macOS release builds active
+  - delete reusable platform workflow definitions when disabling their callers is sufficient
 changed_paths:
-  - .github/workflows/ci.yml
+  - docs/agents/tasks/archive/CAN-20260712-required-ci-gate.md
+  - docs/agents/tasks/active/CAN-20260712-required-ci-gate.md
   - docs/agents/tasks/active/CAN-20260725-manual-windows-ci.md
-first_failure:
-  marker: active-ci-workflow-exclusive-ownership-overlap
-  evidence: Full active-task ownership validation still failed after checkpoint schema and required metadata passed; the primary CI workflow is therefore recorded as shared infrastructure rather than an exclusive task path
 validation:
-  - command: inspect PR diff and changed-file list
+  - command: fresh main/head and PR-state inspection
     result: PASS
-    evidence: PR 946 contains only ci.yml and the bounded task record
-  - command: CI pull_request run
-    result: PASS
-    evidence: run 30176156378; Required passed and Build - Windows was skipped
-  - command: active task ownership scope correction
-    result: PASS
-    evidence: only the task record remains exclusive and the primary CI workflow is declared shared
+    evidence: main d1b7c6c9abe58d8e4e192ece3bb143c7141573e4; PR 197 merged; PR 946 merged
 blockers: []
-next_action: Wait for exact-final-head CI and ownership, then squash-merge PR 946 without further commits.
+next_action: Open an early draft PR, implement CI/Release Linux-Docker-only callers, validate YAML and emitted checks.
 ```
