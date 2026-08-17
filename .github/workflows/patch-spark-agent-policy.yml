@@ -1,0 +1,45 @@
+name: Patch Spark agent policy
+
+on:
+  push:
+    branches:
+      - docs/spark-pre-review-policy-20260817
+    paths:
+      - .github/workflows/patch-spark-agent-policy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: docs/spark-pre-review-policy-20260817
+      - name: Patch root agent contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('AGENTS.md')
+          text = p.read_text(encoding='utf-8')
+          marker = '## Central Spark PR pre-review — standing owner authorization'
+          if marker not in text:
+              anchor = '## Owner-funded AI and credential budget — highest priority'
+              start = text.find(anchor)
+              if start < 0: raise SystemExit('owner-funded AI section not found')
+              next_heading = text.find('\n## ', start + len(anchor))
+              if next_heading < 0: raise SystemExit('next heading not found')
+              section = '''\n\n## Central Spark PR pre-review — standing owner authorization\n\n- The owner explicitly authorizes the central controller in `blakinio/github-projects-control` to perform recurring advisory PR pre-review for this repository using exactly `gpt-5.3-codex-spark` through ChatGPT-managed Codex authentication on its trusted private runner. This is a standing, bounded repository-automation exception to the owner-funded AI restriction above; it does **not** authorize repository agents to invoke Codex, OpenAI API, hosted Code Review, or any other AI service themselves.\n- The central controller may inspect only bounded PR metadata/diff text and may post only concrete P0/P1 findings. A clean Spark pass is intentionally silent. Target PR code is not checked out or executed by the Spark runner.\n- Keep a PR Draft while implementation is still in progress. Mark it Ready only when this repository's normal readiness rules already permit that transition. The controller considers only eligible ready, internal, non-bot, exact-head, green-CI, bounded changes.\n- Do not automatically request `@codex review`, enable hosted Codex Automatic Reviews, invoke Codex CLI, use `OPENAI_API_KEY`, or select another model/provider as a fallback. Any such direct AI use still requires separate explicit owner authorization for the current task/use.\n- Spark pre-review is advisory and does not replace self-review, required independent review, required checks, E2E/runtime evidence, branch protection, or any merge gate. Never infer that Spark ran or passed merely because no comment appeared. Do not delay or weaken a repository merge gate solely to manufacture Spark evidence.\n- If the central controller posts a P0/P1 finding before merge, treat it as an unresolved material review finding: address or explicitly disposition it under the repository's normal review rules, then rerun any validation invalidated by the resulting change.\n- `no-spark-review` opts a PR out of the central controller. `spark-review` may force consideration of an otherwise ignored path class, but it never bypasses draft, fork, bot, CI, exact-head, size, model, or safety fences.\n'''
+              text = text[:next_heading] + section + text[next_heading:]
+              p.write_text(text, encoding='utf-8')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add AGENTS.md
+          if git diff --cached --quiet; then echo NO_CHANGE; exit 0; fi
+          git commit -m 'docs(agents): document central Spark pre-review'
+          git push origin HEAD:docs/spark-pre-review-policy-20260817
