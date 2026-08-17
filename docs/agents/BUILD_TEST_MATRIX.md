@@ -16,16 +16,18 @@ Always verify current `CMakePresets.json` and workflows. Validation must be prop
 | Documentation/task records | Markdown/path review, `git diff --check` | Relevant docs/fast checks; no compilation |
 | Python/OTBM tool | Focused unit tests and bytecode compilation | Dedicated workflow and broader tool suite at milestone completion; compile Canary only when compiled integration changed |
 | Lua/XML/datapack | Validator/Lua tests and syntax/format checks | Runtime smoke when behavior changes; no C++ build unless compiled integration changed |
-| C++ implementation | Focused compile/test at the end of the coherent implementation milestone | Required Linux plus affected Windows validation |
-| CMake/dependency/toolchain/public header | Configure/build immediately enough to protect subsequent work | Clean or full affected-platform validation at milestone completion |
+| C++ implementation | Focused compile/test at the end of the coherent implementation milestone | Required Linux validation; Windows/macOS only under a separate explicit platform-validation task |
+| CMake/dependency/toolchain/public header | Configure/build immediately enough to protect subsequent work | Full applicable Linux/Docker validation at milestone completion |
 | DB/schema/migration | Import/parser, migration tests, rollback review | Temporary MariaDB integration and clean schema import |
 | Protocol/cross-repo | Server tests plus linked OTClient validation | Compatible client/server integration |
 | Deployment | Unit path/symlink/hash/rollback tests | Real Canary staging smoke |
 | CI workflow | YAML validation and exact check-name analysis | Observe emitted checks on PR; build only when the workflow selects it |
 
-## Canary macOS CI status
+## Automated CI and release build targets
 
-Canary macOS compilation is temporarily suspended. The reusable macOS workflow may remain in the repository for future re-enablement, but normal CI and the `Required` aggregator must not invoke or require it. Re-enabling macOS requires an explicit CI task that restores the caller, required-check logic and validation evidence.
+Canary automated compilation/build publication is restricted to **Linux and Docker**. Normal `CI`, manual `CI` dispatch, and `Release` must not invoke Windows or macOS build jobs.
+
+The reusable Windows and macOS workflows may remain in the repository as dormant definitions for future re-enablement. Re-enabling either platform requires an explicit CI policy task that restores the relevant caller, release dependency/artifact handling, required-check logic where applicable, and fresh validation evidence.
 
 ## Incremental pull-request validation
 
@@ -33,7 +35,9 @@ Heavy validation may reuse only the immediate parent's latest successful same-wo
 
 Current-head focused validation and stable `Required` aggregators remain active when heavy jobs are reused. Batch checkpoint and shared-document changes before the final gate. Apply the `ci:final-gate` PR label before the final task/checkpoint commit so that final `synchronize` event forces the full applicable validation set on the exact final head. Do not commit build-affecting changes after that gate is green; a later build-affecting commit must run the final gate again.
 
-## Known Windows release command
+## Local Windows command reference
+
+Automated CI/release does not run this command. Keep it only as a local reference for a future explicitly authorized Windows validation task.
 
 ```bat
 cmake --preset windows-release
